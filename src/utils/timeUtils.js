@@ -57,10 +57,10 @@ export const isTimeInRange = (currentTime, startTime, endTime) => {
 
   // Handle cases where end time is past midnight
   if (end < start) {
-    return current >= start || current < end;
+    return current >= start || current <= end;
   }
 
-  return current >= start && current < end;
+  return current >= start && current <= end;
 };
 
 /**

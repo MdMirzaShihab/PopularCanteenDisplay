@@ -17,7 +17,8 @@ const ScreenForm = ({ screen, onSubmit, onCancel }) => {
       layoutStyle: 'grid',
       showPrices: true,
       showIngredients: true,
-      transitionDuration: 500
+      transitionDuration: 500,
+      slideDelay: 5000
     }
   });
 
@@ -36,7 +37,8 @@ const ScreenForm = ({ screen, onSubmit, onCancel }) => {
           layoutStyle: 'grid',
           showPrices: true,
           showIngredients: true,
-          transitionDuration: 500
+          transitionDuration: 500,
+          slideDelay: 5000
         }
       });
     } else {
@@ -288,6 +290,27 @@ const ScreenForm = ({ screen, onSubmit, onCancel }) => {
             />
             <p className="mt-1 text-xs text-text-200">
               Duration for fade transitions when menu changes (0-2000ms)
+            </p>
+          </div>
+
+          {/* Slide Delay */}
+          <div>
+            <label htmlFor="slideDelay" className="block text-sm font-medium text-text-100 mb-2">
+              Slide Delay (ms)
+            </label>
+            <input
+              type="number"
+              id="slideDelay"
+              name="slideDelay"
+              value={formData.displaySettings.slideDelay}
+              onChange={handleDisplaySettingChange}
+              min="1000"
+              max="30000"
+              step="500"
+              className="w-full px-4 py-2 border border-bg-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-100 bg-bg-100 text-text-100"
+            />
+            <p className="mt-1 text-xs text-text-200">
+              How long each page displays before sliding to next (1000-30000ms)
             </p>
           </div>
         </div>

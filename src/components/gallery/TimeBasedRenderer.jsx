@@ -12,7 +12,7 @@ const TimeBasedRenderer = ({ screen, displaySettings }) => {
 
   // Carousel pagination state
   const [currentPage, setCurrentPage] = useState(0);
-  const [itemsPerPage, setItemsPerPage] = useState(8);
+  const itemsPerPage = 8; // Fixed 8 items per page
   const [isTransitioning, setIsTransitioning] = useState(false);
 
   // Track previous token to detect changes
@@ -20,19 +20,27 @@ const TimeBasedRenderer = ({ screen, displaySettings }) => {
 
   // Voice announcement when token changes
   useEffect(() => {
-    // Check if token exists and has changed
-    if (servingToken && servingToken.number !== prevTokenRef.current) {
-      // Only announce if this is not the first load (prevTokenRef.current is not null)
-      if (prevTokenRef.current !== null) {
-        // Announce the new token number
-        speakTokenNumber(servingToken.number);
+    const announceToken = async () => {
+      // Check if token exists and has changed
+      if (servingToken && servingToken.number !== prevTokenRef.current) {
+        // Only announce if this is not the first load (prevTokenRef.current is not null)
+        if (prevTokenRef.current !== null) {
+          // Announce the new token number
+          try {
+            await speakTokenNumber(servingToken.number);
+          } catch (error) {
+            // Silently handle errors
+          }
+        }
+        // Update the previous token reference
+        prevTokenRef.current = servingToken.number;
+      } else if (!servingToken) {
+        // Reset when token is cleared
+        prevTokenRef.current = null;
       }
-      // Update the previous token reference
-      prevTokenRef.current = servingToken.number;
-    } else if (!servingToken) {
-      // Reset when token is cleared
-      prevTokenRef.current = null;
-    }
+    };
+
+    announceToken();
   }, [servingToken]);
 
   // Update current menu based on time AND day using screen's own timeSlots
@@ -75,56 +83,6 @@ const TimeBasedRenderer = ({ screen, displaySettings }) => {
   // Filter only active items
   const activeItems = menuItems.filter(item => item.isActive);
 
-  // Calculate items per page based on viewport (Optimized for 55" displays)
-  useEffect(() => {
-    const calculateItemsPerPage = () => {
-      const viewportHeight = window.innerHeight;
-      const viewportWidth = window.innerWidth;
-
-      // More accurate measurements
-      const headerHeight = 100; // Reduced from 120 for more accurate measurement
-      const indicatorHeight = 40; // Reserve space for page indicators
-      const paddingVertical = 48; // Top and bottom padding (24px each)
-      const availableHeight = viewportHeight - headerHeight - indicatorHeight - paddingVertical;
-
-      if (displaySettings.layoutStyle === 'list') {
-        // List layout: More accurate item height measurement
-        const itemHeight = 165; // 160px (h-40 image = 10rem) + gap
-        const gap = 16; // gap-4 in list layout
-        // Account for gaps: (height + gap) / (itemHeight + gap)
-        const rows = Math.floor((availableHeight + gap) / (itemHeight + gap));
-        return Math.max(1, rows);
-      } else {
-        // Grid layout - calculate based on actual right panel width
-        const rightPanelWidth = viewportWidth * 0.65; // 65% for right panel on large screens
-
-        // Column calculation for larger displays (55" monitors)
-        let cols = 1;
-        if (rightPanelWidth >= 2000) cols = 5; // Ultra-wide 4K displays
-        else if (rightPanelWidth >= 1536) cols = 4; // 2xl
-        else if (rightPanelWidth >= 1280) cols = 3; // xl
-        else if (rightPanelWidth >= 768) cols = 2; // md
-
-        // Updated card height for optimized design: h-44 (176px) + content (~84px)
-        const cardHeight = 260; // 176 (image) + 84 (content with reduced padding)
-        const gap = 24; // gap-6 in grid layout
-        // Account for gaps between rows
-        const rows = Math.floor((availableHeight + gap) / (cardHeight + gap));
-
-        return Math.max(1, rows * cols);
-      }
-    };
-
-    const updateItemsPerPage = () => {
-      setItemsPerPage(calculateItemsPerPage());
-    };
-
-    updateItemsPerPage();
-    window.addEventListener('resize', updateItemsPerPage);
-
-    return () => window.removeEventListener('resize', updateItemsPerPage);
-  }, [displaySettings.layoutStyle]);
-
   // Auto-rotation carousel
   useEffect(() => {
     if (activeItems.length <= itemsPerPage) {
@@ -135,7 +93,7 @@ const TimeBasedRenderer = ({ screen, displaySettings }) => {
 
     const totalPages = Math.ceil(activeItems.length / itemsPerPage);
     const transitionDuration = displaySettings.transitionDuration || 500;
-    const displayDuration = 5000; // Show each page for 5 seconds
+    const displayDuration = displaySettings.slideDelay || 5000; // User-defined slide delay
     const totalCycleDuration = transitionDuration + displayDuration;
 
     const rotationInterval = setInterval(() => {
@@ -149,7 +107,7 @@ const TimeBasedRenderer = ({ screen, displaySettings }) => {
     }, totalCycleDuration);
 
     return () => clearInterval(rotationInterval);
-  }, [activeItems.length, itemsPerPage, displaySettings.transitionDuration]);
+  }, [activeItems.length, itemsPerPage, displaySettings.transitionDuration, displaySettings.slideDelay]);
 
   // Calculate visible items for current page
   const startIndex = currentPage * itemsPerPage;
@@ -294,8 +252,8 @@ const TimeBasedRenderer = ({ screen, displaySettings }) => {
             }}
           >
             {displaySettings.layoutStyle === 'list' ? (
-              <div className="max-w-5xl mx-auto space-y-4 h-full flex flex-col justify-center">
-                {visibleItems.map((item, index) => (
+              <div className="grid grid-cols-2 grid-rows-4 gap-4 mx-auto h-full content-center">
+                {visibleItems.map((item) => (
                   <div key={item.id}>
                     <MenuItemDisplay
                       item={item}
@@ -307,8 +265,8 @@ const TimeBasedRenderer = ({ screen, displaySettings }) => {
                 ))}
               </div>
             ) : (
-              <div className="grid grid-rows-2 grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mx-auto h-full content-center">
-                {visibleItems.map((item, index) => (
+              <div className="grid grid-rows-2 grid-cols-4 gap-6 mx-auto h-full content-center">
+                {visibleItems.map((item) => (
                   <div key={item.id}>
                     <MenuItemDisplay
                       item={item}
