@@ -1,6 +1,8 @@
 // Mock Data for Canteen Management Demo
 // All data stored here will be used as initial data and persisted to localStorage
 
+import { foodImages } from '../assets';
+
 // Generate unique ID helper
 const generateId = () => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
@@ -45,7 +47,7 @@ export const initialItems = [
     description: 'Aromatic basmati rice cooked with tender chicken, spices, and herbs',
     price: 180.00,
     ingredients: 'basmati rice, chicken, onions, yogurt, biryani masala, saffron, ghee',
-    image: '/src/assets/items/chicken-biryani.jpg',
+    image: foodImages.chickenBiryani,
     isActive: true,
     createdAt: '2024-01-20T09:00:00Z',
     updatedAt: '2024-01-20T09:00:00Z'
@@ -56,7 +58,7 @@ export const initialItems = [
     description: 'Traditional Dhaka-style mutton biryani with fragrant rice and succulent meat',
     price: 250.00,
     ingredients: 'basmati rice, mutton, yogurt, potatoes, fried onions, kewra water, spices',
-    image: '/src/assets/items/kacchi-biryani.jpeg',
+    image: foodImages.kacchiBiryani,
     isActive: true,
     createdAt: '2024-01-20T09:15:00Z',
     updatedAt: '2024-01-20T09:15:00Z'
@@ -67,7 +69,7 @@ export const initialItems = [
     description: 'Traditional Bengali rice and lentil dish, perfectly spiced and comforting',
     price: 100.00,
     ingredients: 'rice, moong dal, onions, ginger, turmeric, cumin, ghee',
-    image: '/src/assets/items/bhuna-khichuri.jpg',
+    image: foodImages.bhunaKhichuri,
     isActive: true,
     createdAt: '2024-01-20T09:30:00Z',
     updatedAt: '2024-01-20T09:30:00Z'
@@ -78,7 +80,7 @@ export const initialItems = [
     description: 'Home-style chicken curry served with steamed white rice',
     price: 120.00,
     ingredients: 'chicken, onions, tomatoes, garlic, ginger, curry spices, steamed rice',
-    image: '/src/assets/items/chicken-curry.jpg',
+    image: foodImages.chickenCurry,
     isActive: true,
     createdAt: '2024-01-20T09:45:00Z',
     updatedAt: '2024-01-20T09:45:00Z'
@@ -89,7 +91,7 @@ export const initialItems = [
     description: 'Slow-cooked tender beef curry with aromatic spices and steamed rice',
     price: 140.00,
     ingredients: 'beef, onions, tomatoes, ginger-garlic paste, garam masala, steamed rice',
-    image: '/src/assets/items/beef-curry.jpg',
+    image: foodImages.beefCurry,
     isActive: true,
     createdAt: '2024-01-20T10:00:00Z',
     updatedAt: '2024-01-20T10:00:00Z'
@@ -100,7 +102,7 @@ export const initialItems = [
     description: 'Stir-fried noodles with vegetables and your choice of chicken or egg',
     price: 90.00,
     ingredients: 'noodles, cabbage, carrots, capsicum, soy sauce, chicken/egg, spring onions',
-    image: '/src/assets/items/chinese-noodles.jpg',
+    image: foodImages.chineseNoodles,
     isActive: true,
     createdAt: '2024-01-20T10:15:00Z',
     updatedAt: '2024-01-20T10:15:00Z'
@@ -111,7 +113,7 @@ export const initialItems = [
     description: 'Flavorful fried rice with chicken pieces, vegetables, and soy sauce',
     price: 95.00,
     ingredients: 'rice, chicken, eggs, carrots, peas, soy sauce, spring onions',
-    image: '/src/assets/items/chicken-fried-rice.jpg',
+    image: foodImages.chickenFriedRice,
     isActive: true,
     createdAt: '2024-01-20T10:30:00Z',
     updatedAt: '2024-01-20T10:30:00Z'
@@ -122,7 +124,7 @@ export const initialItems = [
     description: 'Creamy pasta with vegetables and special white sauce',
     price: 110.00,
     ingredients: 'pasta, cream, garlic, vegetables, cheese, herbs, white sauce',
-    image: '/src/assets/items/pasta.png',
+    image: foodImages.pasta,
     isActive: true,
     createdAt: '2024-01-20T10:45:00Z',
     updatedAt: '2024-01-20T10:45:00Z'
@@ -133,7 +135,7 @@ export const initialItems = [
     description: 'Crispy golden fried chicken pieces, perfectly seasoned',
     price: 130.00,
     ingredients: 'chicken, flour, eggs, breadcrumbs, spices, garlic powder',
-    image: '/src/assets/items/fried-chicken.jpg',
+    image: foodImages.friedChicken,
     isActive: true,
     createdAt: '2024-01-20T11:00:00Z',
     updatedAt: '2024-01-20T11:00:00Z'
@@ -144,7 +146,7 @@ export const initialItems = [
     description: 'Crispy triangular pastry filled with spiced potatoes and vegetables',
     price: 15.00,
     ingredients: 'flour, potatoes, peas, onions, cumin, coriander, chili',
-    image: '/src/assets/items/singara.jpg',
+    image: foodImages.singara,
     isActive: true,
     createdAt: '2024-01-20T11:15:00Z',
     updatedAt: '2024-01-20T11:15:00Z'
@@ -155,7 +157,7 @@ export const initialItems = [
     description: 'Crispy fried snack filled with savory mixed vegetables',
     price: 15.00,
     ingredients: 'flour, cabbage, carrots, onions, vermicelli, spices',
-    image: '/src/assets/items/samucha.jpg',
+    image: foodImages.samucha,
     isActive: true,
     createdAt: '2024-01-20T11:30:00Z',
     updatedAt: '2024-01-20T11:30:00Z'
@@ -166,7 +168,7 @@ export const initialItems = [
     description: 'Traditional Bangladeshi milk tea with perfect blend of spices',
     price: 12.00,
     ingredients: 'tea leaves, milk, sugar, cardamom, ginger',
-    image: '/src/assets/items/cha.jpeg',
+    image: foodImages.cha,
     isActive: true,
     createdAt: '2024-01-20T11:45:00Z',
     updatedAt: '2024-01-20T11:45:00Z'
@@ -177,7 +179,7 @@ export const initialItems = [
     description: 'Refreshing iced coffee with milk and sugar',
     price: 60.00,
     ingredients: 'coffee, milk, sugar, ice, vanilla essence',
-    image: '/src/assets/items/cold-coffee.jpg',
+    image: foodImages.coldCoffee,
     isActive: true,
     createdAt: '2024-01-20T12:00:00Z',
     updatedAt: '2024-01-20T12:00:00Z'
@@ -188,7 +190,7 @@ export const initialItems = [
     description: 'Traditional yogurt-based drink with mint and spices, perfect with biryani',
     price: 30.00,
     ingredients: 'yogurt, mint leaves, green chili, mustard, black salt, cumin',
-    image: '/src/assets/items/borhani.jpg',
+    image: foodImages.borhani,
     isActive: true,
     createdAt: '2024-01-20T12:15:00Z',
     updatedAt: '2024-01-20T12:15:00Z'
@@ -199,7 +201,7 @@ export const initialItems = [
     description: 'Creamy rice pudding dessert with cardamom and nuts',
     price: 50.00,
     ingredients: 'rice flour, milk, sugar, cardamom, almonds, pistachios',
-    image: '/src/assets/items/firni.jpg',
+    image: foodImages.firni,
     isActive: true,
     createdAt: '2024-01-20T12:30:00Z',
     updatedAt: '2024-01-20T12:30:00Z'

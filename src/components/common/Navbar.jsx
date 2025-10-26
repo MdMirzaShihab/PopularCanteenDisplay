@@ -1,5 +1,6 @@
 import { LogOut, User, Menu } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { hospitalLogo } from '../../assets';
 
 const Navbar = ({ onMenuClick }) => {
   const { user, logout } = useAuth();
@@ -20,7 +21,7 @@ const Navbar = ({ onMenuClick }) => {
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center p-1.5 border border-bg-300">
               <img
-                src="/src/assets/Ref/PopularHospitalLogo.png"
+                src={hospitalLogo}
                 alt="Popular Medical College Hospital"
                 className="w-full h-full object-contain"
               />
