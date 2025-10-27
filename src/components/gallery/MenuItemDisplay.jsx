@@ -4,9 +4,9 @@ import { Sparkles } from 'lucide-react';
 const MenuItemDisplay = ({ item, showPrices, showIngredients, layoutStyle }) => {
   if (layoutStyle === 'list') {
     return (
-      <div className="group flex items-center gap-4 bg-bg-200/60 backdrop-blur-3xl rounded-xl p-3 shadow-md hover:shadow-2xl transition-all duration-300 border border-bg-300 hover:border-accent-100">
+      <div className="group flex items-center gap-4 bg-bg-200/60 backdrop-blur-3xl rounded-xl p-2 lg:p-3 shadow-md hover:shadow-2xl transition-all duration-300 border border-bg-300 hover:border-accent-100">
         {/* Image */}
-        <div className="flex-shrink-0 w-28 h-28 rounded-lg overflow-hidden shadow-md group-hover:shadow-xl transition-shadow">
+        <div className="flex-shrink-0 w-24 h-24 lg:w-28 lg:h-28 rounded-lg overflow-hidden shadow-md group-hover:shadow-xl transition-shadow">
           {item.image && (
             isVideoUrl(item.image) ? (
               <video
@@ -56,8 +56,8 @@ const MenuItemDisplay = ({ item, showPrices, showIngredients, layoutStyle }) => 
   // Grid layout - Premium Card Design (Optimized for 55" displays)
   return (
     <div className="group bg-bg-200/60 backdrop-blur-3xl rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-bg-300 hover:border-accent-100">
-      {/* Image Container - Optimized to h-32 for better 2-row layout */}
-      <div className="relative h-32 bg-gradient-to-br from-bg-100 to-bg-200 overflow-hidden">
+      {/* Image Container - Responsive height */}
+      <div className="relative h-24 xl:h-32 bg-gradient-to-br from-bg-100 to-bg-200 overflow-hidden">
         {item.image && (
           isVideoUrl(item.image) ? (
             <video
@@ -79,19 +79,19 @@ const MenuItemDisplay = ({ item, showPrices, showIngredients, layoutStyle }) => 
         {/* Overlay gradient for better text visibility */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
 
-        {/* Price Badge - Slightly smaller */}
+        {/* Price Badge - Responsive sizing */}
         {showPrices && (
           <div className="absolute top-2 right-2">
-            <div className="bg-gradient-to-br from-primary-100 to-primary-200 text-white px-3 py-1.5 rounded-lg shadow-lg backdrop-blur-sm">
-              <span className="text-base font-bold">৳ {item.price.toFixed(2)}</span>
+            <div className="bg-gradient-to-br from-primary-100 to-primary-200 text-white px-2.5 xl:px-3 py-1 xl:py-1.5 rounded-lg shadow-lg backdrop-blur-sm">
+              <span className="text-sm xl:text-base font-bold">৳ {item.price.toFixed(2)}</span>
             </div>
           </div>
         )}
       </div>
 
-      {/* Content - Reduced padding from p-5 to p-4 */}
-      <div className="p-4">
-        <h3 className="text-2xl font-bold text-text-100 mb-1.5 group-hover:text-primary-100 transition-colors line-clamp-1">
+      {/* Content - Responsive padding */}
+      <div className="p-3 xl:p-4">
+        <h3 className="text-xl xl:text-2xl font-bold text-text-100 mb-1.5 group-hover:text-primary-100 transition-colors line-clamp-1">
           {item.name}
         </h3>
 

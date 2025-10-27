@@ -231,7 +231,7 @@ const TimeBasedRenderer = ({ screen, displaySettings }) => {
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-3xl font-bold text-gray-900 mb-1">
-                  Food Menu
+                  {screen.title}
                 </h1>
               </div>
               <div className="flex items-center gap-2 px-4 py-2 bg-gray-100 rounded-lg">
@@ -252,7 +252,7 @@ const TimeBasedRenderer = ({ screen, displaySettings }) => {
             }}
           >
             {displaySettings.layoutStyle === 'list' ? (
-              <div className="grid grid-cols-2 grid-rows-4 gap-4 mx-auto h-full content-center">
+              <div className="grid grid-cols-2 grid-rows-4 gap-3 lg:gap-4 mx-auto h-full content-center">
                 {visibleItems.map((item) => (
                   <div key={item.id}>
                     <MenuItemDisplay
@@ -265,7 +265,7 @@ const TimeBasedRenderer = ({ screen, displaySettings }) => {
                 ))}
               </div>
             ) : (
-              <div className="grid grid-rows-2 grid-cols-4 gap-6 mx-auto h-full content-center">
+              <div className="grid grid-cols-2 grid-rows-4 xl:grid-cols-4 xl:grid-rows-2 gap-6 mx-auto h-full content-center">
                 {visibleItems.map((item) => (
                   <div key={item.id}>
                     <MenuItemDisplay
