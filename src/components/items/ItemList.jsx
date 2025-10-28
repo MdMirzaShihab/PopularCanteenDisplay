@@ -10,8 +10,7 @@ const ItemList = ({ items, onEdit, onDelete }) => {
     return items.filter(item => {
       // Search filter
       const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           item.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           item.ingredients.toLowerCase().includes(searchTerm.toLowerCase());
+                           item.description.toLowerCase().includes(searchTerm.toLowerCase());
 
       // Active filter
       const matchesActive = filterActive === 'all' ||

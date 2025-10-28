@@ -1,120 +1,70 @@
 import { isVideoUrl } from '../../utils/fileUtils';
-import { Sparkles } from 'lucide-react';
 
-const MenuItemDisplay = ({ item, showPrices, showIngredients, layoutStyle }) => {
-  if (layoutStyle === 'list') {
-    return (
-      <div className="group flex items-center gap-4 bg-bg-200/60 backdrop-blur-3xl rounded-xl p-2 lg:p-3 shadow-md hover:shadow-2xl transition-all duration-300 border border-bg-300 hover:border-accent-100">
-        {/* Image */}
-        <div className="flex-shrink-0 w-24 h-24 lg:w-28 lg:h-28 rounded-lg overflow-hidden shadow-md group-hover:shadow-xl transition-shadow">
-          {item.image && (
-            isVideoUrl(item.image) ? (
-              <video
-                src={item.image}
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                muted
-                loop
-                autoPlay
-              />
-            ) : (
-              <img
-                src={item.image}
-                alt={item.name}
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-              />
-            )
-          )}
-        </div>
-
-        {/* Content */}
-        <div className="flex-1 min-w-0">
-          <h3 className="text-xl font-bold text-text-100 mb-1 group-hover:text-primary-100 transition-colors line-clamp-1">
-            {item.name}
-          </h3>
-          {showIngredients && item.ingredients && (
-            <div className="flex items-start gap-1.5 mb-1">
-              <Sparkles className="w-3.5 h-3.5 text-accent-100 mt-0.5 flex-shrink-0" />
-              <p className="text-xs text-text-200 italic line-clamp-1">{item.ingredients}</p>
-            </div>
-          )}
-          <p className="text-sm text-text-100 leading-relaxed line-clamp-2">{item.description}</p>
-        </div>
-
-        {/* Price */}
-        {showPrices && (
-          <div className="flex-shrink-0 text-right">
-            <div className="bg-gradient-to-br from-primary-100 to-primary-200 text-white px-4 py-2 rounded-lg shadow-lg">
-              <p className="text-xs font-semibold uppercase tracking-wide opacity-90 mb-0.5">Price</p>
-              <span className="text-2xl font-black">৳ {item.price.toFixed(2)}</span>
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  // Grid layout - Premium Card Design (Optimized for 55" displays)
+const MenuItemDisplay = ({ item, showPrices }) => {
+  // Circular Image Card Design - Inspired by the reference image
   return (
-    <div className="group bg-bg-200/60 backdrop-blur-3xl rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-bg-300 hover:border-accent-100">
-      {/* Image Container - Responsive height */}
-      <div className="relative h-24 xl:h-32 bg-gradient-to-br from-bg-100 to-bg-200 overflow-hidden">
-        {item.image && (
-          isVideoUrl(item.image) ? (
-            <video
-              src={item.image}
-              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-              muted
-              loop
-              autoPlay
-            />
-          ) : (
-            <img
-              src={item.image}
-              alt={item.name}
-              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-            />
-          )
-        )}
+    <div className="group bg-white rounded-3xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100 h-full flex flex-col p-4 xl:p-6">
+      {/* Circular Image Container with Decorative Border */}
+      <div className="relative mx-auto mb-4 flex-shrink-0">
+        {/* Outer decorative ring */}
+        <div className="relative w-32 h-32 xl:w-40 xl:h-40">
+          {/* Border ring effect */}
+          <div className="absolute inset-0 rounded-full border-4 border-green-100 group-hover:border-green-300 transition-colors duration-300"></div>
+          
+          {/* Image circle */}
+          <div className="absolute inset-2 rounded-full overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 shadow-inner">
+            {item.image && (
+              isVideoUrl(item.image) ? (
+                <video
+                  src={item.image}
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                />
+              ) : (
+                <img
+                  src={item.image}
+                  alt={item.name}
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                />
+              )
+            )}
+            {/* Subtle overlay */}
+            <div className="absolute inset-0 bg-black/5 group-hover:bg-black/0 transition-colors"></div>
+          </div>
+        </div>
 
-        {/* Overlay gradient for better text visibility */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-
-        {/* Price Badge - Responsive sizing */}
+        {/* Price Badge - Positioned on top right of circle */}
         {showPrices && (
-          <div className="absolute top-2 right-2">
-            <div className="bg-gradient-to-br from-primary-100 to-primary-200 text-white px-2.5 xl:px-3 py-1 xl:py-1.5 rounded-lg shadow-lg backdrop-blur-sm">
-              <span className="text-sm xl:text-base font-bold">৳ {item.price.toFixed(2)}</span>
+          <div className="absolute -top-2 -right-2 xl:-top-3 xl:-right-3">
+            <div className="bg-gradient-to-br from-green-500 to-green-600 text-white px-3 py-1.5 xl:px-4 xl:py-2 rounded-full shadow-lg">
+              <span className="text-sm xl:text-base font-bold font-heading">৳{item.price.toFixed(0)}</span>
             </div>
           </div>
         )}
       </div>
 
-      {/* Content - Responsive padding */}
-      <div className="p-3 xl:p-4">
-        <h3 className="text-xl xl:text-2xl font-bold text-text-100 mb-1.5 group-hover:text-primary-100 transition-colors line-clamp-1">
+      {/* Content Section */}
+      <div className="flex-1 flex flex-col text-center">
+        {/* Green decorative line - matching the reference image */}
+        <div className="w-12 h-1 bg-gradient-to-r from-green-400 to-green-500 mx-auto mb-3 rounded-full"></div>
+        
+        <h3 className="text-lg xl:text-xl font-bold text-gray-900 mb-2 group-hover:text-green-600 transition-colors break-words font-display leading-tight px-2">
           {item.name}
         </h3>
-
-        <p className="text-sm text-text-100 mb-2 line-clamp-2 leading-relaxed">
+        
+        {/* Description lines - subtle and minimal like the reference */}
+        <div className="space-y-1 mb-2">
+          <div className="h-0.5 bg-gray-200 w-3/4 mx-auto rounded"></div>
+          <div className="h-0.5 bg-gray-200 w-2/3 mx-auto rounded"></div>
+          <div className="h-0.5 bg-gray-200 w-1/2 mx-auto rounded"></div>
+        </div>
+        
+        <p className="text-xs xl:text-sm text-gray-600 line-clamp-2 leading-relaxed font-body px-2">
           {item.description}
         </p>
-
-        {showIngredients && item.ingredients && (
-          <div className="pt-2 border-t border-bg-300">
-            <div className="flex items-start gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-accent-100 mt-0.5 flex-shrink-0" />
-              <div className="flex-1">
-                <p className="text-xs font-semibold text-text-200 uppercase tracking-wide mb-0.5">Ingredients</p>
-                <p className="text-xs text-text-200 line-clamp-2 italic">{item.ingredients}</p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Hover indicator - Reduced margin */}
-        <div className="mt-3 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-          <div className="h-1 w-16 bg-gradient-to-r from-accent-100 to-accent-200 rounded-full"></div>
-        </div>
       </div>
     </div>
   );

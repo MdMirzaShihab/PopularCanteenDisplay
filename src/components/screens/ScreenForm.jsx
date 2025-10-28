@@ -9,14 +9,17 @@ const ScreenForm = ({ screen, onSubmit, onCancel }) => {
   const [activeTab, setActiveTab] = useState('basic');
   const [formData, setFormData] = useState({
     title: '',
+    screenId: '',
     defaultMenuId: '',
     timeSlots: [],
     backgroundType: 'image',
     backgroundMedia: null,
+    foregroundMedia: null,
     displaySettings: {
-      layoutStyle: 'grid',
+      orientation: 'landscape',
+      foregroundMediaDisplay: 'off',
+      tokenWindow: 'on',
       showPrices: true,
-      showIngredients: true,
       transitionDuration: 500,
       slideDelay: 5000
     }
@@ -29,14 +32,17 @@ const ScreenForm = ({ screen, onSubmit, onCancel }) => {
     if (screen) {
       setFormData({
         title: screen.title || '',
+        screenId: screen.screenId || '',
         defaultMenuId: screen.defaultMenuId || '',
         timeSlots: screen.timeSlots || [],
         backgroundType: screen.backgroundType || 'image',
         backgroundMedia: screen.backgroundMedia || null,
+        foregroundMedia: screen.foregroundMedia || null,
         displaySettings: screen.displaySettings || {
-          layoutStyle: 'grid',
+          orientation: 'landscape',
+          foregroundMediaDisplay: 'off',
+          tokenWindow: 'on',
           showPrices: true,
-          showIngredients: true,
           transitionDuration: 500,
           slideDelay: 5000
         }
@@ -66,19 +72,43 @@ const ScreenForm = ({ screen, onSubmit, onCancel }) => {
 
   const handleDisplaySettingChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      displaySettings: {
+    const newValue = type === 'checkbox' ? checked : value;
+
+    setFormData(prev => {
+      const updatedSettings = {
         ...prev.displaySettings,
-        [name]: type === 'checkbox' ? checked : value
+        [name]: newValue
+      };
+
+      // Validation: If foreground media is fullScreen, token must be off
+      if (name === 'foregroundMediaDisplay' && newValue === 'fullScreen') {
+        updatedSettings.tokenWindow = 'off';
       }
-    }));
+      // Validation: If token is on/large, foreground media cannot be fullScreen
+      if (name === 'tokenWindow' && (newValue === 'on' || newValue === 'large')) {
+        if (prev.displaySettings.foregroundMediaDisplay === 'fullScreen') {
+          updatedSettings.foregroundMediaDisplay = 'off';
+        }
+      }
+
+      return {
+        ...prev,
+        displaySettings: updatedSettings
+      };
+    });
   };
 
   const handleBackgroundChange = (base64) => {
     setFormData(prev => ({ ...prev, backgroundMedia: base64 }));
     if (errors.backgroundMedia) {
       setErrors(prev => ({ ...prev, backgroundMedia: null }));
+    }
+  };
+
+  const handleForegroundMediaChange = (base64) => {
+    setFormData(prev => ({ ...prev, foregroundMedia: base64 }));
+    if (errors.foregroundMedia) {
+      setErrors(prev => ({ ...prev, foregroundMedia: null }));
     }
   };
 
@@ -162,6 +192,28 @@ const ScreenForm = ({ screen, onSubmit, onCancel }) => {
             />
             {errors.title && <p className="mt-1 text-sm text-accent-200">{errors.title}</p>}
           </div>
+
+          {/* Screen ID */}
+          <div>
+            <label htmlFor="screenId" className="block text-sm font-medium text-text-100 mb-2">
+              Screen ID *
+            </label>
+            <input
+              type="text"
+              id="screenId"
+              name="screenId"
+              value={formData.screenId}
+              onChange={handleChange}
+              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-100 bg-bg-100 text-text-100 ${
+                errors.screenId ? 'border-accent-200' : 'border-bg-300'
+              }`}
+              placeholder="e.g., SCREEN-001, HALL-A-01, DISPLAY-CAFETERIA"
+            />
+            <p className="mt-1 text-xs text-text-200">
+              Unique identifier for this screen (used for tracking and management)
+            </p>
+            {errors.screenId && <p className="mt-1 text-sm text-accent-200">{errors.screenId}</p>}
+          </div>
         </div>
       )}
 
@@ -209,6 +261,16 @@ const ScreenForm = ({ screen, onSubmit, onCancel }) => {
       {/* Background Tab */}
       {activeTab === 'background' && (
         <div className="space-y-4">
+          <div className="p-3 bg-primary-100/10 border border-primary-100/30 rounded-lg">
+            <p className="text-xs text-text-100">
+              <strong>⚠️ Important:</strong> To avoid storage limits, please compress media files before uploading:
+            </p>
+            <ul className="text-xs text-text-200 mt-2 ml-4 list-disc space-y-1">
+              <li>Images: Compress to under 500KB (use tools like TinyPNG or Squoosh)</li>
+              <li>Videos: Keep under 30 seconds and compress to under 2MB</li>
+              <li>Recommended resolution: 1920x1080 (16:9 aspect ratio)</li>
+            </ul>
+          </div>
           <ImageUpload
             value={formData.backgroundMedia}
             onChange={handleBackgroundChange}
@@ -216,30 +278,107 @@ const ScreenForm = ({ screen, onSubmit, onCancel }) => {
             label="Background Image/Video *"
           />
           {errors.backgroundMedia && <p className="mt-1 text-sm text-accent-200">{errors.backgroundMedia}</p>}
-          <p className="text-xs text-text-200">
-            Recommended: 1920x1080 (16:9 aspect ratio) for optimal display
-          </p>
         </div>
       )}
 
       {/* Display Settings Tab */}
       {activeTab === 'display' && (
         <div className="space-y-6">
-          {/* Layout Style */}
+          {/* Screen Orientation */}
           <div>
-            <label htmlFor="layoutStyle" className="block text-sm font-medium text-text-100 mb-2">
-              Layout Style
+            <label htmlFor="orientation" className="block text-sm font-medium text-text-100 mb-2">
+              Screen Orientation
             </label>
             <select
-              id="layoutStyle"
-              name="layoutStyle"
-              value={formData.displaySettings.layoutStyle}
+              id="orientation"
+              name="orientation"
+              value={formData.displaySettings.orientation}
               onChange={handleDisplaySettingChange}
               className="w-full px-4 py-2 border border-bg-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-100 bg-bg-100 text-text-100"
             >
-              <option value="grid">Grid Layout</option>
-              <option value="list">List Layout</option>
+              <option value="landscape">Landscape (Horizontal)</option>
+              <option value="portrait">Portrait (Vertical)</option>
             </select>
+            <p className="mt-1 text-xs text-text-200">
+              Choose the screen orientation for optimal display layout
+            </p>
+          </div>
+
+          {/* Foreground Media Upload */}
+          <div className="space-y-3 pt-4 border-t border-bg-300">
+            <h3 className="text-sm font-semibold text-text-100">Foreground Media (Overlay)</h3>
+            <p className="text-xs text-text-200">
+              Upload media to play on top of the menu display (e.g., promotional videos, announcements)
+            </p>
+            <div className="p-3 bg-primary-100/10 border border-primary-100/30 rounded-lg">
+              <p className="text-xs text-text-200">
+                <strong>💡 Tip:</strong> Keep files small to avoid storage limits (compress images to &lt;500KB, videos to &lt;2MB)
+              </p>
+            </div>
+            <ImageUpload
+              value={formData.foregroundMedia}
+              onChange={handleForegroundMediaChange}
+              accept="image/*,video/*"
+              label="Upload Foreground Media"
+            />
+            {errors.foregroundMedia && <p className="mt-1 text-sm text-accent-200">{errors.foregroundMedia}</p>}
+          </div>
+
+          {/* Foreground Media Display Mode */}
+          <div>
+            <label htmlFor="foregroundMediaDisplay" className="block text-sm font-medium text-text-100 mb-2">
+              Foreground Media Display
+            </label>
+            <select
+              id="foregroundMediaDisplay"
+              name="foregroundMediaDisplay"
+              value={formData.displaySettings.foregroundMediaDisplay}
+              onChange={handleDisplaySettingChange}
+              className="w-full px-4 py-2 border border-bg-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-100 bg-bg-100 text-text-100"
+            >
+              <option value="off">Off - Hide foreground media</option>
+              <option value="on">On - Show in small window (20%)</option>
+              <option value="fullScreen">Full Screen - Use full screen</option>
+            </select>
+            <p className="mt-1 text-xs text-text-200">
+              Controls how the foreground media is displayed (only applies if media is uploaded)
+            </p>
+            {formData.displaySettings.foregroundMediaDisplay === 'fullScreen' && (
+              <div className="mt-2 p-2 bg-yellow-100 border border-yellow-300 rounded-lg">
+                <p className="text-xs text-yellow-800">
+                  ⚠️ Full Screen mode automatically disables the token window
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Token Window State */}
+          <div>
+            <label htmlFor="tokenWindow" className="block text-sm font-medium text-text-100 mb-2">
+              Token Window Display
+            </label>
+            <select
+              id="tokenWindow"
+              name="tokenWindow"
+              value={formData.displaySettings.tokenWindow}
+              onChange={handleDisplaySettingChange}
+              disabled={formData.displaySettings.foregroundMediaDisplay === 'fullScreen'}
+              className="w-full px-4 py-2 border border-bg-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-100 bg-bg-100 text-text-100 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <option value="off">Off - Hidden (menu only)</option>
+              <option value="on">On - Standard size (10% width)</option>
+              <option value="large">Large - Expanded (40% width)</option>
+            </select>
+            <p className="mt-1 text-xs text-text-200">
+              Controls the visibility and size of the token queue panel
+            </p>
+            {formData.displaySettings.foregroundMediaDisplay === 'fullScreen' && (
+              <div className="mt-2 p-2 bg-gray-100 border border-gray-300 rounded-lg">
+                <p className="text-xs text-gray-600">
+                  Token window is disabled when foreground media is in full screen mode
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Show Prices */}
@@ -257,25 +396,10 @@ const ScreenForm = ({ screen, onSubmit, onCancel }) => {
             </label>
           </div>
 
-          {/* Show Ingredients */}
-          <div className="flex items-center gap-3">
-            <input
-              type="checkbox"
-              id="showIngredients"
-              name="showIngredients"
-              checked={formData.displaySettings.showIngredients}
-              onChange={handleDisplaySettingChange}
-              className="w-4 h-4 text-primary-100 border-bg-300 rounded focus:ring-primary-100"
-            />
-            <label htmlFor="showIngredients" className="text-sm font-medium text-text-100">
-              Show item ingredients
-            </label>
-          </div>
-
           {/* Transition Duration */}
-          <div>
+          <div className="pt-4 border-t border-bg-300">
             <label htmlFor="transitionDuration" className="block text-sm font-medium text-text-100 mb-2">
-              Transition Duration (ms)
+              Page Transition Duration (ms)
             </label>
             <input
               type="number"
@@ -289,14 +413,14 @@ const ScreenForm = ({ screen, onSubmit, onCancel }) => {
               className="w-full px-4 py-2 border border-bg-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-100 bg-bg-100 text-text-100"
             />
             <p className="mt-1 text-xs text-text-200">
-              Duration for fade transitions when menu changes (0-2000ms)
+              Duration for fade transitions between pages (0-2000ms)
             </p>
           </div>
 
           {/* Slide Delay */}
           <div>
             <label htmlFor="slideDelay" className="block text-sm font-medium text-text-100 mb-2">
-              Slide Delay (ms)
+              Page Display Duration (ms)
             </label>
             <input
               type="number"
@@ -310,7 +434,7 @@ const ScreenForm = ({ screen, onSubmit, onCancel }) => {
               className="w-full px-4 py-2 border border-bg-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-100 bg-bg-100 text-text-100"
             />
             <p className="mt-1 text-xs text-text-200">
-              How long each page displays before sliding to next (1000-30000ms)
+              How long each page displays before automatically sliding to next (1000-30000ms)
             </p>
           </div>
         </div>

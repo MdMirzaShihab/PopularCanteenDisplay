@@ -7,7 +7,6 @@ const ItemForm = ({ item, onSubmit, onCancel }) => {
     name: '',
     description: '',
     price: '',
-    ingredients: '',
     image: null,
     isActive: true
   });
@@ -21,7 +20,6 @@ const ItemForm = ({ item, onSubmit, onCancel }) => {
         name: item.name || '',
         description: item.description || '',
         price: item.price || '',
-        ingredients: item.ingredients || '',
         image: item.image || null,
         isActive: item.isActive !== undefined ? item.isActive : true
       });
@@ -131,25 +129,6 @@ const ItemForm = ({ item, onSubmit, onCancel }) => {
           placeholder="9.99"
         />
         {errors.price && <p className="mt-1 text-sm text-accent-200">{errors.price}</p>}
-      </div>
-
-      {/* Ingredients */}
-      <div>
-        <label htmlFor="ingredients" className="input-label">
-          Ingredients (comma-separated) *
-        </label>
-        <input
-          type="text"
-          id="ingredients"
-          name="ingredients"
-          value={formData.ingredients}
-          onChange={handleChange}
-          className={`input-field ${
-            errors.ingredients ? 'border-accent-200' : ''
-          }`}
-          placeholder="beef, lettuce, tomato, cheese"
-        />
-        {errors.ingredients && <p className="mt-1 text-sm text-accent-200">{errors.ingredients}</p>}
       </div>
 
       {/* Image Upload */}

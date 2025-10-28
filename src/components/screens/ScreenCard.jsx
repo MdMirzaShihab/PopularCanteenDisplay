@@ -1,13 +1,15 @@
 import { Edit2, Trash2, ExternalLink, Monitor, Copy } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useData } from '../../context/DataContext';
 import { isVideoUrl } from '../../utils/fileUtils';
 
 const ScreenCard = ({ screen, onEdit, onDelete, onDuplicate }) => {
   const { getScheduleById } = useData();
+  const navigate = useNavigate();
   const schedule = getScheduleById(screen.scheduleId);
 
   const handlePreview = () => {
-    window.open(`/gallery/${screen.id}`, '_blank');
+    navigate(`/gallery/${screen.id}`);
   };
 
   return (
@@ -19,7 +21,10 @@ const ScreenCard = ({ screen, onEdit, onDelete, onDuplicate }) => {
             <video
               src={screen.backgroundMedia}
               className="w-full h-full object-cover opacity-80 group-hover:scale-110 transition-transform duration-700"
+              autoPlay
               muted
+              loop
+              playsInline
             />
           ) : (
             <img

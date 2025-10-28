@@ -12,9 +12,13 @@ import friedChicken from './fried-chicken.jpg';
 import singara from './singara.jpg';
 import samucha from './samucha.jpg';
 import cha from './cha.jpeg';
+import tea from './Tea.mp4';
+import pizza from './Pizza.mp4';
 import coldCoffee from './cold-coffee.jpg';
+import Coffee from './coffee-morning.gif';
 import borhani from './borhani.jpg';
 import firni from './firni.jpg';
+
 
 // Export as named object for easy access
 export const foodImages = {
@@ -31,6 +35,9 @@ export const foodImages = {
   samucha,
   cha,
   coldCoffee,
+  Coffee,
   borhani,
-  firni
+  firni,
+  tea,
+  pizza
 };

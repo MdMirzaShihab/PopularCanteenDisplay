@@ -27,7 +27,7 @@ const GalleryDisplay = ({ screen }) => {
 
   return (
     <div className="fixed inset-0 overflow-auto">
-      {/* Background */}
+      {/* Background - Visible through frosted glass content */}
       <div className="fixed inset-0 z-0">
         {screen.backgroundMedia && (
           isVideoUrl(screen.backgroundMedia) ? (
@@ -47,7 +47,7 @@ const GalleryDisplay = ({ screen }) => {
             />
           )
         )}
-        <div className="absolute inset-0 bg-black bg-opacity-40"></div>
+        <div className="absolute inset-0 bg-black bg-opacity-20"></div>
       </div>
 
       {/* Content */}

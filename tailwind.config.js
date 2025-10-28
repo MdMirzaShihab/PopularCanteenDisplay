@@ -9,6 +9,14 @@ export default {
       screens: {
         '3xl': '2000px', // Ultra-wide displays (55" 4K monitors)
       },
+      fontFamily: {
+        'heading': ['Bebas Neue', 'sans-serif'],      // Bold, chunky all-caps headers
+        'script': ['Pacifico', 'cursive'],            // Stylish script/handwritten
+        'display': ['Righteous', 'cursive'],          // Eye-catching display font
+        'marker': ['Permanent Marker', 'cursive'],    // Casual marker style
+        'handwritten': ['Kalam', 'cursive'],          // Handwritten look
+        'body': ['Poppins', 'sans-serif'],            // Clean body text
+      },
       colors: {
         white: '#FFFFFF',
         primary: {

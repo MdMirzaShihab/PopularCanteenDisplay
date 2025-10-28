@@ -26,10 +26,6 @@ export const validateItem = (itemData) => {
     errors.price = 'Price must be a valid positive number';
   }
 
-  if (!itemData.ingredients || itemData.ingredients.trim().length === 0) {
-    errors.ingredients = 'Ingredients are required';
-  }
-
   if (!itemData.image) {
     errors.image = 'Item image is required';
   }
@@ -100,6 +96,10 @@ export const validateScreen = (screenData) => {
     errors.title = 'Screen title is required';
   }
 
+  if (!screenData.screenId || screenData.screenId.trim().length === 0) {
+    errors.screenId = 'Screen ID is required';
+  }
+
   if (!screenData.defaultMenuId) {
     errors.defaultMenuId = 'Default menu is required';
   }
@@ -111,6 +111,8 @@ export const validateScreen = (screenData) => {
   if (!screenData.backgroundMedia) {
     errors.backgroundMedia = 'Background image/video is required';
   }
+
+  // Foreground media is optional, no validation needed
 
   return {
     isValid: Object.keys(errors).length === 0,

@@ -168,18 +168,18 @@ export const initialItems = [
     description: 'Traditional Bangladeshi milk tea with perfect blend of spices',
     price: 12.00,
     ingredients: 'tea leaves, milk, sugar, cardamom, ginger',
-    image: foodImages.cha,
+    image: foodImages.tea,
     isActive: true,
     createdAt: '2024-01-20T11:45:00Z',
     updatedAt: '2024-01-20T11:45:00Z'
   },
   {
     id: 'item-013',
-    name: 'Cold Coffee',
-    description: 'Refreshing iced coffee with milk and sugar',
+    name: 'Coffee',
+    description: 'Refreshing coffee with milk and sugar',
     price: 60.00,
     ingredients: 'coffee, milk, sugar, ice, vanilla essence',
-    image: foodImages.coldCoffee,
+    image: foodImages.Coffee,
     isActive: true,
     createdAt: '2024-01-20T12:00:00Z',
     updatedAt: '2024-01-20T12:00:00Z'
@@ -195,8 +195,19 @@ export const initialItems = [
     createdAt: '2024-01-20T12:15:00Z',
     updatedAt: '2024-01-20T12:15:00Z'
   },
-  {
+    {
     id: 'item-015',
+    name: 'Pizza',
+    description: 'Italian Pizza with chicken topings',
+    price: 120.00,
+    ingredients: 'yogurt, mint leaves, green chili, mustard, black salt, cumin',
+    image: foodImages.pizza,
+    isActive: true,
+    createdAt: '2024-01-20T12:15:00Z',
+    updatedAt: '2024-01-20T12:15:00Z'
+  },
+  {
+    id: 'item-016',
     name: 'Firni',
     description: 'Creamy rice pudding dessert with cardamom and nuts',
     price: 50.00,
@@ -231,6 +242,14 @@ export const initialMenus = [
     title: 'Dinner Menu',
     description: 'End your day with our premium dinner selections',
     itemIds: ['item-004', 'item-005', 'item-003', 'item-009'],
+    createdAt: '2024-01-21T08:30:00Z',
+    updatedAt: '2024-01-21T08:30:00Z'
+  },
+  {
+    id: 'menu-004',
+    title: 'All Item',
+    description: 'Test Menu',
+    itemIds: ['item-001', 'item-002', 'item-003', 'item-004', 'item-005', 'item-006', 'item-007', 'item-008', 'item-009', 'item-010', 'item-011', 'item-012', 'item-013', 'item-014', 'item-015', 'item-016' ],
     createdAt: '2024-01-21T08:30:00Z',
     updatedAt: '2024-01-21T08:30:00Z'
   }

@@ -11,8 +11,10 @@ const ItemCard = ({ item, onEdit, onDelete }) => {
             <video
               src={item.image}
               className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+              autoPlay
               muted
               loop
+              playsInline
             />
           ) : (
             <img
@@ -45,13 +47,6 @@ const ItemCard = ({ item, onEdit, onDelete }) => {
       <div className="p-4">
         <h3 className="text-xl font-bold text-text-100 mb-2 group-hover:text-primary-100 transition-colors line-clamp-1">{item.name}</h3>
         <p className="text-sm text-text-100 mb-3 line-clamp-2 leading-relaxed">{item.description}</p>
-
-        {item.ingredients && (
-          <div className="mb-4 pt-3 border-t border-bg-300">
-            <p className="text-xs font-semibold text-text-200 uppercase tracking-wide mb-1">Ingredients</p>
-            <p className="text-xs text-text-200 line-clamp-2 italic">{item.ingredients}</p>
-          </div>
-        )}
 
         {/* Actions */}
         <div className="flex gap-2 mt-4">

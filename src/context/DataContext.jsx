@@ -56,27 +56,79 @@ export const DataProvider = ({ children }) => {
 
   // Persist to localStorage whenever data changes
   useEffect(() => {
-    localStorage.setItem('canteen_items', JSON.stringify(items));
+    try {
+      localStorage.setItem('canteen_items', JSON.stringify(items));
+    } catch (error) {
+      if (error.name === 'QuotaExceededError') {
+        console.error('Storage quota exceeded for items. Consider reducing image sizes or using fewer items.');
+      } else {
+        console.error('Error saving items to localStorage:', error);
+      }
+    }
   }, [items]);
 
   useEffect(() => {
-    localStorage.setItem('canteen_menus', JSON.stringify(menus));
+    try {
+      localStorage.setItem('canteen_menus', JSON.stringify(menus));
+    } catch (error) {
+      if (error.name === 'QuotaExceededError') {
+        console.error('Storage quota exceeded for menus.');
+      } else {
+        console.error('Error saving menus to localStorage:', error);
+      }
+    }
   }, [menus]);
 
   useEffect(() => {
-    localStorage.setItem('canteen_schedules', JSON.stringify(schedules));
+    try {
+      localStorage.setItem('canteen_schedules', JSON.stringify(schedules));
+    } catch (error) {
+      if (error.name === 'QuotaExceededError') {
+        console.error('Storage quota exceeded for schedules.');
+      } else {
+        console.error('Error saving schedules to localStorage:', error);
+      }
+    }
   }, [schedules]);
 
   useEffect(() => {
-    localStorage.setItem('canteen_screens', JSON.stringify(screens));
+    try {
+      localStorage.setItem('canteen_screens', JSON.stringify(screens));
+    } catch (error) {
+      if (error.name === 'QuotaExceededError') {
+        console.error('Storage quota exceeded for screens. Media files are too large for localStorage.');
+        alert('Storage limit exceeded! Screen media files are too large. Please use smaller images/videos (recommended: compress images to under 500KB and limit videos to 30 seconds).');
+      } else {
+        console.error('Error saving screens to localStorage:', error);
+      }
+    }
   }, [screens]);
 
   useEffect(() => {
-    localStorage.setItem('canteen_logs', JSON.stringify(activityLogs));
+    try {
+      localStorage.setItem('canteen_logs', JSON.stringify(activityLogs));
+    } catch (error) {
+      if (error.name === 'QuotaExceededError') {
+        console.error('Storage quota exceeded for logs. Clearing old logs...');
+        // Keep only last 50 logs
+        const trimmedLogs = activityLogs.slice(0, 50);
+        setActivityLogs(trimmedLogs);
+      } else {
+        console.error('Error saving logs to localStorage:', error);
+      }
+    }
   }, [activityLogs]);
 
   useEffect(() => {
-    localStorage.setItem('canteen_token_history', JSON.stringify(tokenHistory));
+    try {
+      localStorage.setItem('canteen_token_history', JSON.stringify(tokenHistory));
+    } catch (error) {
+      if (error.name === 'QuotaExceededError') {
+        console.error('Storage quota exceeded for token history.');
+      } else {
+        console.error('Error saving token history to localStorage:', error);
+      }
+    }
   }, [tokenHistory]);
 
   // Listen for storage changes from other tabs/windows (for real-time token updates across screens)

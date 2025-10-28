@@ -38,8 +38,6 @@ const GalleryPage = () => {
               <Link
                 key={screen.id}
                 to={`/gallery/${screen.id}`}
-                target="_blank"
-                rel="noopener noreferrer"
                 className="group bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-bg-300 hover:border-accent-100"
               >
                 {/* Preview */}
@@ -116,11 +114,12 @@ const GalleryPage = () => {
           How to Use Gallery Displays
         </h3>
         <ul className="list-disc list-inside space-y-2 text-sm text-text-100">
-          <li>Click on any screen card to open it in a new tab</li>
-          <li>The display will automatically show the correct menu based on the current time</li>
+          <li>Click on any screen card to open it in fullscreen display mode</li>
+          <li>The display will automatically enter fullscreen and show edge-to-edge content</li>
+          <li>The menu automatically shows the correct items based on the current time</li>
           <li>The menu updates every minute according to the schedule</li>
-          <li>Perfect for full-screen displays on restaurant monitors or TVs</li>
-          <li>Press F11 in the gallery view for true full-screen mode</li>
+          <li>Press ESC key to exit fullscreen mode and return to the gallery</li>
+          <li>Perfect for restaurant monitors or TV displays</li>
         </ul>
       </div>
     </div>

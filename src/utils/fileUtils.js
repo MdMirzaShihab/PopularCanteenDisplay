@@ -109,13 +109,19 @@ export const validateMediaFile = (file) => {
 };
 
 /**
- * Check if a data URL is a video
- * @param {string} dataUrl - Base64 data URL
+ * Check if a URL or data URL is a video
+ * @param {string} url - Base64 data URL or file URL
  * @returns {boolean} - Whether it's a video
  */
-export const isVideoUrl = (dataUrl) => {
-  if (!dataUrl) return false;
-  return dataUrl.startsWith('data:video/');
+export const isVideoUrl = (url) => {
+  if (!url) return false;
+
+  // Check for data URL format (base64 uploads)
+  if (url.startsWith('data:video/')) return true;
+
+  // Check for video file extensions (imported assets and regular URLs)
+  const videoExtensions = ['.mp4', '.webm', '.mov', '.avi', '.ogg', '.m4v'];
+  return videoExtensions.some(ext => url.toLowerCase().includes(ext));
 };
 
 /**

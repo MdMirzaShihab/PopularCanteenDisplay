@@ -5,4 +5,4 @@
 export { foodImages } from './items';
 
 // Logo and branding
-export { default as hospitalLogo } from './Ref/PopularHospitalLogo.png';
+export { default as hospitalLogo } from './PopularHospitalLogo.png';

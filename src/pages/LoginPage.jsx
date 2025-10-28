@@ -68,7 +68,7 @@ const LoginPage = () => {
             />
           </div>
           <h1 className="text-4xl font-bold text-white mb-3">Popular Medical College Hospital</h1>
-          <p className="text-2xl font-semibold text-white mb-2">Canteen Management System</p>
+          <p className="text-2xl font-semibold text-white mb-2">Food Display System</p>
           <p className="text-bg-100 text-lg">Demo Version - Client Presentation</p>
         </div>
 
