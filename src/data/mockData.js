@@ -4,7 +4,7 @@
 import { foodImages } from '../assets';
 
 // Generate unique ID helper
-const generateId = () => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+const generateId = () => `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
 
 // Initial Users
 export const initialUsers = [

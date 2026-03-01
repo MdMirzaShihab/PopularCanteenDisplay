@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import MenuItemSelector from './MenuItemSelector';
 import { validateMenu } from '../../utils/validators';
+import { useNotification } from '../../context/NotificationContext';
 
 const MenuForm = ({ menu, onSubmit, onCancel }) => {
   const [formData, setFormData] = useState({
@@ -9,6 +10,7 @@ const MenuForm = ({ menu, onSubmit, onCancel }) => {
     itemIds: []
   });
 
+  const { error: showError } = useNotification();
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -53,8 +55,8 @@ const MenuForm = ({ menu, onSubmit, onCancel }) => {
     // Submit
     try {
       await onSubmit(formData);
-    } catch (error) {
-      console.error('Error submitting form:', error);
+    } catch {
+      showError('Failed to save menu. Please try again.');
     } finally {
       setIsSubmitting(false);
     }

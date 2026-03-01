@@ -1,15 +1,33 @@
-import { Edit2, Trash2, ExternalLink, Monitor, Copy } from 'lucide-react';
+import { Edit2, Trash2, ExternalLink, Monitor, Copy, Link2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useData } from '../../context/DataContext';
 import { isVideoUrl } from '../../utils/fileUtils';
+import { useNotification } from '../../context/NotificationContext';
 
 const ScreenCard = ({ screen, onEdit, onDelete, onDuplicate }) => {
   const { getScheduleById } = useData();
   const navigate = useNavigate();
+  const { success } = useNotification();
   const schedule = getScheduleById(screen.scheduleId);
 
   const handlePreview = () => {
     navigate(`/gallery/${screen.id}`);
+  };
+
+  const handleCopyUrl = async () => {
+    const url = `${window.location.origin}/gallery/${screen.id}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      success('Display URL copied to clipboard!');
+    } catch {
+      const textArea = document.createElement('textarea');
+      textArea.value = url;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      success('Display URL copied to clipboard!');
+    }
   };
 
   return (
@@ -79,13 +97,20 @@ const ScreenCard = ({ screen, onEdit, onDelete, onDuplicate }) => {
         </div>
 
         {/* Actions */}
-        <div className="grid grid-cols-4 gap-2 mt-4">
+        <div className="grid grid-cols-5 gap-2 mt-4">
           <button
             onClick={handlePreview}
             className="col-span-2 flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-primary-200 bg-primary-100/10 rounded-lg hover:bg-primary-100/20 transition-all duration-200 border border-transparent hover:border-primary-100"
           >
             <ExternalLink className="w-4 h-4" />
             <span className="hidden sm:inline">Preview</span>
+          </button>
+          <button
+            onClick={handleCopyUrl}
+            className="flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-primary-100 bg-primary-100/10 rounded-lg hover:bg-primary-100/20 transition-all duration-200 border border-transparent hover:border-primary-100"
+            title="Copy Display URL"
+          >
+            <Link2 className="w-4 h-4" />
           </button>
           <button
             onClick={() => onDuplicate(screen)}

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import ImageUpload from '../common/ImageUpload';
 import { validateItem } from '../../utils/validators';
+import { useNotification } from '../../context/NotificationContext';
 
 const ItemForm = ({ item, onSubmit, onCancel }) => {
   const [formData, setFormData] = useState({
@@ -11,6 +12,7 @@ const ItemForm = ({ item, onSubmit, onCancel }) => {
     isActive: true
   });
 
+  const { error: showError } = useNotification();
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -63,8 +65,8 @@ const ItemForm = ({ item, onSubmit, onCancel }) => {
         ...formData,
         price: parseFloat(formData.price)
       });
-    } catch (error) {
-      console.error('Error submitting form:', error);
+    } catch {
+      showError('Failed to save item. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -113,7 +115,7 @@ const ItemForm = ({ item, onSubmit, onCancel }) => {
       {/* Price */}
       <div>
         <label htmlFor="price" className="input-label">
-          Price ($) *
+          Price (&#2547;) *
         </label>
         <input
           type="number"
@@ -136,6 +138,7 @@ const ItemForm = ({ item, onSubmit, onCancel }) => {
         <ImageUpload
           value={formData.image}
           onChange={handleImageChange}
+          onError={showError}
           accept="image/*,video/*"
           label="Item Image/Video *"
         />

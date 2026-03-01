@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useMemo } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { useData } from '../../context/DataContext';
 import { getAllCurrentMenuIds, getCurrentTime, getCurrentDayOfWeek, formatTimeDisplay } from '../../utils/timeUtils';
 import { speakTokenNumber } from '../../utils/speechUtils';
@@ -7,7 +7,7 @@ import MenuItemDisplay from './MenuItemDisplay';
 import { Hash, Clock, Users } from 'lucide-react';
 
 const TimeBasedRenderer = ({ screen, displaySettings }) => {
-  const { menus, getMenuById, getItemsByIds, servingToken, tokenHistory } = useData();
+  const { items, menus, servingToken, tokenHistory } = useData();
   const [currentMenuIds, setCurrentMenuIds] = useState([]);
   const [currentTime, setCurrentTime] = useState(getCurrentTime());
 
@@ -71,14 +71,14 @@ const TimeBasedRenderer = ({ screen, displaySettings }) => {
   // Get items from ALL active menus and merge them (memoized for performance)
   const activeItems = useMemo(() => {
     const allItemIds = currentMenuIds.flatMap(menuId => {
-      const menu = getMenuById(menuId);
+      const menu = menus.find(m => m.id === menuId);
       return menu ? menu.itemIds : [];
     });
 
     const uniqueItemIds = [...new Set(allItemIds)];
-    const menuItems = getItemsByIds(uniqueItemIds);
+    const menuItems = items.filter(i => uniqueItemIds.includes(i.id));
     return menuItems.filter(item => item.isActive);
-  }, [currentMenuIds, menus, getMenuById, getItemsByIds]);
+  }, [currentMenuIds, menus, items]);
 
   // Get display settings (moved before useEffect to avoid initialization errors)
   const tokenWindowState = displaySettings.tokenWindow || 'off';
@@ -161,12 +161,6 @@ const TimeBasedRenderer = ({ screen, displaySettings }) => {
 
   // Auto-rotation carousel
   useEffect(() => {
-    console.log('⚙️  Display settings:', {
-      transitionDuration: displaySettings.transitionDuration,
-      slideDelay: displaySettings.slideDelay,
-      orientation: displaySettings.orientation
-    });
-
     if (activeItems.length <= itemsPerPage) {
       setCurrentPage(0);
       setIsTransitioning(false);
@@ -443,7 +437,7 @@ const TimeBasedRenderer = ({ screen, displaySettings }) => {
 // ============ PORTRAIT MODE COMPONENTS ============
 
 // Portrait Token Panel - Adaptive Layout (Compact/Large)
-const TokenPanelPortrait = ({ servingToken, isCompact }) => {
+const TokenPanelPortrait = React.memo(({ servingToken, isCompact }) => {
   // COMPACT MODE (12vh) - Horizontal Layout
   if (isCompact) {
     return (
@@ -525,12 +519,12 @@ const TokenPanelPortrait = ({ servingToken, isCompact }) => {
       )}
     </div>
   );
-};
+});
 
 // ============ LANDSCAPE MODE COMPONENTS ============
 
 // Landscape Token Panel - Vertical Layout (Original)
-const TokenPanelLandscape = ({ servingToken, tokenHistory, currentTime, isCompact }) => {
+const TokenPanelLandscape = React.memo(({ servingToken, tokenHistory, currentTime, isCompact }) => {
   return (
     <div className="h-full flex flex-col justify-between">
       {/* Top Section - Branding */}
@@ -583,9 +577,9 @@ const TokenPanelLandscape = ({ servingToken, tokenHistory, currentTime, isCompac
                     Recently Called
                   </h3>
                   <div className="flex justify-center gap-3">
-                    {tokenHistory.slice(1, 3).map((token, index) => (
+                    {tokenHistory.slice(1, 3).map((token) => (
                       <div
-                        key={index}
+                        key={token.updatedAt}
                         className="bg-gray-700 bg-opacity-50 backdrop-blur-sm px-6 py-3 rounded-lg border border-gray-600"
                       >
                         <div className="flex items-center gap-2">
@@ -620,12 +614,12 @@ const TokenPanelLandscape = ({ servingToken, tokenHistory, currentTime, isCompac
       </div>
     </div>
   );
-};
+});
 
 // ============ SHARED COMPONENTS ============
 
 // Menu Grid Component - Fixed card size with dynamic fitting
-const MenuGrid = ({ items, showPrices, isTransitioning = false, transitionDuration = 500, isPortrait = false }) => {
+const MenuGrid = React.memo(({ items, showPrices, isTransitioning = false, transitionDuration = 500, isPortrait = false }) => {
   // Portrait uses tighter spacing and smaller fixed card size
   const gapClass = isPortrait ? 'gap-3' : 'gap-6';
   const minCardSize = isPortrait ? '200px' : '250px';
@@ -656,10 +650,10 @@ const MenuGrid = ({ items, showPrices, isTransitioning = false, transitionDurati
       </div>
     </div>
   );
-};
+});
 
 // Page Indicators Component
-const PageIndicators = ({ currentPage, totalPages }) => {
+const PageIndicators = React.memo(({ currentPage, totalPages }) => {
   return (
     <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex items-center gap-2 bg-green-600/80 px-4 py-2 rounded-full backdrop-blur-sm shadow-lg z-10">
       {Array.from({ length: totalPages }).map((_, index) => (
@@ -674,6 +668,6 @@ const PageIndicators = ({ currentPage, totalPages }) => {
       ))}
     </div>
   );
-};
+});
 
 export default TimeBasedRenderer;

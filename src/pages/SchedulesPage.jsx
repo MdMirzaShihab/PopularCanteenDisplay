@@ -36,7 +36,7 @@ const SchedulesPage = () => {
       updateSchedule(schedule.id, formData);
       success('Schedule updated successfully!');
       setIsModalOpen(false);
-    } catch (err) {
+    } catch {
       error('Failed to update schedule. Please try again.');
     }
   };

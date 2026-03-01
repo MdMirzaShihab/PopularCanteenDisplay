@@ -12,7 +12,6 @@ import ItemsPage from './pages/ItemsPage';
 import MenusPage from './pages/MenusPage';
 import SchedulesPage from './pages/SchedulesPage';
 import ScreensPage from './pages/ScreensPage';
-import GalleryPage from './pages/GalleryPage';
 import GalleryViewPage from './pages/GalleryViewPage';
 import LogsPage from './pages/LogsPage';
 
@@ -89,7 +88,6 @@ function App() {
                   <Route path="menus" element={<MenusPage />} />
                   <Route path="schedules" element={<SchedulesPage />} />
                   <Route path="screens" element={<ScreensPage />} />
-                  <Route path="gallery" element={<GalleryPage />} />
                   <Route path="logs" element={<LogsPage />} />
                   <Route path="*" element={<Navigate to="/dashboard" replace />} />
                 </Routes>

@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   initialItems,
   initialMenus,
@@ -61,8 +61,6 @@ export const DataProvider = ({ children }) => {
     } catch (error) {
       if (error.name === 'QuotaExceededError') {
         console.error('Storage quota exceeded for items. Consider reducing image sizes or using fewer items.');
-      } else {
-        console.error('Error saving items to localStorage:', error);
       }
     }
   }, [items]);
@@ -73,8 +71,6 @@ export const DataProvider = ({ children }) => {
     } catch (error) {
       if (error.name === 'QuotaExceededError') {
         console.error('Storage quota exceeded for menus.');
-      } else {
-        console.error('Error saving menus to localStorage:', error);
       }
     }
   }, [menus]);
@@ -85,8 +81,6 @@ export const DataProvider = ({ children }) => {
     } catch (error) {
       if (error.name === 'QuotaExceededError') {
         console.error('Storage quota exceeded for schedules.');
-      } else {
-        console.error('Error saving schedules to localStorage:', error);
       }
     }
   }, [schedules]);
@@ -97,9 +91,6 @@ export const DataProvider = ({ children }) => {
     } catch (error) {
       if (error.name === 'QuotaExceededError') {
         console.error('Storage quota exceeded for screens. Media files are too large for localStorage.');
-        alert('Storage limit exceeded! Screen media files are too large. Please use smaller images/videos (recommended: compress images to under 500KB and limit videos to 30 seconds).');
-      } else {
-        console.error('Error saving screens to localStorage:', error);
       }
     }
   }, [screens]);
@@ -113,8 +104,6 @@ export const DataProvider = ({ children }) => {
         // Keep only last 50 logs
         const trimmedLogs = activityLogs.slice(0, 50);
         setActivityLogs(trimmedLogs);
-      } else {
-        console.error('Error saving logs to localStorage:', error);
       }
     }
   }, [activityLogs]);
@@ -125,8 +114,6 @@ export const DataProvider = ({ children }) => {
     } catch (error) {
       if (error.name === 'QuotaExceededError') {
         console.error('Storage quota exceeded for token history.');
-      } else {
-        console.error('Error saving token history to localStorage:', error);
       }
     }
   }, [tokenHistory]);
@@ -137,8 +124,12 @@ export const DataProvider = ({ children }) => {
       // Only react to changes in the token history
       if (e.key === 'canteen_token_history') {
         if (e.newValue) {
-          const newHistory = JSON.parse(e.newValue);
-          setTokenHistory(newHistory);
+          try {
+            const newHistory = JSON.parse(e.newValue);
+            setTokenHistory(newHistory);
+          } catch {
+            // Ignore malformed storage values
+          }
         } else {
           // History was cleared
           setTokenHistory([]);
@@ -156,22 +147,28 @@ export const DataProvider = ({ children }) => {
   }, []);
 
   // Polling fallback for same-tab updates (checks every 3 seconds)
+  const tokenHistoryRef = useRef(tokenHistory);
+  tokenHistoryRef.current = tokenHistory;
+
   useEffect(() => {
     const pollInterval = setInterval(() => {
       const stored = localStorage.getItem('canteen_token_history');
       const storedHistory = stored ? JSON.parse(stored) : [];
+      const current = tokenHistoryRef.current;
 
-      // Only update if the value has actually changed
-      if (JSON.stringify(tokenHistory) !== JSON.stringify(storedHistory)) {
+      // Cheap comparison before full stringify
+      if (storedHistory.length !== current.length ||
+          storedHistory[0]?.number !== current[0]?.number ||
+          storedHistory[0]?.updatedAt !== current[0]?.updatedAt) {
         setTokenHistory(storedHistory);
       }
-    }, 3000); // Check every 3 seconds
+    }, 3000);
 
     return () => clearInterval(pollInterval);
-  }, [tokenHistory]);
+  }, []); // No dependency on tokenHistory — uses ref instead
 
   // Activity logging helper
-  const addActivityLog = (action, resourceType, resourceName, details, beforeData = null, afterData = null) => {
+  const addActivityLog = useCallback((action, resourceType, resourceName, details, beforeData = null, afterData = null) => {
     if (!user) return;
 
     const log = {
@@ -188,10 +185,10 @@ export const DataProvider = ({ children }) => {
     };
 
     setActivityLogs(prev => [log, ...prev]);
-  };
+  }, [user]);
 
   // ============= ITEMS CRUD =============
-  const createItem = (itemData) => {
+  const createItem = useCallback((itemData) => {
     const newItem = {
       ...itemData,
       id: generateId(),
@@ -203,27 +200,24 @@ export const DataProvider = ({ children }) => {
     setItems(prev => [...prev, newItem]);
     addActivityLog('CREATE', 'item', newItem.name, `Added new item: ${newItem.name}`, null, { name: newItem.name, price: newItem.price });
     return newItem;
-  };
+  }, [addActivityLog]);
 
-  const updateItem = (id, updates) => {
-    const oldItem = items.find(i => i.id === id);
-    if (!oldItem) return null;
-
-    const updatedItem = {
-      ...oldItem,
-      ...updates,
-      updatedAt: new Date().toISOString()
-    };
-
-    setItems(prev => prev.map(i => i.id === id ? updatedItem : i));
-    addActivityLog('UPDATE', 'item', updatedItem.name, `Updated item: ${updatedItem.name}`,
-      { price: oldItem.price, description: oldItem.description },
-      { price: updatedItem.price, description: updatedItem.description }
-    );
+  const updateItem = useCallback((id, updates) => {
+    let updatedItem = null;
+    setItems(prev => {
+      const oldItem = prev.find(i => i.id === id);
+      if (!oldItem) return prev;
+      updatedItem = { ...oldItem, ...updates, updatedAt: new Date().toISOString() };
+      addActivityLog('UPDATE', 'item', updatedItem.name, `Updated item: ${updatedItem.name}`,
+        { price: oldItem.price, description: oldItem.description },
+        { price: updatedItem.price, description: updatedItem.description }
+      );
+      return prev.map(i => i.id === id ? updatedItem : i);
+    });
     return updatedItem;
-  };
+  }, [addActivityLog]);
 
-  const deleteItem = (id) => {
+  const deleteItem = useCallback((id) => {
     const item = items.find(i => i.id === id);
     if (!item) return false;
 
@@ -239,14 +233,14 @@ export const DataProvider = ({ children }) => {
     setItems(prev => prev.filter(i => i.id !== id));
     addActivityLog('DELETE', 'item', item.name, `Deleted item: ${item.name}`, { name: item.name, price: item.price }, null);
     return { success: true };
-  };
+  }, [items, menus, addActivityLog]);
 
-  const getItemById = (id) => items.find(i => i.id === id);
+  const getItemById = useCallback((id) => items.find(i => i.id === id), [items]);
 
-  const getItemsByIds = (ids) => items.filter(i => ids.includes(i.id));
+  const getItemsByIds = useCallback((ids) => items.filter(i => ids.includes(i.id)), [items]);
 
   // ============= MENUS CRUD =============
-  const createMenu = (menuData) => {
+  const createMenu = useCallback((menuData) => {
     const newMenu = {
       ...menuData,
       id: generateId(),
@@ -258,27 +252,24 @@ export const DataProvider = ({ children }) => {
     addActivityLog('CREATE', 'menu', newMenu.title, `Created menu: ${newMenu.title} with ${newMenu.itemIds.length} items`,
       null, { title: newMenu.title, itemsCount: newMenu.itemIds.length });
     return newMenu;
-  };
+  }, [addActivityLog]);
 
-  const updateMenu = (id, updates) => {
-    const oldMenu = menus.find(m => m.id === id);
-    if (!oldMenu) return null;
-
-    const updatedMenu = {
-      ...oldMenu,
-      ...updates,
-      updatedAt: new Date().toISOString()
-    };
-
-    setMenus(prev => prev.map(m => m.id === id ? updatedMenu : m));
-    addActivityLog('UPDATE', 'menu', updatedMenu.title, `Updated menu: ${updatedMenu.title}`,
-      { itemsCount: oldMenu.itemIds.length },
-      { itemsCount: updatedMenu.itemIds.length }
-    );
+  const updateMenu = useCallback((id, updates) => {
+    let updatedMenu = null;
+    setMenus(prev => {
+      const oldMenu = prev.find(m => m.id === id);
+      if (!oldMenu) return prev;
+      updatedMenu = { ...oldMenu, ...updates, updatedAt: new Date().toISOString() };
+      addActivityLog('UPDATE', 'menu', updatedMenu.title, `Updated menu: ${updatedMenu.title}`,
+        { itemsCount: oldMenu.itemIds.length },
+        { itemsCount: updatedMenu.itemIds.length }
+      );
+      return prev.map(m => m.id === id ? updatedMenu : m);
+    });
     return updatedMenu;
-  };
+  }, [addActivityLog]);
 
-  const deleteMenu = (id) => {
+  const deleteMenu = useCallback((id) => {
     const menu = menus.find(m => m.id === id);
     if (!menu) return false;
 
@@ -298,53 +289,48 @@ export const DataProvider = ({ children }) => {
     addActivityLog('DELETE', 'menu', menu.title, `Deleted menu: ${menu.title}`,
       { title: menu.title, itemsCount: menu.itemIds.length }, null);
     return { success: true };
-  };
+  }, [menus, schedules, addActivityLog]);
 
-  const getMenuById = (id) => menus.find(m => m.id === id);
+  const getMenuById = useCallback((id) => menus.find(m => m.id === id), [menus]);
 
   // ============= SCHEDULES CRUD =============
   // Note: Only ONE schedule is allowed in the system. Creation is disabled.
-  const createSchedule = (scheduleData) => {
-    console.warn('Schedule creation is disabled. Only one schedule is allowed in the system.');
+  const createSchedule = useCallback(() => {
     return {
       success: false,
       error: 'Cannot create new schedule. Only one schedule is allowed in the system.'
     };
-  };
+  }, []);
 
-  const updateSchedule = (id, updates) => {
-    const oldSchedule = schedules.find(s => s.id === id);
-    if (!oldSchedule) return null;
-
-    const updatedSchedule = {
-      ...oldSchedule,
-      ...updates,
-      updatedAt: new Date().toISOString()
-    };
-
-    setSchedules(prev => prev.map(s => s.id === id ? updatedSchedule : s));
-    addActivityLog('UPDATE', 'schedule', updatedSchedule.name, `Updated schedule: ${updatedSchedule.name}`,
-      { slotsCount: oldSchedule.timeSlots.length },
-      { slotsCount: updatedSchedule.timeSlots.length }
-    );
+  const updateSchedule = useCallback((id, updates) => {
+    let updatedSchedule = null;
+    setSchedules(prev => {
+      const oldSchedule = prev.find(s => s.id === id);
+      if (!oldSchedule) return prev;
+      updatedSchedule = { ...oldSchedule, ...updates, updatedAt: new Date().toISOString() };
+      addActivityLog('UPDATE', 'schedule', updatedSchedule.name, `Updated schedule: ${updatedSchedule.name}`,
+        { slotsCount: oldSchedule.timeSlots.length },
+        { slotsCount: updatedSchedule.timeSlots.length }
+      );
+      return prev.map(s => s.id === id ? updatedSchedule : s);
+    });
     return updatedSchedule;
-  };
+  }, [addActivityLog]);
 
-  const deleteSchedule = (id) => {
-    console.warn('Schedule deletion is disabled. The system requires exactly one schedule.');
+  const deleteSchedule = useCallback(() => {
     return {
       success: false,
       error: 'Cannot delete schedule. The system requires exactly one schedule to operate.'
     };
-  };
+  }, []);
 
-  const getScheduleById = (id) => schedules.find(s => s.id === id);
+  const getScheduleById = useCallback((id) => schedules.find(s => s.id === id), [schedules]);
 
   // Get the single schedule (there should only be one)
-  const getSingleSchedule = () => schedules[0] || null;
+  const getSingleSchedule = useCallback(() => schedules[0] || null, [schedules]);
 
   // ============= SCREENS CRUD =============
-  const createScreen = (screenData) => {
+  const createScreen = useCallback((screenData) => {
     const newScreen = {
       ...screenData,
       id: generateId(),
@@ -356,27 +342,24 @@ export const DataProvider = ({ children }) => {
     addActivityLog('CREATE', 'screen', newScreen.title, `Created screen: ${newScreen.title}`,
       null, { title: newScreen.title, scheduleId: newScreen.scheduleId });
     return newScreen;
-  };
+  }, [addActivityLog]);
 
-  const updateScreen = (id, updates) => {
-    const oldScreen = screens.find(s => s.id === id);
-    if (!oldScreen) return null;
-
-    const updatedScreen = {
-      ...oldScreen,
-      ...updates,
-      updatedAt: new Date().toISOString()
-    };
-
-    setScreens(prev => prev.map(s => s.id === id ? updatedScreen : s));
-    addActivityLog('UPDATE', 'screen', updatedScreen.title, `Updated screen: ${updatedScreen.title}`,
-      { scheduleId: oldScreen.scheduleId },
-      { scheduleId: updatedScreen.scheduleId }
-    );
+  const updateScreen = useCallback((id, updates) => {
+    let updatedScreen = null;
+    setScreens(prev => {
+      const oldScreen = prev.find(s => s.id === id);
+      if (!oldScreen) return prev;
+      updatedScreen = { ...oldScreen, ...updates, updatedAt: new Date().toISOString() };
+      addActivityLog('UPDATE', 'screen', updatedScreen.title, `Updated screen: ${updatedScreen.title}`,
+        { scheduleId: oldScreen.scheduleId },
+        { scheduleId: updatedScreen.scheduleId }
+      );
+      return prev.map(s => s.id === id ? updatedScreen : s);
+    });
     return updatedScreen;
-  };
+  }, [addActivityLog]);
 
-  const deleteScreen = (id) => {
+  const deleteScreen = useCallback((id) => {
     const screen = screens.find(s => s.id === id);
     if (!screen) return false;
 
@@ -384,40 +367,44 @@ export const DataProvider = ({ children }) => {
     addActivityLog('DELETE', 'screen', screen.title, `Deleted screen: ${screen.title}`,
       { title: screen.title }, null);
     return { success: true };
-  };
+  }, [screens, addActivityLog]);
 
-  const getScreenById = (id) => screens.find(s => s.id === id);
+  const getScreenById = useCallback((id) => screens.find(s => s.id === id), [screens]);
 
   // ============= SERVING TOKEN =============
-  const updateServingToken = (tokenNumber) => {
+  const updateServingToken = useCallback((tokenNumber) => {
     const tokenData = {
       number: tokenNumber,
       updatedAt: new Date().toISOString()
     };
 
     // Add new token to the front of history, keep only last 3
-    setTokenHistory(prev => [tokenData, ...prev].slice(0, 3));
+    setTokenHistory(prev => {
+      addActivityLog('UPDATE', 'token', 'Serving Token', `Updated serving token to: ${tokenNumber}`,
+        { number: prev[0]?.number || null },
+        { number: tokenNumber }
+      );
+      return [tokenData, ...prev].slice(0, 3);
+    });
 
-    addActivityLog('UPDATE', 'token', 'Serving Token', `Updated serving token to: ${tokenNumber}`,
-      { number: tokenHistory[0]?.number || null },
-      { number: tokenNumber }
-    );
     return tokenData;
-  };
+  }, [addActivityLog]);
 
-  const clearServingToken = () => {
-    setTokenHistory([]);
-    addActivityLog('UPDATE', 'token', 'Serving Token', 'Cleared all tokens',
-      { number: tokenHistory[0]?.number || null },
-      null
-    );
-  };
+  const clearServingToken = useCallback(() => {
+    setTokenHistory(prev => {
+      addActivityLog('UPDATE', 'token', 'Serving Token', 'Cleared all tokens',
+        { number: prev[0]?.number || null },
+        null
+      );
+      return [];
+    });
+  }, [addActivityLog]);
 
   // Get current serving token (first in history)
   const servingToken = tokenHistory.length > 0 ? tokenHistory[0] : null;
 
   // ============= ACTIVITY LOGS =============
-  const getActivityLogs = (filters = {}) => {
+  const getActivityLogs = useCallback((filters = {}) => {
     let filtered = [...activityLogs];
 
     if (filters.userId) {
@@ -441,20 +428,18 @@ export const DataProvider = ({ children }) => {
     }
 
     return filtered;
-  };
+  }, [activityLogs]);
 
-  const clearAllData = () => {
-    if (window.confirm('Are you sure you want to clear all data? This will reset to initial demo data.')) {
-      setItems(initialItems);
-      setMenus(initialMenus);
-      setSchedules(initialSchedules);
-      setScreens(initialScreens);
-      setActivityLogs(initialActivityLogs);
-      addActivityLog('RESET', 'system', 'All Data', 'Reset all data to initial demo state');
-    }
-  };
+  const clearAllData = useCallback(() => {
+    setItems(initialItems);
+    setMenus(initialMenus);
+    setSchedules(initialSchedules);
+    setScreens(initialScreens);
+    setActivityLogs(initialActivityLogs);
+    addActivityLog('RESET', 'system', 'All Data', 'Reset all data to initial demo state');
+  }, [addActivityLog]);
 
-  const value = {
+  const value = useMemo(() => ({
     // Items
     items,
     createItem,
@@ -497,7 +482,15 @@ export const DataProvider = ({ children }) => {
 
     // Utility
     clearAllData
-  };
+  }), [
+    items, createItem, updateItem, deleteItem, getItemById, getItemsByIds,
+    menus, createMenu, updateMenu, deleteMenu, getMenuById,
+    schedules, createSchedule, updateSchedule, deleteSchedule, getScheduleById, getSingleSchedule,
+    screens, createScreen, updateScreen, deleteScreen, getScreenById,
+    servingToken, tokenHistory, updateServingToken, clearServingToken,
+    activityLogs, getActivityLogs,
+    clearAllData
+  ]);
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
 };

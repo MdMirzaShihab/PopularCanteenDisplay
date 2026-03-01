@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
@@ -8,19 +8,14 @@ import LogFilters from '../components/logs/LogFilters';
 const LogsPage = () => {
   const { isAdmin } = useAuth();
   const { getActivityLogs } = useData();
-  const [filteredLogs, setFilteredLogs] = useState([]);
   const [activeFilters, setActiveFilters] = useState({});
 
-  // Redirect if not admin
-  if (!isAdmin()) {
+  const filteredLogs = useMemo(() => getActivityLogs(activeFilters), [activeFilters, getActivityLogs]);
+
+  // Redirect if not admin — placed after all hooks
+  if (!isAdmin) {
     return <Navigate to="/dashboard" replace />;
   }
-
-  useEffect(() => {
-    // Load logs with current filters
-    const logs = getActivityLogs(activeFilters);
-    setFilteredLogs(logs);
-  }, [activeFilters, getActivityLogs]);
 
   const handleApplyFilters = (filters) => {
     setActiveFilters(filters);

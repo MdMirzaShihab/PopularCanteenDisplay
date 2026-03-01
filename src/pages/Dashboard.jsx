@@ -87,13 +87,13 @@ const Dashboard = () => {
           </Link>
 
           <Link
-            to="/gallery"
+            to="/screens"
             className="flex items-center gap-3 p-4 bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 border border-bg-300 hover:border-accent-200"
           >
             <div className="w-10 h-10 bg-accent-200/20 rounded-lg flex items-center justify-center">
               <Monitor className="w-5 h-5 text-accent-200" />
             </div>
-            <span className="font-medium text-text-100">View Gallery</span>
+            <span className="font-medium text-text-100">View Screens</span>
           </Link>
         </div>
       </div>

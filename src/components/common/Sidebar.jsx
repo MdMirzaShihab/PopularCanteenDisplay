@@ -5,7 +5,6 @@ import {
   BookOpen,
   Clock,
   Monitor,
-  Image as ImageIcon,
   FileText,
   ChefHat,
   Hash,
@@ -25,14 +24,13 @@ const Sidebar = ({ isOpen, onClose }) => {
     { path: '/menus', icon: BookOpen, label: 'Menus', roles: ['admin', 'restaurant_user'] },
     { path: '/schedules', icon: Clock, label: 'Schedule', roles: ['admin', 'restaurant_user'] },
     { path: '/screens', icon: Monitor, label: 'Screens', roles: ['admin', 'restaurant_user'] },
-    { path: '/gallery', icon: ImageIcon, label: 'Gallery', roles: ['admin', 'restaurant_user'] },
     { path: '/logs', icon: FileText, label: 'Activity Logs', roles: ['admin'] },
   ];
 
   // Filter navigation items based on user role
-  const navItems = isTokenOperator()
+  const navItems = isTokenOperator
     ? allNavItems.filter(item => item.roles.includes('token_operator'))
-    : isAdmin()
+    : isAdmin
     ? allNavItems.filter(item => item.roles.includes('admin'))
     : allNavItems.filter(item => item.roles.includes('restaurant_user'));
 

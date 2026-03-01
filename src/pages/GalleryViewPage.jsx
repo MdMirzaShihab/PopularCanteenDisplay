@@ -1,14 +1,22 @@
+import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
-import { useEffect, useRef } from 'react';
 import { useData } from '../context/DataContext';
 import GalleryDisplay from '../components/gallery/GalleryDisplay';
 
 const GalleryViewPage = () => {
   const { screenId } = useParams();
-  const { getScreenById } = useData();
+  const { getScreenById, screens } = useData();
   const containerRef = useRef(null);
+  const [isDataReady, setIsDataReady] = useState(false);
 
   const screen = getScreenById(screenId);
+
+  // Mark data as ready once screens have been loaded from localStorage
+  useEffect(() => {
+    if (screens !== undefined) {
+      setIsDataReady(true);
+    }
+  }, [screens]);
 
   // Auto-enter fullscreen mode on mount
   useEffect(() => {
@@ -16,25 +24,12 @@ const GalleryViewPage = () => {
       if (!containerRef.current) return;
 
       try {
-        // Try standard fullscreen API
         if (containerRef.current.requestFullscreen) {
           await containerRef.current.requestFullscreen();
-        }
-        // Fallback for Safari/older browsers
-        else if (containerRef.current.webkitRequestFullscreen) {
+        } else if (containerRef.current.webkitRequestFullscreen) {
           await containerRef.current.webkitRequestFullscreen();
         }
-        // Fallback for older Firefox
-        else if (containerRef.current.mozRequestFullScreen) {
-          await containerRef.current.mozRequestFullScreen();
-        }
-        // Fallback for IE/Edge
-        else if (containerRef.current.msRequestFullscreen) {
-          await containerRef.current.msRequestFullscreen();
-        }
-        console.log('✅ Fullscreen mode activated');
-      } catch (error) {
-        console.warn('⚠️ Fullscreen request failed:', error);
+      } catch {
         // Silently fail - user can still view the content normally
       }
     };
@@ -42,37 +37,22 @@ const GalleryViewPage = () => {
     // Delay slightly to ensure DOM is fully ready
     const timeoutId = setTimeout(enterFullscreen, 100);
 
-    // Listen for fullscreen changes
-    const handleFullscreenChange = () => {
-      const isFullscreen = !!(
-        document.fullscreenElement ||
-        document.webkitFullscreenElement ||
-        document.mozFullScreenElement ||
-        document.msFullscreenElement
-      );
-
-      if (isFullscreen) {
-        console.log('📺 Entered fullscreen mode');
-      } else {
-        console.log('🔙 Exited fullscreen mode');
-      }
-    };
-
-    // Add event listeners for all browser variants
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
-    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
-    document.addEventListener('MSFullscreenChange', handleFullscreenChange);
-
-    // Cleanup
     return () => {
       clearTimeout(timeoutId);
-      document.removeEventListener('fullscreenchange', handleFullscreenChange);
-      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
-      document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
-      document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
     };
   }, []);
+
+  // Still loading data from localStorage
+  if (!isDataReady) {
+    return (
+      <div className="fixed inset-0 bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-white border-t-transparent rounded-full animate-spin mb-4 mx-auto"></div>
+          <p className="text-white text-xl">Loading display...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!screen) {
     return (

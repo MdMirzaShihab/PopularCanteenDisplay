@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 import { initialUsers } from '../data/mockData';
 
 const AuthContext = createContext(null);
@@ -39,60 +39,38 @@ export const AuthProvider = ({ children }) => {
     }
   }, [user]);
 
-  const login = (credentials) => {
-    // For demo purposes, any credentials work
-    // Try to match with mock users, otherwise create a generic admin user
-    const { username, password, email } = credentials;
+  const login = useCallback((credentials) => {
+    const { username, email } = credentials;
 
-    let foundUser = initialUsers.find(
+    const foundUser = initialUsers.find(
       u => u.username === username || u.email === email
     );
 
-    // If no user found, create a demo admin user
     if (!foundUser) {
-      foundUser = {
-        id: `user-${Date.now()}`,
-        name: username || email || 'Demo User',
-        email: email || `${username}@canteen.com`,
-        username: username || email,
-        role: 'admin',
-        createdAt: new Date().toISOString()
-      };
+      return { success: false, error: 'Invalid credentials' };
     }
 
     // Remove password from user object before storing
     const { password: _, ...userWithoutPassword } = foundUser;
     setUser(userWithoutPassword);
     return { success: true, user: userWithoutPassword };
-  };
+  }, []);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     setUser(null);
     localStorage.removeItem('canteen_auth_user');
-  };
+  }, []);
 
-  const isAdmin = () => {
-    return user?.role === 'admin';
-  };
-
-  const isRestaurantUser = () => {
-    return user?.role === 'restaurant_user';
-  };
-
-  const isTokenOperator = () => {
-    return user?.role === 'token_operator';
-  };
-
-  const value = {
+  const value = useMemo(() => ({
     user,
     loading,
     login,
     logout,
-    isAdmin,
-    isRestaurantUser,
-    isTokenOperator,
+    isAdmin: user?.role === 'admin',
+    isRestaurantUser: user?.role === 'restaurant_user',
+    isTokenOperator: user?.role === 'token_operator',
     isAuthenticated: !!user
-  };
+  }), [user, loading, login, logout]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

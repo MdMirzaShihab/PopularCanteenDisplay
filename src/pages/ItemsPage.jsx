@@ -40,7 +40,7 @@ const ItemsPage = () => {
       }
       setIsModalOpen(false);
       setEditingItem(null);
-    } catch (err) {
+    } catch {
       error('Failed to save item. Please try again.');
     }
   };

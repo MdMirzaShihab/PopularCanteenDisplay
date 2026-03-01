@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { X, CheckCircle, AlertCircle, AlertTriangle, Info } from 'lucide-react';
 import { useNotification } from '../../context/NotificationContext';
 
@@ -36,41 +35,22 @@ const Toast = () => {
   return (
     <div className="fixed top-4 right-4 z-50 space-y-2 max-w-md">
       {notifications.map((notification) => (
-        <ToastItem
+        <div
           key={notification.id}
-          notification={notification}
-          onClose={() => removeNotification(notification.id)}
-          getIcon={getIcon}
-          getStyles={getStyles}
-        />
+          className={`flex items-start gap-3 p-4 rounded-lg border shadow-lg transform transition-all duration-300 animate-slide-in ${getStyles(
+            notification.type
+          )}`}
+        >
+          <div className="flex-shrink-0">{getIcon(notification.type)}</div>
+          <p className="flex-1 text-sm font-medium">{notification.message}</p>
+          <button
+            onClick={() => removeNotification(notification.id)}
+            className="flex-shrink-0 hover:opacity-70 transition-opacity"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
       ))}
-    </div>
-  );
-};
-
-const ToastItem = ({ notification, onClose, getIcon, getStyles }) => {
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      onClose();
-    }, 3000);
-
-    return () => clearTimeout(timer);
-  }, [onClose]);
-
-  return (
-    <div
-      className={`flex items-start gap-3 p-4 rounded-lg border shadow-lg transform transition-all duration-300 animate-slide-in ${getStyles(
-        notification.type
-      )}`}
-    >
-      <div className="flex-shrink-0">{getIcon(notification.type)}</div>
-      <p className="flex-1 text-sm font-medium">{notification.message}</p>
-      <button
-        onClick={onClose}
-        className="flex-shrink-0 hover:opacity-70 transition-opacity"
-      >
-        <X className="w-4 h-4" />
-      </button>
     </div>
   );
 };

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { LogIn } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
+import { hospitalLogo } from '../assets';
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -62,7 +63,7 @@ const LoginPage = () => {
         <div className="text-center lg:text-left">
           <div className="inline-flex items-center justify-center w-28 h-28 bg-white rounded-2xl shadow-lg mb-6">
             <img
-              src="/src/assets/Ref/PopularHospitalLogo.png"
+              src={hospitalLogo}
               alt="Popular Medical College Hospital"
               className="w-full h-full object-contain"
             />

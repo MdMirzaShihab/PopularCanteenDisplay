@@ -38,7 +38,7 @@ const ScreensPage = () => {
       };
       createScreen(duplicatedScreen);
       success('Screen duplicated successfully!');
-    } catch (err) {
+    } catch {
       error('Failed to duplicate screen. Please try again.');
     }
   };
@@ -54,7 +54,7 @@ const ScreensPage = () => {
       }
       setIsModalOpen(false);
       setEditingScreen(null);
-    } catch (err) {
+    } catch {
       error('Failed to save screen. Please try again.');
     }
   };

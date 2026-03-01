@@ -38,7 +38,7 @@ const ItemCard = ({ item, onEdit, onDelete }) => {
         {/* Price Badge */}
         <div className="absolute top-2 left-2">
           <div className="bg-gradient-to-br from-primary-100 to-primary-200 text-white px-3 py-1.5 rounded-lg shadow-lg backdrop-blur-sm">
-            <span className="text-base font-bold">৳ {item.price.toFixed(2)}</span>
+            <span className="text-base font-bold">৳ {item.price.toFixed(0)}</span>
           </div>
         </div>
       </div>

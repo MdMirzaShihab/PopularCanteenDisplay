@@ -1,6 +1,43 @@
+import { useEffect, useRef } from 'react';
 import { AlertTriangle } from 'lucide-react';
 
 const ConfirmDialog = ({ isOpen, onClose, onConfirm, title, message, confirmText = 'Confirm', cancelText = 'Cancel', type = 'danger' }) => {
+  const confirmBtnRef = useRef(null);
+  const dialogRef = useRef(null);
+
+  // Focus management and keyboard handling
+  useEffect(() => {
+    if (!isOpen) return;
+
+    // Focus the confirm button when dialog opens
+    confirmBtnRef.current?.focus();
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        onClose();
+        return;
+      }
+
+      // Trap focus within dialog
+      if (e.key === 'Tab' && dialogRef.current) {
+        const focusable = dialogRef.current.querySelectorAll('button');
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const typeStyles = {
@@ -15,7 +52,7 @@ const ConfirmDialog = ({ isOpen, onClose, onConfirm, title, message, confirmText
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="confirm-dialog-title">
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm"
@@ -24,6 +61,7 @@ const ConfirmDialog = ({ isOpen, onClose, onConfirm, title, message, confirmText
 
       {/* Dialog Content */}
       <div
+        ref={dialogRef}
         className="relative bg-white rounded-xl shadow-2xl w-full max-w-md p-6 animate-modal-appear"
         onClick={(e) => e.stopPropagation()}
       >
@@ -39,7 +77,7 @@ const ConfirmDialog = ({ isOpen, onClose, onConfirm, title, message, confirmText
 
           {/* Content */}
           <div className="flex-1">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            <h3 id="confirm-dialog-title" className="text-lg font-semibold text-gray-900 mb-2">
               {title}
             </h3>
             <p className="text-gray-600 text-sm">
@@ -57,6 +95,7 @@ const ConfirmDialog = ({ isOpen, onClose, onConfirm, title, message, confirmText
             {cancelText}
           </button>
           <button
+            ref={confirmBtnRef}
             onClick={handleConfirm}
             className={`px-4 py-2 text-sm font-medium text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors ${typeStyles[type]}`}
           >

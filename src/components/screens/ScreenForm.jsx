@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useData } from '../../context/DataContext';
+import { useNotification } from '../../context/NotificationContext';
 import ImageUpload from '../common/ImageUpload';
 import TimeSlotBuilder from '../schedules/TimeSlotBuilder';
 import { validateScreen } from '../../utils/validators';
 
 const ScreenForm = ({ screen, onSubmit, onCancel }) => {
   const { menus } = useData();
+  const { error: showError } = useNotification();
   const [activeTab, setActiveTab] = useState('basic');
   const [formData, setFormData] = useState({
     title: '',
@@ -135,8 +137,8 @@ const ScreenForm = ({ screen, onSubmit, onCancel }) => {
     // Submit
     try {
       await onSubmit(formData);
-    } catch (error) {
-      console.error('Error submitting form:', error);
+    } catch {
+      showError('Failed to save screen. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -274,6 +276,7 @@ const ScreenForm = ({ screen, onSubmit, onCancel }) => {
           <ImageUpload
             value={formData.backgroundMedia}
             onChange={handleBackgroundChange}
+            onError={showError}
             accept="image/*,video/*"
             label="Background Image/Video *"
           />
@@ -318,6 +321,7 @@ const ScreenForm = ({ screen, onSubmit, onCancel }) => {
             <ImageUpload
               value={formData.foregroundMedia}
               onChange={handleForegroundMediaChange}
+              onError={showError}
               accept="image/*,video/*"
               label="Upload Foreground Media"
             />

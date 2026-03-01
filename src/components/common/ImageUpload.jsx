@@ -1,11 +1,16 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Upload, X, Image as ImageIcon, Video } from 'lucide-react';
 import { fileToBase64, validateMediaFile, isVideoUrl } from '../../utils/fileUtils';
 
-const ImageUpload = ({ value, onChange, accept = 'image/*,video/*', label = 'Upload Image/Video' }) => {
+const ImageUpload = ({ value, onChange, onError, accept = 'image/*,video/*', label = 'Upload Image/Video' }) => {
   const [dragActive, setDragActive] = useState(false);
   const [preview, setPreview] = useState(value || null);
   const inputRef = useRef(null);
+
+  // Sync preview with value prop when it changes externally
+  useEffect(() => {
+    setPreview(value || null);
+  }, [value]);
 
   const handleFile = async (file) => {
     if (!file) return;
@@ -13,7 +18,9 @@ const ImageUpload = ({ value, onChange, accept = 'image/*,video/*', label = 'Upl
     // Validate file
     const validation = validateMediaFile(file);
     if (!validation.success) {
-      alert(validation.error);
+      if (onError) {
+        onError(validation.error);
+      }
       return;
     }
 
@@ -24,7 +31,9 @@ const ImageUpload = ({ value, onChange, accept = 'image/*,video/*', label = 'Upl
       onChange(base64);
     } catch (error) {
       console.error('Error processing file:', error);
-      alert('Failed to process file. Please try again.');
+      if (onError) {
+        onError('Failed to process file. Please try again.');
+      }
     }
   };
 

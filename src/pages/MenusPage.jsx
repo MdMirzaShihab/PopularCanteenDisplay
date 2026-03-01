@@ -40,7 +40,7 @@ const MenusPage = () => {
       }
       setIsModalOpen(false);
       setEditingMenu(null);
-    } catch (err) {
+    } catch {
       error('Failed to save menu. Please try again.');
     }
   };

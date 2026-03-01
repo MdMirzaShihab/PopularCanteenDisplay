@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useData } from '../../context/DataContext';
+import { useNotification } from '../../context/NotificationContext';
 import TimeSlotBuilder from './TimeSlotBuilder';
 import { validateSchedule } from '../../utils/validators';
 
 const ScheduleForm = ({ schedule, onSubmit, onCancel }) => {
   const { menus } = useData();
+  const { error: showError } = useNotification();
   const [formData, setFormData] = useState({
     defaultMenuId: '',
     timeSlots: []
@@ -57,8 +59,8 @@ const ScheduleForm = ({ schedule, onSubmit, onCancel }) => {
     // Submit
     try {
       await onSubmit(formData);
-    } catch (error) {
-      console.error('Error submitting form:', error);
+    } catch {
+      showError('Failed to save schedule. Please try again.');
     } finally {
       setIsSubmitting(false);
     }

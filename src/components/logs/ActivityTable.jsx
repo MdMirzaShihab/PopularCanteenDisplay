@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -26,7 +26,7 @@ const ActivityTable = ({ logs }) => {
     }
   };
 
-  const sortedLogs = [...logs].sort((a, b) => {
+  const sortedLogs = useMemo(() => [...logs].sort((a, b) => {
     let aVal = a[sortBy];
     let bVal = b[sortBy];
 
@@ -40,7 +40,7 @@ const ActivityTable = ({ logs }) => {
     } else {
       return aVal < bVal ? 1 : -1;
     }
-  });
+  }), [logs, sortBy, sortOrder]);
 
   const getActionBadgeClass = (action) => {
     switch (action) {
@@ -115,8 +115,8 @@ const ActivityTable = ({ logs }) => {
           </thead>
           <tbody className="divide-y divide-bg-300">
             {sortedLogs.map((log) => (
-              <>
-                <tr key={log.id} className="hover:bg-bg-100 transition-all duration-200">
+              <React.Fragment key={log.id}>
+                <tr className="hover:bg-bg-100 transition-all duration-200">
                   <td className="px-4 py-3">
                     {(log.beforeData || log.afterData) && (
                       <button
@@ -157,7 +157,7 @@ const ActivityTable = ({ logs }) => {
 
                 {/* Expanded Row */}
                 {expandedRows.has(log.id) && (log.beforeData || log.afterData) && (
-                  <tr key={`${log.id}-expanded`} className="bg-bg-100">
+                  <tr className="bg-bg-100">
                     <td colSpan="6" className="px-4 py-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl">
                         {/* Before Data */}
@@ -187,7 +187,7 @@ const ActivityTable = ({ logs }) => {
                     </td>
                   </tr>
                 )}
-              </>
+              </React.Fragment>
             ))}
           </tbody>
         </table>

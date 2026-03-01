@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { useData } from '../context/DataContext';
 import { Hash, Trash2, Clock } from 'lucide-react';
+import ConfirmDialog from '../components/common/ConfirmDialog';
 
 const TokenManagementPage = () => {
   const { servingToken, tokenHistory, updateServingToken, clearServingToken } = useData();
   const [inputValue, setInputValue] = useState('');
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -16,10 +18,8 @@ const TokenManagementPage = () => {
   };
 
   const handleClear = () => {
-    if (window.confirm('Are you sure you want to clear the serving token?')) {
-      clearServingToken();
-      setInputValue('');
-    }
+    clearServingToken();
+    setInputValue('');
   };
 
   const formatTimestamp = (timestamp) => {
@@ -97,7 +97,7 @@ const TokenManagementPage = () => {
             {servingToken && (
               <button
                 type="button"
-                onClick={handleClear}
+                onClick={() => setShowClearConfirm(true)}
                 className="btn-danger flex items-center gap-2"
               >
                 <Trash2 className="w-5 h-5" />
@@ -113,25 +113,25 @@ const TokenManagementPage = () => {
         <div className="bg-white rounded-xl shadow-md p-6 border border-bg-300">
           <h3 className="text-lg font-semibold text-text-100 mb-4">Recent Token History</h3>
           <div className="grid grid-cols-3 gap-4">
-            {tokenHistory.slice(0, 3).map((token, index) => (
+            {tokenHistory.slice(0, 3).map((token) => (
               <div
-                key={index}
+                key={token.updatedAt}
                 className={`p-4 rounded-lg border-2 ${
-                  index === 0
+                  token === tokenHistory[0]
                     ? 'bg-primary-100/20 border-primary-100'
                     : 'bg-bg-100 border-bg-300'
                 }`}
               >
                 <div className="flex items-center gap-2 mb-2">
-                  <Hash className={`w-5 h-5 ${index === 0 ? 'text-primary-100' : 'text-text-200'}`} />
+                  <Hash className={`w-5 h-5 ${token === tokenHistory[0] ? 'text-primary-100' : 'text-text-200'}`} />
                   <span className={`text-xs font-semibold uppercase ${
-                    index === 0 ? 'text-primary-100' : 'text-text-200'
+                    token === tokenHistory[0] ? 'text-primary-100' : 'text-text-200'
                   }`}>
-                    {index === 0 ? 'Current' : `Previous ${index}`}
+                    {token === tokenHistory[0] ? 'Current' : 'Previous'}
                   </span>
                 </div>
                 <div className={`text-4xl font-bold mb-2 ${
-                  index === 0 ? 'text-primary-100' : 'text-text-100'
+                  token === tokenHistory[0] ? 'text-primary-100' : 'text-text-100'
                 }`}>
                   {token.number}
                 </div>
@@ -178,6 +178,17 @@ const TokenManagementPage = () => {
           )}
         </div>
       </div>
+
+      {/* Clear Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={showClearConfirm}
+        onClose={() => setShowClearConfirm(false)}
+        onConfirm={handleClear}
+        title="Clear Serving Token"
+        message="Are you sure you want to clear the serving token? It will be removed from all screens."
+        confirmText="Clear Token"
+        type="danger"
+      />
     </div>
   );
 };

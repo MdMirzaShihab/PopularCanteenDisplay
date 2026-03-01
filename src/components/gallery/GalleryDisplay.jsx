@@ -1,30 +1,7 @@
-import { useEffect, useState } from 'react';
 import { isVideoUrl } from '../../utils/fileUtils';
 import TimeBasedRenderer from './TimeBasedRenderer';
 
 const GalleryDisplay = ({ screen }) => {
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    // Simulate loading
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  if (isLoading) {
-    return (
-      <div className="fixed inset-0 bg-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-white border-t-transparent rounded-full animate-spin mb-4 mx-auto"></div>
-          <p className="text-white text-xl">Loading display...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="fixed inset-0 overflow-auto">
       {/* Background - Visible through frosted glass content */}
