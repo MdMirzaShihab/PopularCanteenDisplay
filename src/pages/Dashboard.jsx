@@ -1,18 +1,18 @@
 import { Link } from 'react-router-dom';
-import { UtensilsCrossed, BookOpen, Monitor, Activity, Plus } from 'lucide-react';
+import { UtensilsCrossed, BookOpen, Monitor, Plus } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
 import { format } from 'date-fns';
 
 const Dashboard = () => {
   const { user } = useAuth();
-  const { items, menus, schedules, screens, activityLogs } = useData();
+  const { items, menus, foodScreens, tokenScreens, activityLogs } = useData();
 
   const stats = [
     { label: 'Total Items', value: items.length, icon: UtensilsCrossed, color: 'bg-primary-100', link: '/items' },
     { label: 'Menus', value: menus.length, icon: BookOpen, color: 'bg-primary-200', link: '/menus' },
-    { label: 'Schedules', value: schedules.length, icon: Activity, color: 'bg-accent-100', link: '/schedules' },
-    { label: 'Screens', value: screens.length, icon: Monitor, color: 'bg-accent-200', link: '/screens' },
+    // { label: 'Schedules', value: schedules.length, icon: Activity, color: 'bg-accent-100', link: '/schedules' }, // Hidden — not active in current demo
+    { label: 'Screens', value: foodScreens.length + tokenScreens.length, icon: Monitor, color: 'bg-accent-200', link: '/screens' },
   ];
 
   // Filter activity logs to show only current user's activity
@@ -76,6 +76,7 @@ const Dashboard = () => {
             <span className="font-medium text-text-100">Create Menu</span>
           </Link>
 
+          {/* Hidden — Schedule not active in current demo
           <Link
             to="/schedules"
             className="flex items-center gap-3 p-4 bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 border border-bg-300 hover:border-accent-100"
@@ -85,6 +86,7 @@ const Dashboard = () => {
             </div>
             <span className="font-medium text-text-100">New Schedule</span>
           </Link>
+          */}
 
           <Link
             to="/screens"

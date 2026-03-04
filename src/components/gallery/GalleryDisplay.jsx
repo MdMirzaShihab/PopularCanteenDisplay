@@ -29,10 +29,7 @@ const GalleryDisplay = ({ screen }) => {
 
       {/* Content */}
       <div className="relative z-10">
-        <TimeBasedRenderer
-          screen={screen}
-          displaySettings={screen.displaySettings}
-        />
+        <TimeBasedRenderer screen={screen} />
       </div>
     </div>
   );

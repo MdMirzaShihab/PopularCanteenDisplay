@@ -3,8 +3,10 @@ import {
   initialItems,
   initialMenus,
   initialSchedules,
-  initialScreens,
+  initialFoodScreens,
+  initialTokenScreens,
   initialActivityLogs,
+  initialUsers,
   generateId
 } from '../data/mockData';
 import { useAuth } from './AuthContext';
@@ -20,7 +22,7 @@ export const useData = () => {
 };
 
 export const DataProvider = ({ children }) => {
-  const { user } = useAuth();
+  const { user, refreshCurrentUser } = useAuth();
 
   // Initialize state from localStorage or use initial data
   const [items, setItems] = useState(() => {
@@ -38,9 +40,33 @@ export const DataProvider = ({ children }) => {
     return saved ? JSON.parse(saved) : initialSchedules;
   });
 
-  const [screens, setScreens] = useState(() => {
-    const saved = localStorage.getItem('canteen_screens');
-    return saved ? JSON.parse(saved) : initialScreens;
+  const [foodScreens, setFoodScreens] = useState(() => {
+    const saved = localStorage.getItem('canteen_food_screens');
+    if (saved) return JSON.parse(saved);
+    // Migration: check for old unified screens data
+    const oldScreens = localStorage.getItem('canteen_screens');
+    if (oldScreens) {
+      const parsed = JSON.parse(oldScreens);
+      const migrated = parsed.map(s => ({
+        ...s,
+        type: 'food',
+        theme: s.displaySettings?.orientation === 'portrait' ? 'portrait-list'
+          : s.displaySettings?.foregroundMediaDisplay === 'fullScreen' ? 'none'
+          : s.displaySettings?.foregroundMediaDisplay === 'on' ? 'media-focus'
+          : 'classic-grid',
+        showPrices: s.displaySettings?.showPrices ?? true,
+        transitionDuration: s.displaySettings?.transitionDuration ?? 500,
+        slideDelay: s.displaySettings?.slideDelay ?? 5000,
+      }));
+      localStorage.removeItem('canteen_screens');
+      return migrated;
+    }
+    return initialFoodScreens;
+  });
+
+  const [tokenScreens, setTokenScreens] = useState(() => {
+    const saved = localStorage.getItem('canteen_token_screens');
+    return saved ? JSON.parse(saved) : initialTokenScreens;
   });
 
   const [activityLogs, setActivityLogs] = useState(() => {
@@ -52,6 +78,12 @@ export const DataProvider = ({ children }) => {
   const [tokenHistory, setTokenHistory] = useState(() => {
     const saved = localStorage.getItem('canteen_token_history');
     return saved ? JSON.parse(saved) : [];
+  });
+
+  // Users
+  const [users, setUsers] = useState(() => {
+    const saved = localStorage.getItem('canteen_users');
+    return saved ? JSON.parse(saved) : initialUsers;
   });
 
   // Persist to localStorage whenever data changes
@@ -87,13 +119,23 @@ export const DataProvider = ({ children }) => {
 
   useEffect(() => {
     try {
-      localStorage.setItem('canteen_screens', JSON.stringify(screens));
+      localStorage.setItem('canteen_food_screens', JSON.stringify(foodScreens));
     } catch (error) {
       if (error.name === 'QuotaExceededError') {
-        console.error('Storage quota exceeded for screens. Media files are too large for localStorage.');
+        console.error('Storage quota exceeded for food screens. Media files are too large for localStorage.');
       }
     }
-  }, [screens]);
+  }, [foodScreens]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('canteen_token_screens', JSON.stringify(tokenScreens));
+    } catch (error) {
+      if (error.name === 'QuotaExceededError') {
+        console.error('Storage quota exceeded for token screens.');
+      }
+    }
+  }, [tokenScreens]);
 
   useEffect(() => {
     try {
@@ -117,6 +159,16 @@ export const DataProvider = ({ children }) => {
       }
     }
   }, [tokenHistory]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('canteen_users', JSON.stringify(users));
+    } catch (error) {
+      if (error.name === 'QuotaExceededError') {
+        console.error('Storage quota exceeded for users.');
+      }
+    }
+  }, [users]);
 
   // Listen for storage changes from other tabs/windows (for real-time token updates across screens)
   useEffect(() => {
@@ -329,47 +381,185 @@ export const DataProvider = ({ children }) => {
   // Get the single schedule (there should only be one)
   const getSingleSchedule = useCallback(() => schedules[0] || null, [schedules]);
 
-  // ============= SCREENS CRUD =============
-  const createScreen = useCallback((screenData) => {
+  // ============= FOOD SCREENS CRUD =============
+  const createFoodScreen = useCallback((screenData) => {
     const newScreen = {
       ...screenData,
+      id: generateId(),
+      type: 'food',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    setFoodScreens(prev => [...prev, newScreen]);
+    addActivityLog('CREATE', 'food_screen', newScreen.title, `Created food screen: ${newScreen.title}`,
+      null, { title: newScreen.title, theme: newScreen.theme });
+    return newScreen;
+  }, [addActivityLog]);
+
+  const updateFoodScreen = useCallback((id, updates) => {
+    const oldScreen = foodScreens.find(s => s.id === id);
+    if (!oldScreen) return null;
+    const updatedScreen = { ...oldScreen, ...updates, updatedAt: new Date().toISOString() };
+    setFoodScreens(prev => prev.map(s => s.id === id ? updatedScreen : s));
+    addActivityLog('UPDATE', 'food_screen', updatedScreen.title, `Updated food screen: ${updatedScreen.title}`,
+      { theme: oldScreen.theme }, { theme: updatedScreen.theme });
+    return updatedScreen;
+  }, [foodScreens, addActivityLog]);
+
+  const deleteFoodScreen = useCallback((id) => {
+    const screen = foodScreens.find(s => s.id === id);
+    if (!screen) return { success: false, error: 'Screen not found' };
+    setFoodScreens(prev => prev.filter(s => s.id !== id));
+    addActivityLog('DELETE', 'food_screen', screen.title, `Deleted food screen: ${screen.title}`,
+      { title: screen.title }, null);
+    return { success: true };
+  }, [foodScreens, addActivityLog]);
+
+  // ============= TOKEN SCREENS CRUD =============
+  const createTokenScreen = useCallback((screenData) => {
+    const newScreen = {
+      ...screenData,
+      id: generateId(),
+      type: 'token',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    setTokenScreens(prev => [...prev, newScreen]);
+    addActivityLog('CREATE', 'token_screen', newScreen.title, `Created token screen: ${newScreen.title}`,
+      null, { title: newScreen.title });
+    return newScreen;
+  }, [addActivityLog]);
+
+  const updateTokenScreen = useCallback((id, updates) => {
+    const oldScreen = tokenScreens.find(s => s.id === id);
+    if (!oldScreen) return null;
+    const updatedScreen = { ...oldScreen, ...updates, updatedAt: new Date().toISOString() };
+    setTokenScreens(prev => prev.map(s => s.id === id ? updatedScreen : s));
+    addActivityLog('UPDATE', 'token_screen', updatedScreen.title, `Updated token screen: ${updatedScreen.title}`,
+      { title: oldScreen.title }, { title: updatedScreen.title });
+    return updatedScreen;
+  }, [tokenScreens, addActivityLog]);
+
+  const deleteTokenScreen = useCallback((id) => {
+    const screen = tokenScreens.find(s => s.id === id);
+    if (!screen) return { success: false, error: 'Screen not found' };
+    setTokenScreens(prev => prev.filter(s => s.id !== id));
+    addActivityLog('DELETE', 'token_screen', screen.title, `Deleted token screen: ${screen.title}`,
+      { title: screen.title }, null);
+    return { success: true };
+  }, [tokenScreens, addActivityLog]);
+
+  // Unified lookup for gallery route (searches both types)
+  const getScreenById = useCallback((id) => {
+    return foodScreens.find(s => s.id === id) || tokenScreens.find(s => s.id === id);
+  }, [foodScreens, tokenScreens]);
+
+  // ============= USERS CRUD =============
+  const createUser = useCallback((userData) => {
+    const duplicate = users.find(
+      u => u.username === userData.username || u.email === userData.email
+    );
+    if (duplicate) {
+      return {
+        success: false,
+        error: duplicate.username === userData.username
+          ? 'Username already exists'
+          : 'Email already in use'
+      };
+    }
+
+    const newUser = {
+      ...userData,
       id: generateId(),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
 
-    setScreens(prev => [...prev, newScreen]);
-    addActivityLog('CREATE', 'screen', newScreen.title, `Created screen: ${newScreen.title}`,
-      null, { title: newScreen.title, scheduleId: newScreen.scheduleId });
-    return newScreen;
-  }, [addActivityLog]);
+    setUsers(prev => [...prev, newUser]);
+    addActivityLog('CREATE', 'user', newUser.name,
+      `Created user: ${newUser.username} (${newUser.role})`,
+      null, { username: newUser.username, role: newUser.role }
+    );
+    return { success: true, user: newUser };
+  }, [users, addActivityLog]);
 
-  const updateScreen = useCallback((id, updates) => {
-    let updatedScreen = null;
-    setScreens(prev => {
-      const oldScreen = prev.find(s => s.id === id);
-      if (!oldScreen) return prev;
-      updatedScreen = { ...oldScreen, ...updates, updatedAt: new Date().toISOString() };
-      addActivityLog('UPDATE', 'screen', updatedScreen.title, `Updated screen: ${updatedScreen.title}`,
-        { scheduleId: oldScreen.scheduleId },
-        { scheduleId: updatedScreen.scheduleId }
-      );
-      return prev.map(s => s.id === id ? updatedScreen : s);
-    });
-    return updatedScreen;
-  }, [addActivityLog]);
+  const updateUser = useCallback((id, updates) => {
+    const oldUser = users.find(u => u.id === id);
+    if (!oldUser) return { success: false, error: 'User not found' };
 
-  const deleteScreen = useCallback((id) => {
-    const screen = screens.find(s => s.id === id);
-    if (!screen) return false;
+    // Check uniqueness against other users
+    const conflict = users.find(u => u.id !== id && (
+      (updates.username && u.username === updates.username) ||
+      (updates.email && u.email === updates.email)
+    ));
+    if (conflict) {
+      return {
+        success: false,
+        error: conflict.username === updates.username
+          ? 'Username already taken'
+          : 'Email already in use'
+      };
+    }
 
-    setScreens(prev => prev.filter(s => s.id !== id));
-    addActivityLog('DELETE', 'screen', screen.title, `Deleted screen: ${screen.title}`,
-      { title: screen.title }, null);
+    // Keep existing password if blank on edit
+    const password = updates.password && updates.password.trim().length > 0
+      ? updates.password
+      : oldUser.password;
+
+    const updatedUser = {
+      ...oldUser,
+      ...updates,
+      password,
+      updatedAt: new Date().toISOString()
+    };
+    const passwordChanged = password !== oldUser.password;
+
+    setUsers(prev => prev.map(u => u.id === id ? updatedUser : u));
+    addActivityLog('UPDATE', 'user', updatedUser.name,
+      `Updated user: ${updatedUser.username}`,
+      { role: oldUser.role, name: oldUser.name },
+      { role: updatedUser.role, name: updatedUser.name }
+    );
+
+    // Force logout if current user's password was changed
+    if (passwordChanged && user?.id === id) {
+      refreshCurrentUser(null);
+    }
+    // Refresh session if current user's profile (non-password) was updated
+    else if (user?.id === id) {
+      refreshCurrentUser(updatedUser);
+    }
+
+    return { success: true, user: updatedUser };
+  }, [users, user, addActivityLog, refreshCurrentUser]);
+
+  const deleteUser = useCallback((id) => {
+    const targetUser = users.find(u => u.id === id);
+    if (!targetUser) return { success: false, error: 'User not found' };
+
+    // Prevent deleting the last admin
+    if (targetUser.role === 'admin') {
+      const adminCount = users.filter(u => u.role === 'admin').length;
+      if (adminCount <= 1) {
+        return { success: false, error: 'Cannot delete the last admin account' };
+      }
+    }
+
+    setUsers(prev => prev.filter(u => u.id !== id));
+    addActivityLog('DELETE', 'user', targetUser.name,
+      `Deleted user: ${targetUser.username}`,
+      { username: targetUser.username, role: targetUser.role }, null
+    );
+
+    // Force logout if current user was deleted
+    if (user?.id === id) {
+      refreshCurrentUser(null);
+    }
+
     return { success: true };
-  }, [screens, addActivityLog]);
+  }, [users, user, addActivityLog, refreshCurrentUser]);
 
-  const getScreenById = useCallback((id) => screens.find(s => s.id === id), [screens]);
+  const getUserById = useCallback((id) => users.find(u => u.id === id), [users]);
 
   // ============= SERVING TOKEN =============
   const updateServingToken = useCallback((tokenNumber) => {
@@ -378,13 +568,13 @@ export const DataProvider = ({ children }) => {
       updatedAt: new Date().toISOString()
     };
 
-    // Add new token to the front of history, keep only last 3
+    // Add new token to the front of history, keep only last 10
     setTokenHistory(prev => {
       addActivityLog('UPDATE', 'token', 'Serving Token', `Updated serving token to: ${tokenNumber}`,
         { number: prev[0]?.number || null },
         { number: tokenNumber }
       );
-      return [tokenData, ...prev].slice(0, 3);
+      return [tokenData, ...prev].slice(0, 10);
     });
 
     return tokenData;
@@ -434,7 +624,9 @@ export const DataProvider = ({ children }) => {
     setItems(initialItems);
     setMenus(initialMenus);
     setSchedules(initialSchedules);
-    setScreens(initialScreens);
+    setFoodScreens(initialFoodScreens);
+    setTokenScreens(initialTokenScreens);
+    setUsers(initialUsers);
     setActivityLogs(initialActivityLogs);
     addActivityLog('RESET', 'system', 'All Data', 'Reset all data to initial demo state');
   }, [addActivityLog]);
@@ -463,12 +655,25 @@ export const DataProvider = ({ children }) => {
     getScheduleById,
     getSingleSchedule,
 
-    // Screens
-    screens,
-    createScreen,
-    updateScreen,
-    deleteScreen,
+    // Food Screens
+    foodScreens,
+    createFoodScreen,
+    updateFoodScreen,
+    deleteFoodScreen,
+    // Token Screens
+    tokenScreens,
+    createTokenScreen,
+    updateTokenScreen,
+    deleteTokenScreen,
+    // Unified lookup
     getScreenById,
+
+    // Users
+    users,
+    createUser,
+    updateUser,
+    deleteUser,
+    getUserById,
 
     // Serving Token
     servingToken,
@@ -486,7 +691,10 @@ export const DataProvider = ({ children }) => {
     items, createItem, updateItem, deleteItem, getItemById, getItemsByIds,
     menus, createMenu, updateMenu, deleteMenu, getMenuById,
     schedules, createSchedule, updateSchedule, deleteSchedule, getScheduleById, getSingleSchedule,
-    screens, createScreen, updateScreen, deleteScreen, getScreenById,
+    foodScreens, createFoodScreen, updateFoodScreen, deleteFoodScreen,
+    tokenScreens, createTokenScreen, updateTokenScreen, deleteTokenScreen,
+    getScreenById,
+    users, createUser, updateUser, deleteUser, getUserById,
     servingToken, tokenHistory, updateServingToken, clearServingToken,
     activityLogs, getActivityLogs,
     clearAllData

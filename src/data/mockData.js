@@ -307,11 +307,13 @@ export const initialSchedules = [
   }
 ];
 
-// Initial Screens
-export const initialScreens = [
+// Initial Food Screens
+export const initialFoodScreens = [
   {
-    id: 'screen-001',
+    id: 'food-screen-001',
     title: 'Main Dining Hall Display',
+    screenId: 'HALL-A-01',
+    type: 'food',
     defaultMenuId: 'menu-001',
     timeSlots: [
       {
@@ -341,18 +343,18 @@ export const initialScreens = [
     ],
     backgroundType: 'image',
     backgroundMedia: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080"%3E%3Cdefs%3E%3ClinearGradient id="grad" x1="0%25" y1="0%25" x2="100%25" y2="100%25"%3E%3Cstop offset="0%25" style="stop-color:%234361ee;stop-opacity:1" /%3E%3Cstop offset="100%25" style="stop-color:%233a0ca3;stop-opacity:1" /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect fill="url(%23grad)" width="1920" height="1080"/%3E%3Ctext x="50%25" y="50%25" font-size="60" text-anchor="middle" dy=".3em" fill="%23fff" opacity="0.3"%3EMain Dining Hall%3C/text%3E%3C/svg%3E',
-    displaySettings: {
-      layoutStyle: 'grid',
-      showPrices: true,
-      showIngredients: true,
-      transitionDuration: 500
-    },
+    theme: 'classic-grid',
+    showPrices: true,
+    transitionDuration: 500,
+    slideDelay: 5000,
     createdAt: '2024-01-23T08:00:00Z',
     updatedAt: '2024-01-23T08:00:00Z'
   },
   {
-    id: 'screen-002',
+    id: 'food-screen-002',
     title: 'Cafeteria Display',
+    screenId: 'CAFE-01',
+    type: 'food',
     defaultMenuId: 'menu-002',
     timeSlots: [
       {
@@ -366,14 +368,27 @@ export const initialScreens = [
     ],
     backgroundType: 'image',
     backgroundMedia: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080"%3E%3Cdefs%3E%3ClinearGradient id="grad2" x1="0%25" y1="0%25" x2="100%25" y2="100%25"%3E%3Cstop offset="0%25" style="stop-color:%2306b6d4;stop-opacity:1" /%3E%3Cstop offset="100%25" style="stop-color:%230891b2;stop-opacity:1" /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect fill="url(%23grad2)" width="1920" height="1080"/%3E%3Ctext x="50%25" y="50%25" font-size="60" text-anchor="middle" dy=".3em" fill="%23fff" opacity="0.3"%3ECafeteria%3C/text%3E%3C/svg%3E',
-    displaySettings: {
-      layoutStyle: 'list',
-      showPrices: true,
-      showIngredients: false,
-      transitionDuration: 300
-    },
+    theme: 'classic-grid',
+    showPrices: true,
+    transitionDuration: 300,
+    slideDelay: 5000,
     createdAt: '2024-01-23T08:30:00Z',
     updatedAt: '2024-01-23T08:30:00Z'
+  }
+];
+
+// Initial Token Screens
+export const initialTokenScreens = [
+  {
+    id: 'token-screen-001',
+    title: 'Main Counter Token Display',
+    screenId: 'TOKEN-01',
+    type: 'token',
+    backgroundType: 'color',
+    backgroundMedia: null,
+    backgroundColor: '#1f2937',
+    createdAt: '2024-01-23T09:00:00Z',
+    updatedAt: '2024-01-23T09:00:00Z'
   }
 ];
 

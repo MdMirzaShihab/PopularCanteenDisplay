@@ -33,7 +33,7 @@ const LoginPage = () => {
       success(`Welcome back, ${result.user.name}!`);
       navigate('/dashboard');
     } else {
-      error('Login failed. Please try again.');
+      error(result.error || 'Login failed. Please try again.');
     }
   };
 

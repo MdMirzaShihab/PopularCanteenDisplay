@@ -85,11 +85,11 @@ export const validateSchedule = (scheduleData) => {
 };
 
 /**
- * Validate screen form data
- * @param {Object} screenData - Screen data to validate
+ * Validate food screen form data
+ * @param {Object} screenData - Food screen data to validate
  * @returns {Object} - Validation result with errors
  */
-export const validateScreen = (screenData) => {
+export const validateFoodScreen = (screenData) => {
   const errors = {};
 
   if (!screenData.title || screenData.title.trim().length === 0) {
@@ -112,7 +112,48 @@ export const validateScreen = (screenData) => {
     errors.backgroundMedia = 'Background image/video is required';
   }
 
-  // Foreground media is optional, no validation needed
+  if (!screenData.theme) {
+    errors.theme = 'Please select a theme';
+  }
+
+  return {
+    isValid: Object.keys(errors).length === 0,
+    errors
+  };
+};
+
+/**
+ * Validate token screen form data
+ * @param {Object} screenData - Token screen data to validate
+ * @returns {Object} - Validation result with errors
+ */
+export const validateTokenScreen = (screenData) => {
+  const errors = {};
+
+  if (!screenData.title || screenData.title.trim().length === 0) {
+    errors.title = 'Screen title is required';
+  }
+
+  if (!screenData.screenId || screenData.screenId.trim().length === 0) {
+    errors.screenId = 'Screen ID is required';
+  }
+
+  const validBgTypes = ['image', 'video', 'color'];
+  if (screenData.backgroundType && !validBgTypes.includes(screenData.backgroundType)) {
+    errors.backgroundType = 'Invalid background type';
+  }
+
+  if (screenData.backgroundType === 'image' || screenData.backgroundType === 'video') {
+    if (!screenData.backgroundMedia) {
+      errors.backgroundMedia = 'Background media is required for image/video type';
+    }
+  }
+
+  if (screenData.backgroundType === 'color') {
+    if (!screenData.backgroundColor) {
+      errors.backgroundColor = 'Background color is required';
+    }
+  }
 
   return {
     isValid: Object.keys(errors).length === 0,
@@ -283,4 +324,45 @@ export const hasMinLength = (value, minLength) => {
 export const hasMaxLength = (value, maxLength) => {
   if (!value || typeof value !== 'string') return true;
   return value.trim().length <= maxLength;
+};
+
+/**
+ * Validate user form data
+ * @param {Object} userData - User data to validate
+ * @param {boolean} isEditing - Whether this is an edit (password optional)
+ * @returns {Object} - Validation result with errors
+ */
+export const validateUser = (userData, isEditing = false) => {
+  const errors = {};
+
+  if (!userData.name || userData.name.trim().length < 2) {
+    errors.name = 'Full name must be at least 2 characters';
+  }
+
+  if (!userData.email || !isValidEmail(userData.email)) {
+    errors.email = 'A valid email address is required';
+  }
+
+  if (!userData.username || userData.username.trim().length < 3) {
+    errors.username = 'Username must be at least 3 characters';
+  } else if (!/^[a-zA-Z0-9_]+$/.test(userData.username)) {
+    errors.username = 'Username may only contain letters, numbers, and underscores';
+  }
+
+  if (!isEditing) {
+    if (!userData.password || userData.password.length < 6) {
+      errors.password = 'Password must be at least 6 characters';
+    }
+  } else if (userData.password && userData.password.length > 0 && userData.password.length < 6) {
+    errors.password = 'Password must be at least 6 characters';
+  }
+
+  if (!userData.role || !['admin', 'restaurant_user', 'token_operator'].includes(userData.role)) {
+    errors.role = 'A valid role must be selected';
+  }
+
+  return {
+    isValid: Object.keys(errors).length === 0,
+    errors
+  };
 };

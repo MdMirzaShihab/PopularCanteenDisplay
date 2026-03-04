@@ -8,6 +8,7 @@ import {
   FileText,
   ChefHat,
   Hash,
+  Users,
   X
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
@@ -18,12 +19,13 @@ const Sidebar = ({ isOpen, onClose }) => {
   // Define all available navigation items
   const allNavItems = [
     { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', roles: ['admin', 'restaurant_user'] },
-    { path: '/current-menu', icon: ChefHat, label: 'Current Menu', roles: ['admin', 'restaurant_user'] },
+    // { path: '/current-menu', icon: ChefHat, label: 'Current Menu', roles: ['admin', 'restaurant_user'] }, // Hidden — not active in current demo
     { path: '/token', icon: Hash, label: 'Token Display', roles: ['admin', 'restaurant_user', 'token_operator'] },
     { path: '/items', icon: UtensilsCrossed, label: 'Items', roles: ['admin', 'restaurant_user'] },
     { path: '/menus', icon: BookOpen, label: 'Menus', roles: ['admin', 'restaurant_user'] },
-    { path: '/schedules', icon: Clock, label: 'Schedule', roles: ['admin', 'restaurant_user'] },
+    // { path: '/schedules', icon: Clock, label: 'Schedule', roles: ['admin', 'restaurant_user'] }, // Hidden — not active in current demo
     { path: '/screens', icon: Monitor, label: 'Screens', roles: ['admin', 'restaurant_user'] },
+    { path: '/users', icon: Users, label: 'Users', roles: ['admin'] },
     { path: '/logs', icon: FileText, label: 'Activity Logs', roles: ['admin'] },
   ];
 

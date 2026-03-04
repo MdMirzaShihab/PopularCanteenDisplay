@@ -6,12 +6,13 @@ import LoadingSpinner from './components/common/LoadingSpinner';
 // Pages
 import LoginPage from './pages/LoginPage';
 import Dashboard from './pages/Dashboard';
-import CurrentMenuPage from './pages/CurrentMenuPage';
+// import CurrentMenuPage from './pages/CurrentMenuPage'; // Hidden — not active in current demo
 import TokenManagementPage from './pages/TokenManagementPage';
 import ItemsPage from './pages/ItemsPage';
 import MenusPage from './pages/MenusPage';
-import SchedulesPage from './pages/SchedulesPage';
+// import SchedulesPage from './pages/SchedulesPage'; // Hidden — not active in current demo
 import ScreensPage from './pages/ScreensPage';
+import UsersPage from './pages/UsersPage';
 import GalleryViewPage from './pages/GalleryViewPage';
 import LogsPage from './pages/LogsPage';
 
@@ -82,12 +83,13 @@ function App() {
                 <Routes>
                   <Route index element={<Navigate to="/dashboard" replace />} />
                   <Route path="dashboard" element={<Dashboard />} />
-                  <Route path="current-menu" element={<CurrentMenuPage />} />
+                  {/* <Route path="current-menu" element={<CurrentMenuPage />} /> */}{/* Hidden — not active in current demo */}
                   <Route path="token" element={<TokenManagementPage />} />
                   <Route path="items" element={<ItemsPage />} />
                   <Route path="menus" element={<MenusPage />} />
-                  <Route path="schedules" element={<SchedulesPage />} />
+                  {/* <Route path="schedules" element={<SchedulesPage />} /> */}{/* Hidden — not active in current demo */}
                   <Route path="screens" element={<ScreensPage />} />
+                  <Route path="users" element={<UsersPage />} />
                   <Route path="logs" element={<LogsPage />} />
                   <Route path="*" element={<Navigate to="/dashboard" replace />} />
                 </Routes>

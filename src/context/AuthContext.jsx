@@ -40,14 +40,18 @@ export const AuthProvider = ({ children }) => {
   }, [user]);
 
   const login = useCallback((credentials) => {
-    const { username, email } = credentials;
+    const { username, password } = credentials;
 
-    const foundUser = initialUsers.find(
-      u => u.username === username || u.email === email
+    // Read live user list from localStorage; fall back to seed data on first run
+    const stored = localStorage.getItem('canteen_users');
+    const users = stored ? JSON.parse(stored) : initialUsers;
+
+    const foundUser = users.find(
+      u => u.username === username || u.email === username
     );
 
-    if (!foundUser) {
-      return { success: false, error: 'Invalid credentials' };
+    if (!foundUser || foundUser.password !== password) {
+      return { success: false, error: 'Invalid username or password' };
     }
 
     // Remove password from user object before storing
@@ -61,16 +65,30 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('canteen_auth_user');
   }, []);
 
+  // Called by DataContext when the current user is deleted or password changed
+  const refreshCurrentUser = useCallback((updatedUser) => {
+    if (!updatedUser) {
+      // User was deleted — force logout
+      setUser(null);
+      localStorage.removeItem('canteen_auth_user');
+    } else {
+      // Profile updated — refresh session without password
+      const { password: _, ...userWithoutPassword } = updatedUser;
+      setUser(userWithoutPassword);
+    }
+  }, []);
+
   const value = useMemo(() => ({
     user,
     loading,
     login,
     logout,
+    refreshCurrentUser,
     isAdmin: user?.role === 'admin',
     isRestaurantUser: user?.role === 'restaurant_user',
     isTokenOperator: user?.role === 'token_operator',
     isAuthenticated: !!user
-  }), [user, loading, login, logout]);
+  }), [user, loading, login, logout, refreshCurrentUser]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

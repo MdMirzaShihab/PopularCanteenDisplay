@@ -222,6 +222,22 @@ export const formatTimeDisplay = (timeString) => {
 };
 
 /**
+ * Format current date for display
+ * @returns {string} - Formatted date like "Wednesday, 04 March 2026"
+ */
+export const formatDateDisplay = () => {
+  const now = new Date();
+  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const months = ['January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'];
+  const dayName = days[now.getDay()];
+  const date = String(now.getDate()).padStart(2, '0');
+  const month = months[now.getMonth()];
+  const year = now.getFullYear();
+  return `${dayName}, ${date} ${month} ${year}`;
+};
+
+/**
  * Get time range string for display
  * @param {string} startTime - Start time in HH:MM format
  * @param {string} endTime - End time in HH:MM format
