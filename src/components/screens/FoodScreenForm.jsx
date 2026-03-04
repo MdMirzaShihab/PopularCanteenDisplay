@@ -5,6 +5,7 @@ import ImageUpload from '../common/ImageUpload';
 import TimeSlotBuilder from '../schedules/TimeSlotBuilder';
 import ThemeSelector from './ThemeSelector';
 import { validateFoodScreen } from '../../utils/validators';
+import { Plus, Trash2, ChevronUp, ChevronDown } from 'lucide-react';
 
 const FoodScreenForm = ({ screen, onSubmit, onCancel }) => {
   const { menus } = useData();
@@ -18,7 +19,8 @@ const FoodScreenForm = ({ screen, onSubmit, onCancel }) => {
     backgroundType: 'image',
     backgroundMedia: null,
     foregroundMedia: null,
-    theme: 'classic-grid',
+    customMessages: [],
+    theme: 'card-grid',
     showPrices: true,
     transitionDuration: 500,
     slideDelay: 5000
@@ -36,7 +38,8 @@ const FoodScreenForm = ({ screen, onSubmit, onCancel }) => {
         backgroundType: screen.backgroundType || 'image',
         backgroundMedia: screen.backgroundMedia || null,
         foregroundMedia: screen.foregroundMedia || null,
-        theme: screen.theme || 'classic-grid',
+        customMessages: screen.customMessages || [],
+        theme: screen.theme || 'card-grid',
         showPrices: screen.showPrices ?? true,
         transitionDuration: screen.transitionDuration ?? 500,
         slideDelay: screen.slideDelay ?? 5000
@@ -200,6 +203,14 @@ const FoodScreenForm = ({ screen, onSubmit, onCancel }) => {
             </div>
           )}
 
+          {/* Custom Messages (only for none/blank theme) */}
+          {formData.theme === 'none' && (
+            <CustomMessageEditor
+              messages={formData.customMessages}
+              onChange={(customMessages) => setFormData(prev => ({ ...prev, customMessages }))}
+            />
+          )}
+
           {/* Fine-tuning */}
           <div className="pt-4 border-t border-bg-300 space-y-4">
             <h3 className="text-sm font-semibold text-text-100">Fine-tuning</h3>
@@ -239,6 +250,113 @@ const FoodScreenForm = ({ screen, onSubmit, onCancel }) => {
         </button>
       </div>
     </form>
+  );
+};
+
+const CustomMessageEditor = ({ messages, onChange }) => {
+  const [newMessage, setNewMessage] = useState('');
+
+  const handleAdd = () => {
+    const trimmed = newMessage.trim();
+    if (!trimmed) return;
+    onChange([...messages, trimmed]);
+    setNewMessage('');
+  };
+
+  const handleRemove = (index) => {
+    onChange(messages.filter((_, i) => i !== index));
+  };
+
+  const handleMoveUp = (index) => {
+    if (index === 0) return;
+    const updated = [...messages];
+    [updated[index - 1], updated[index]] = [updated[index], updated[index - 1]];
+    onChange(updated);
+  };
+
+  const handleMoveDown = (index) => {
+    if (index === messages.length - 1) return;
+    const updated = [...messages];
+    [updated[index], updated[index + 1]] = [updated[index + 1], updated[index]];
+    onChange(updated);
+  };
+
+  return (
+    <div className="space-y-3 pt-4 border-t border-bg-300">
+      <h3 className="text-sm font-semibold text-text-100">Custom Messages</h3>
+      <p className="text-xs text-text-200">
+        Add text messages that auto-rotate over the background. Displayed centered with a dark overlay.
+      </p>
+
+      {/* Add new message */}
+      <div className="flex gap-2">
+        <input
+          type="text"
+          value={newMessage}
+          onChange={(e) => setNewMessage(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAdd(); } }}
+          placeholder="e.g., Today's Special: Biryani 50% off"
+          className="flex-1 px-4 py-2 border border-bg-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-100 bg-bg-100 text-text-100 text-sm"
+        />
+        <button
+          type="button"
+          onClick={handleAdd}
+          disabled={!newMessage.trim()}
+          className="px-4 py-2 text-sm font-medium text-white bg-primary-100 rounded-lg hover:bg-primary-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-1"
+        >
+          <Plus className="w-4 h-4" />
+          Add
+        </button>
+      </div>
+
+      {/* Message list */}
+      {messages.length > 0 && (
+        <div className="space-y-2">
+          {messages.map((msg, index) => (
+            <div
+              key={index}
+              className="flex items-center gap-2 p-3 bg-bg-100 border border-bg-300 rounded-lg group"
+            >
+              <span className="text-xs font-mono text-text-300 w-6 text-center flex-shrink-0">
+                {index + 1}
+              </span>
+              <span className="flex-1 text-sm text-text-100 truncate">{msg}</span>
+              <div className="flex items-center gap-1 flex-shrink-0">
+                <button
+                  type="button"
+                  onClick={() => handleMoveUp(index)}
+                  disabled={index === 0}
+                  className="p-1 text-text-300 hover:text-primary-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                >
+                  <ChevronUp className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleMoveDown(index)}
+                  disabled={index === messages.length - 1}
+                  className="p-1 text-text-300 hover:text-primary-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                >
+                  <ChevronDown className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleRemove(index)}
+                  className="p-1 text-text-300 hover:text-accent-200 transition-colors"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {messages.length === 0 && (
+        <p className="text-xs text-text-300 italic p-3 bg-bg-100 rounded-lg text-center">
+          No messages added yet. The screen will show only the background media.
+        </p>
+      )}
+    </div>
   );
 };
 

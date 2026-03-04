@@ -41,8 +41,18 @@ export const DataProvider = ({ children }) => {
   });
 
   const [foodScreens, setFoodScreens] = useState(() => {
+    // Legacy theme ID migration map
+    const LEGACY_THEMES = { 'classic-grid': 'card-grid', 'portrait-list': 'clean-list' };
+    const migrateThemes = (screens) => {
+      const needsMigration = screens.some(s => LEGACY_THEMES[s.theme]);
+      if (!needsMigration) return screens;
+      const migrated = screens.map(s => ({ ...s, theme: LEGACY_THEMES[s.theme] ?? s.theme }));
+      try { localStorage.setItem('canteen_food_screens', JSON.stringify(migrated)); } catch { /* ignore quota */ }
+      return migrated;
+    };
+
     const saved = localStorage.getItem('canteen_food_screens');
-    if (saved) return JSON.parse(saved);
+    if (saved) return migrateThemes(JSON.parse(saved));
     // Migration: check for old unified screens data
     const oldScreens = localStorage.getItem('canteen_screens');
     if (oldScreens) {
@@ -50,10 +60,10 @@ export const DataProvider = ({ children }) => {
       const migrated = parsed.map(s => ({
         ...s,
         type: 'food',
-        theme: s.displaySettings?.orientation === 'portrait' ? 'portrait-list'
+        theme: s.displaySettings?.orientation === 'portrait' ? 'clean-list'
           : s.displaySettings?.foregroundMediaDisplay === 'fullScreen' ? 'none'
           : s.displaySettings?.foregroundMediaDisplay === 'on' ? 'media-focus'
-          : 'classic-grid',
+          : 'card-grid',
         showPrices: s.displaySettings?.showPrices ?? true,
         transitionDuration: s.displaySettings?.transitionDuration ?? 500,
         slideDelay: s.displaySettings?.slideDelay ?? 5000,

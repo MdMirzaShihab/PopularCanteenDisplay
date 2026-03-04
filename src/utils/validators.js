@@ -1,6 +1,7 @@
 // Validation utilities for forms and business logic
 
 import { timeToMinutes } from './timeUtils';
+import { VALID_THEME_IDS } from '../components/gallery/themes/themeRegistry';
 
 /**
  * Validate item form data
@@ -100,20 +101,23 @@ export const validateFoodScreen = (screenData) => {
     errors.screenId = 'Screen ID is required';
   }
 
-  if (!screenData.defaultMenuId) {
-    errors.defaultMenuId = 'Default menu is required';
-  }
+  // Announcement screens (theme 'none') don't need menus or time slots
+  if (screenData.theme !== 'none') {
+    if (!screenData.defaultMenuId) {
+      errors.defaultMenuId = 'Default menu is required';
+    }
 
-  if (!screenData.timeSlots || screenData.timeSlots.length === 0) {
-    errors.timeSlots = 'At least one time slot is required';
+    if (!screenData.timeSlots || screenData.timeSlots.length === 0) {
+      errors.timeSlots = 'At least one time slot is required';
+    }
   }
 
   if (!screenData.backgroundMedia) {
     errors.backgroundMedia = 'Background image/video is required';
   }
 
-  if (!screenData.theme) {
-    errors.theme = 'Please select a theme';
+  if (!screenData.theme || !VALID_THEME_IDS.includes(screenData.theme)) {
+    errors.theme = 'Please select a valid theme';
   }
 
   return {

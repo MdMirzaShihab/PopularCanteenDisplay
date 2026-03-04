@@ -343,7 +343,8 @@ export const initialFoodScreens = [
     ],
     backgroundType: 'image',
     backgroundMedia: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080"%3E%3Cdefs%3E%3ClinearGradient id="grad" x1="0%25" y1="0%25" x2="100%25" y2="100%25"%3E%3Cstop offset="0%25" style="stop-color:%234361ee;stop-opacity:1" /%3E%3Cstop offset="100%25" style="stop-color:%233a0ca3;stop-opacity:1" /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect fill="url(%23grad)" width="1920" height="1080"/%3E%3Ctext x="50%25" y="50%25" font-size="60" text-anchor="middle" dy=".3em" fill="%23fff" opacity="0.3"%3EMain Dining Hall%3C/text%3E%3C/svg%3E',
-    theme: 'classic-grid',
+    theme: 'card-grid',
+    customMessages: [],
     showPrices: true,
     transitionDuration: 500,
     slideDelay: 5000,
@@ -368,12 +369,36 @@ export const initialFoodScreens = [
     ],
     backgroundType: 'image',
     backgroundMedia: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080"%3E%3Cdefs%3E%3ClinearGradient id="grad2" x1="0%25" y1="0%25" x2="100%25" y2="100%25"%3E%3Cstop offset="0%25" style="stop-color:%2306b6d4;stop-opacity:1" /%3E%3Cstop offset="100%25" style="stop-color:%230891b2;stop-opacity:1" /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect fill="url(%23grad2)" width="1920" height="1080"/%3E%3Ctext x="50%25" y="50%25" font-size="60" text-anchor="middle" dy=".3em" fill="%23fff" opacity="0.3"%3ECafeteria%3C/text%3E%3C/svg%3E',
-    theme: 'classic-grid',
+    theme: 'color-blocks',
+    customMessages: [],
     showPrices: true,
     transitionDuration: 300,
     slideDelay: 5000,
     createdAt: '2024-01-23T08:30:00Z',
     updatedAt: '2024-01-23T08:30:00Z'
+  },
+  {
+    id: 'food-screen-003',
+    title: 'Lobby Announcement Board',
+    screenId: 'LOBBY-01',
+    type: 'food',
+    defaultMenuId: 'menu-001',
+    timeSlots: [],
+    backgroundType: 'image',
+    backgroundMedia: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080"%3E%3Cdefs%3E%3ClinearGradient id="grad3" x1="0%25" y1="0%25" x2="100%25" y2="100%25"%3E%3Cstop offset="0%25" style="stop-color:%23059669;stop-opacity:1" /%3E%3Cstop offset="100%25" style="stop-color:%23047857;stop-opacity:1" /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect fill="url(%23grad3)" width="1920" height="1080"/%3E%3C/svg%3E',
+    foregroundMedia: null,
+    theme: 'none',
+    customMessages: [
+      'Welcome to Popular Canteen',
+      'Today\'s Special: Chicken Biryani ৳120',
+      'Fresh Juice Counter Now Open!',
+      'Free WiFi Available - Ask at Counter'
+    ],
+    showPrices: true,
+    transitionDuration: 500,
+    slideDelay: 4000,
+    createdAt: '2024-01-23T09:00:00Z',
+    updatedAt: '2024-01-23T09:00:00Z'
   }
 ];
 

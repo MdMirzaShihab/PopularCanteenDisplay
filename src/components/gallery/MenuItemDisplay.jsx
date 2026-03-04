@@ -3,11 +3,11 @@ import { isVideoUrl } from '../../utils/fileUtils';
 const MenuItemDisplay = ({ item, showPrices }) => {
   // Circular Image Card Design - Inspired by the reference image
   return (
-    <div className="group bg-white rounded-3xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100 h-full flex flex-col p-4 xl:p-6">
+    <div className="group bg-white rounded-3xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100 h-full flex flex-col p-4 xl:p-6 2xl:p-8">
       {/* Circular Image Container with Decorative Border */}
       <div className="relative mx-auto mb-4 flex-shrink-0">
         {/* Outer decorative ring */}
-        <div className="relative w-32 h-32 xl:w-40 xl:h-40">
+        <div className="relative w-32 h-32 xl:w-40 xl:h-40 2xl:w-48 2xl:h-48">
           {/* Border ring effect */}
           <div className="absolute inset-0 rounded-full border-4 border-green-100 group-hover:border-green-300 transition-colors duration-300"></div>
           
@@ -39,8 +39,8 @@ const MenuItemDisplay = ({ item, showPrices }) => {
         {/* Price Badge - Positioned on top right of circle */}
         {showPrices && (
           <div className="absolute -top-2 -right-2 xl:-top-3 xl:-right-3">
-            <div className="bg-gradient-to-br from-green-500 to-green-600 text-white px-3 py-1.5 xl:px-4 xl:py-2 rounded-full shadow-lg">
-              <span className="text-sm xl:text-base font-bold font-heading">৳{item.price.toFixed(0)}</span>
+            <div className="bg-gradient-to-br from-green-500 to-green-600 text-white px-3 py-1.5 xl:px-4 xl:py-2 2xl:px-5 2xl:py-2.5 rounded-full shadow-lg">
+              <span className="text-sm xl:text-base 2xl:text-lg font-bold font-heading">৳{item.price.toFixed(0)}</span>
             </div>
           </div>
         )}
@@ -51,7 +51,7 @@ const MenuItemDisplay = ({ item, showPrices }) => {
         {/* Green decorative line - matching the reference image */}
         <div className="w-12 h-1 bg-gradient-to-r from-green-400 to-green-500 mx-auto mb-3 rounded-full"></div>
         
-        <h3 className="text-lg xl:text-xl font-bold text-gray-900 mb-2 group-hover:text-green-600 transition-colors break-words font-display leading-tight px-2">
+        <h3 className="text-lg xl:text-xl 2xl:text-2xl font-bold text-gray-900 mb-2 group-hover:text-green-600 transition-colors break-words font-display leading-tight px-2">
           {item.name}
         </h3>
         
@@ -62,7 +62,7 @@ const MenuItemDisplay = ({ item, showPrices }) => {
           <div className="h-0.5 bg-gray-200 w-1/2 mx-auto rounded"></div>
         </div>
         
-        <p className="text-xs xl:text-sm text-gray-600 line-clamp-2 leading-relaxed font-body px-2">
+        <p className="text-xs xl:text-sm 2xl:text-base text-gray-600 line-clamp-2 leading-relaxed font-body px-2">
           {item.description}
         </p>
       </div>

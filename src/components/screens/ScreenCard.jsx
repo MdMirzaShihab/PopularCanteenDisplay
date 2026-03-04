@@ -3,12 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { isVideoUrl } from '../../utils/fileUtils';
 import { useNotification } from '../../context/NotificationContext';
 
-const THEME_LABELS = {
-  'classic-grid': 'Classic Grid',
-  'portrait-list': 'Portrait List',
-  'media-focus': 'Media Focus',
-  'none': 'No Theme',
-};
+import { getThemeById } from '../gallery/themes/themeRegistry';
 
 const ScreenCard = ({ screen, onEdit, onDelete, onDuplicate }) => {
   const navigate = useNavigate();
@@ -55,7 +50,7 @@ const ScreenCard = ({ screen, onEdit, onDelete, onDuplicate }) => {
         {/* Theme Badge */}
         <div className="absolute top-2 left-2">
           <div className="bg-gradient-to-br from-primary-100 to-primary-200 text-white px-3 py-1.5 rounded-lg shadow-lg backdrop-blur-sm">
-            <span className="text-xs font-bold">{THEME_LABELS[screen.theme] || 'Classic Grid'}</span>
+            <span className="text-xs font-bold">{getThemeById(screen.theme).label}</span>
           </div>
         </div>
       </div>
