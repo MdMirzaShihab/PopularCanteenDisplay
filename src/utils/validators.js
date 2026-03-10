@@ -1,7 +1,8 @@
 // Validation utilities for forms and business logic
 
 import { timeToMinutes } from './timeUtils';
-import { VALID_THEME_IDS } from '../components/gallery/themes/themeRegistry';
+import { VALID_LAYOUT_IDS, getLayoutTheme } from '../components/gallery/themes/layoutRegistry';
+import { VALID_VISUAL_STYLE_IDS } from '../components/gallery/themes/visualStyleRegistry';
 
 /**
  * Validate item form data
@@ -101,23 +102,73 @@ export const validateFoodScreen = (screenData) => {
     errors.screenId = 'Screen ID is required';
   }
 
-  // Announcement screens (theme 'none') don't need menus or time slots
-  if (screenData.theme !== 'none') {
-    if (!screenData.defaultMenuId) {
-      errors.defaultMenuId = 'Default menu is required';
-    }
-
-    if (!screenData.timeSlots || screenData.timeSlots.length === 0) {
-      errors.timeSlots = 'At least one time slot is required';
+  if (!screenData.layoutTheme || !VALID_LAYOUT_IDS.includes(screenData.layoutTheme)) {
+    errors.layoutTheme = 'Please select a valid layout';
+  } else {
+    const expectedSections = getLayoutTheme(screenData.layoutTheme).sections;
+    if (!screenData.sections || screenData.sections.length !== expectedSections) {
+      errors.sections = `Layout requires ${expectedSections} section${expectedSections !== 1 ? 's' : ''} but found ${screenData.sections?.length || 0}`;
     }
   }
 
-  if (!screenData.backgroundMedia) {
+  if (screenData.backgroundType !== 'color' && !screenData.backgroundMedia) {
     errors.backgroundMedia = 'Background image/video is required';
   }
 
-  if (!screenData.theme || !VALID_THEME_IDS.includes(screenData.theme)) {
-    errors.theme = 'Please select a valid theme';
+  if (screenData.backgroundType === 'color' && !screenData.backgroundColor) {
+    errors.backgroundColor = 'Background color is required';
+  }
+
+  // Validate each section
+  const sectionErrors = [];
+  if (screenData.sections && screenData.sections.length > 0) {
+    screenData.sections.forEach((section, idx) => {
+      const se = {};
+
+      if (!section.defaultContent || !section.defaultContent.type) {
+        se.defaultContent = 'Default content is required';
+      } else if (section.defaultContent.type === 'menu') {
+        if (!section.defaultContent.menuId) {
+          se.defaultContent = 'Please select a default menu';
+        }
+        if (!section.defaultContent.visualStyle || !VALID_VISUAL_STYLE_IDS.includes(section.defaultContent.visualStyle)) {
+          se.defaultContentStyle = 'Please select a visual style';
+        }
+      } else if ((section.defaultContent.type === 'image' || section.defaultContent.type === 'video') && !section.defaultContent.media) {
+        se.defaultContent = 'Please upload media for default content';
+      }
+
+      if (section.timeSlots && section.timeSlots.length > 0) {
+        section.timeSlots.forEach((slot, slotIdx) => {
+          if (!slot.startTime || !slot.endTime) {
+            se[`timeSlot_${slotIdx}_time`] = 'Start and end time are required';
+          }
+          if (!slot.daysOfWeek || slot.daysOfWeek.length === 0) {
+            se[`timeSlot_${slotIdx}_days`] = 'At least one day is required';
+          }
+          if (!slot.content || !slot.content.type) {
+            se[`timeSlot_${slotIdx}_content`] = 'Content is required for each time slot';
+          } else if (slot.content.type === 'menu' && !slot.content.menuId) {
+            se[`timeSlot_${slotIdx}_content`] = 'Please select a menu';
+          } else if ((slot.content.type === 'image' || slot.content.type === 'video') && !slot.content.media) {
+            se[`timeSlot_${slotIdx}_content`] = 'Please upload media';
+          }
+        });
+
+        const overlaps = checkSectionTimeSlotOverlaps(section.timeSlots);
+        if (overlaps.length > 0) {
+          se.timeSlotOverlaps = 'Time slots must not overlap within the same section';
+        }
+      }
+
+      if (Object.keys(se).length > 0) {
+        sectionErrors[idx] = se;
+      }
+    });
+  }
+
+  if (sectionErrors.some(e => e)) {
+    errors.sections = sectionErrors;
   }
 
   return {
@@ -163,6 +214,65 @@ export const validateTokenScreen = (screenData) => {
     isValid: Object.keys(errors).length === 0,
     errors
   };
+};
+
+/**
+ * Check if two time ranges overlap (handles overnight spans where end < start)
+ * @param {number} aStart - Start of range A in minutes
+ * @param {number} aEnd - End of range A in minutes
+ * @param {number} bStart - Start of range B in minutes
+ * @param {number} bEnd - End of range B in minutes
+ * @returns {boolean} - Whether ranges overlap
+ */
+const isTimeRangeOverlapping = (aStart, aEnd, bStart, bEnd) => {
+  // Handle overnight spans by normalizing to two ranges
+  const aIsOvernight = aEnd <= aStart;
+  const bIsOvernight = bEnd <= bStart;
+
+  if (!aIsOvernight && !bIsOvernight) {
+    // Simple case: neither crosses midnight
+    return aStart < bEnd && aEnd > bStart;
+  }
+
+  if (aIsOvernight && !bIsOvernight) {
+    // A crosses midnight: check [aStart, 1440) and [0, aEnd) against B
+    return (aStart < bEnd && 1440 > bStart) || (0 < bEnd && aEnd > bStart);
+  }
+
+  if (!aIsOvernight && bIsOvernight) {
+    // B crosses midnight: check A against [bStart, 1440) and [0, bEnd)
+    return (aStart < 1440 && aEnd > bStart) || (aStart < bEnd && aEnd > 0);
+  }
+
+  // Both cross midnight — they always overlap (both cover midnight)
+  return true;
+};
+
+/**
+ * Check for overlapping time slots within a single section
+ * @param {Array} timeSlots - Array of section time slot objects
+ * @returns {Array} - Array of overlap objects { slotA, slotB, days }
+ */
+export const checkSectionTimeSlotOverlaps = (timeSlots) => {
+  const overlaps = [];
+  for (let i = 0; i < timeSlots.length; i++) {
+    for (let j = i + 1; j < timeSlots.length; j++) {
+      const a = timeSlots[i];
+      const b = timeSlots[j];
+      const sharedDays = a.daysOfWeek.filter(d => b.daysOfWeek.includes(d));
+      if (sharedDays.length === 0) continue;
+      // Use timeToMinutes for comparison
+      const aStart = timeToMinutes(a.startTime);
+      const aEnd = timeToMinutes(a.endTime);
+      const bStart = timeToMinutes(b.startTime);
+      const bEnd = timeToMinutes(b.endTime);
+      // Check overlap (handle overnight spans)
+      if (isTimeRangeOverlapping(aStart, aEnd, bStart, bEnd)) {
+        overlaps.push({ slotA: i, slotB: j, days: sharedDays });
+      }
+    }
+  }
+  return overlaps;
 };
 
 /**

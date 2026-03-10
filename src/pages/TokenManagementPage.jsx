@@ -2,9 +2,10 @@ import { useState } from 'react';
 import { useData } from '../context/DataContext';
 import { Hash, Trash2, Clock } from 'lucide-react';
 import ConfirmDialog from '../components/common/ConfirmDialog';
+import TokenArchiveSection from '../components/token/TokenArchiveSection';
 
 const TokenManagementPage = () => {
-  const { servingToken, tokenHistory, updateServingToken, clearServingToken } = useData();
+  const { servingToken, tokenHistory, updateServingToken, clearServingToken, archiveEntries } = useData();
   const [inputValue, setInputValue] = useState('');
   const [showClearConfirm, setShowClearConfirm] = useState(false);
 
@@ -145,39 +146,8 @@ const TokenManagementPage = () => {
         </div>
       )}
 
-      {/* Instructions */}
-      <div className="bg-primary-100/10 border border-primary-100 rounded-xl p-6">
-        <h3 className="text-lg font-semibold text-primary-100 mb-2">
-          How Token Display Works
-        </h3>
-        <ul className="list-disc list-inside space-y-1 text-sm text-text-100">
-          <li>Enter a token number and press "Update Token" or hit Enter</li>
-          <li>The token will immediately appear on all active gallery screens</li>
-          <li>Recent tokens are shown below the current token on screens</li>
-          <li>System keeps track of the last 3 tokens for customer reference</li>
-          <li>Changes are instant - no need to refresh the gallery screens</li>
-          <li>Use "Clear" to remove all tokens from screens</li>
-          <li>Perfect for calling customers or managing queue numbers</li>
-        </ul>
-      </div>
-
-      {/* Preview */}
-      <div className="bg-white rounded-xl shadow-md p-6 border border-bg-300">
-        <h3 className="text-lg font-semibold text-text-100 mb-4">Preview on Screen</h3>
-        <div className="relative bg-primary-300 rounded-lg h-48 flex items-start justify-start p-4">
-          {servingToken && (
-            <div className="px-6 py-3 bg-accent-100 text-white rounded-lg shadow-lg">
-              <div className="flex items-center gap-2">
-                <Hash className="w-6 h-6" />
-                <span className="text-3xl font-bold">{servingToken.number}</span>
-              </div>
-            </div>
-          )}
-          {!servingToken && (
-            <p className="text-bg-100 text-sm italic">Token will appear here when set</p>
-          )}
-        </div>
-      </div>
+      {/* Token Archive — 3 Day History */}
+      <TokenArchiveSection archiveEntries={archiveEntries} />
 
       {/* Clear Confirmation Dialog */}
       <ConfirmDialog
@@ -185,7 +155,7 @@ const TokenManagementPage = () => {
         onClose={() => setShowClearConfirm(false)}
         onConfirm={handleClear}
         title="Clear Serving Token"
-        message="Are you sure you want to clear the serving token? It will be removed from all screens."
+        message="Are you sure you want to clear the current serving token? It will be removed from all screens. The token history log is preserved."
         confirmText="Clear Token"
         type="danger"
       />

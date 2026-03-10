@@ -10,6 +10,7 @@ import {
   generateId
 } from '../data/mockData';
 import { useAuth } from './AuthContext';
+import { useTokenArchive } from '../hooks/useTokenArchive';
 
 const DataContext = createContext(null);
 
@@ -23,6 +24,9 @@ export const useData = () => {
 
 export const DataProvider = ({ children }) => {
   const { user, refreshCurrentUser } = useAuth();
+  const { archiveEntries, recordToken } = useTokenArchive();
+  const recordTokenRef = useRef(recordToken);
+  useEffect(() => { recordTokenRef.current = recordToken; }, [recordToken]);
 
   // Initialize state from localStorage or use initial data
   const [items, setItems] = useState(() => {
@@ -41,36 +45,17 @@ export const DataProvider = ({ children }) => {
   });
 
   const [foodScreens, setFoodScreens] = useState(() => {
-    // Legacy theme ID migration map
-    const LEGACY_THEMES = { 'classic-grid': 'card-grid', 'portrait-list': 'clean-list' };
-    const migrateThemes = (screens) => {
-      const needsMigration = screens.some(s => LEGACY_THEMES[s.theme]);
-      if (!needsMigration) return screens;
-      const migrated = screens.map(s => ({ ...s, theme: LEGACY_THEMES[s.theme] ?? s.theme }));
-      try { localStorage.setItem('canteen_food_screens', JSON.stringify(migrated)); } catch { /* ignore quota */ }
-      return migrated;
-    };
-
     const saved = localStorage.getItem('canteen_food_screens');
-    if (saved) return migrateThemes(JSON.parse(saved));
-    // Migration: check for old unified screens data
-    const oldScreens = localStorage.getItem('canteen_screens');
-    if (oldScreens) {
-      const parsed = JSON.parse(oldScreens);
-      const migrated = parsed.map(s => ({
-        ...s,
-        type: 'food',
-        theme: s.displaySettings?.orientation === 'portrait' ? 'clean-list'
-          : s.displaySettings?.foregroundMediaDisplay === 'fullScreen' ? 'none'
-          : s.displaySettings?.foregroundMediaDisplay === 'on' ? 'media-focus'
-          : 'card-grid',
-        showPrices: s.displaySettings?.showPrices ?? true,
-        transitionDuration: s.displaySettings?.transitionDuration ?? 500,
-        slideDelay: s.displaySettings?.slideDelay ?? 5000,
-      }));
-      localStorage.removeItem('canteen_screens');
-      return migrated;
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      // Detect old model (has 'theme' field but no 'sections') and re-seed
+      if (parsed.length > 0 && parsed[0].theme && !parsed[0].sections) {
+        return initialFoodScreens;
+      }
+      return parsed;
     }
+    // Also clear old unified screens key if present
+    localStorage.removeItem('canteen_screens');
     return initialFoodScreens;
   });
 
@@ -402,7 +387,7 @@ export const DataProvider = ({ children }) => {
     };
     setFoodScreens(prev => [...prev, newScreen]);
     addActivityLog('CREATE', 'food_screen', newScreen.title, `Created food screen: ${newScreen.title}`,
-      null, { title: newScreen.title, theme: newScreen.theme });
+      null, { title: newScreen.title, layoutTheme: newScreen.layoutTheme });
     return newScreen;
   }, [addActivityLog]);
 
@@ -412,7 +397,7 @@ export const DataProvider = ({ children }) => {
     const updatedScreen = { ...oldScreen, ...updates, updatedAt: new Date().toISOString() };
     setFoodScreens(prev => prev.map(s => s.id === id ? updatedScreen : s));
     addActivityLog('UPDATE', 'food_screen', updatedScreen.title, `Updated food screen: ${updatedScreen.title}`,
-      { theme: oldScreen.theme }, { theme: updatedScreen.theme });
+      { layoutTheme: oldScreen.layoutTheme }, { layoutTheme: updatedScreen.layoutTheme });
     return updatedScreen;
   }, [foodScreens, addActivityLog]);
 
@@ -587,16 +572,19 @@ export const DataProvider = ({ children }) => {
       return [tokenData, ...prev].slice(0, 10);
     });
 
+    // Record to persistent 3-day archive
+    recordTokenRef.current(tokenData);
+
     return tokenData;
   }, [addActivityLog]);
 
   const clearServingToken = useCallback(() => {
     setTokenHistory(prev => {
-      addActivityLog('UPDATE', 'token', 'Serving Token', 'Cleared all tokens',
+      addActivityLog('UPDATE', 'token', 'Serving Token', 'Cleared current serving token',
         { number: prev[0]?.number || null },
         null
       );
-      return [];
+      return prev.slice(1);
     });
   }, [addActivityLog]);
 
@@ -690,6 +678,7 @@ export const DataProvider = ({ children }) => {
     tokenHistory,
     updateServingToken,
     clearServingToken,
+    archiveEntries,
 
     // Activity Logs
     activityLogs,
@@ -705,7 +694,7 @@ export const DataProvider = ({ children }) => {
     tokenScreens, createTokenScreen, updateTokenScreen, deleteTokenScreen,
     getScreenById,
     users, createUser, updateUser, deleteUser, getUserById,
-    servingToken, tokenHistory, updateServingToken, clearServingToken,
+    servingToken, tokenHistory, updateServingToken, clearServingToken, archiveEntries,
     activityLogs, getActivityLogs,
     clearAllData
   ]);

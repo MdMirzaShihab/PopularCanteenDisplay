@@ -1,13 +1,38 @@
 import { Edit2, Trash2, ExternalLink, Monitor, Copy, Link2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { isVideoUrl } from '../../utils/fileUtils';
 import { useNotification } from '../../context/NotificationContext';
+import { getLayoutTheme } from '../gallery/themes/layoutRegistry';
 
-import { getThemeById } from '../gallery/themes/themeRegistry';
+const LayoutMiniature = ({ layout }) => (
+  <div
+    className="w-full aspect-video rounded border border-bg-300 overflow-hidden"
+    style={{
+      display: 'grid',
+      gridTemplateColumns: layout.grid.cols,
+      gridTemplateRows: layout.grid.rows,
+      gap: '2px',
+      padding: '2px'
+    }}
+  >
+    {layout.areas.map((area, idx) => (
+      <div
+        key={area.id}
+        className="rounded-sm"
+        style={{
+          gridArea: area.gridArea,
+          backgroundColor: `rgba(143, 151, 121, ${0.2 + idx * 0.12})`
+        }}
+      />
+    ))}
+  </div>
+);
 
 const ScreenCard = ({ screen, onEdit, onDelete, onDuplicate }) => {
   const navigate = useNavigate();
   const { success } = useNotification();
+
+  const layout = getLayoutTheme(screen.layoutTheme);
+  const totalSlots = (screen.sections || []).reduce((sum, s) => sum + (s.timeSlots?.length || 0), 0);
 
   const handlePreview = () => {
     navigate(`/gallery/${screen.id}`);
@@ -31,26 +56,22 @@ const ScreenCard = ({ screen, onEdit, onDelete, onDuplicate }) => {
 
   return (
     <div className="group bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-bg-300 hover:border-accent-100">
-      {/* Background Preview */}
-      <div className="relative h-48 bg-gradient-to-br from-primary-300 to-primary-200 overflow-hidden">
-        {screen.backgroundMedia && (
-          isVideoUrl(screen.backgroundMedia) ? (
-            <video src={screen.backgroundMedia}
-              className="w-full h-full object-cover opacity-80 group-hover:scale-110 transition-transform duration-700"
-              autoPlay muted loop playsInline />
-          ) : (
-            <img src={screen.backgroundMedia} alt={screen.title}
-              className="w-full h-full object-cover opacity-80 group-hover:scale-110 transition-transform duration-700" />
-          )
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-        <div className="absolute inset-0 flex items-center justify-center">
-          <Monitor className="w-12 h-12 text-white opacity-50 group-hover:opacity-70 transition-opacity" />
+      {/* Layout Preview */}
+      <div className="relative h-48 bg-gradient-to-br from-primary-300 to-primary-200 overflow-hidden flex items-center justify-center p-6">
+        <div className="w-full max-w-[180px]">
+          <LayoutMiniature layout={layout} />
         </div>
-        {/* Theme Badge */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+        {/* Layout Badge */}
         <div className="absolute top-2 left-2">
           <div className="bg-gradient-to-br from-primary-100 to-primary-200 text-white px-3 py-1.5 rounded-lg shadow-lg backdrop-blur-sm">
-            <span className="text-xs font-bold">{getThemeById(screen.theme).label}</span>
+            <span className="text-xs font-bold">{layout.label}</span>
+          </div>
+        </div>
+        {/* Section Count Badge */}
+        <div className="absolute top-2 right-2">
+          <div className="bg-white/90 text-text-100 px-2.5 py-1 rounded-lg shadow-sm">
+            <span className="text-xs font-medium">{layout.sections} {layout.sections === 1 ? 'section' : 'sections'}</span>
           </div>
         </div>
       </div>
@@ -63,11 +84,11 @@ const ScreenCard = ({ screen, onEdit, onDelete, onDuplicate }) => {
         <div className="mb-4 p-3 bg-bg-100/50 rounded-lg border border-bg-300">
           <div className="grid grid-cols-2 gap-2 text-xs">
             <div className="flex items-center gap-1.5">
-              <div className={`w-2 h-2 rounded-full ${screen.showPrices ? 'bg-primary-100' : 'bg-bg-300'}`} />
-              <span className="text-text-100">Prices</span>
+              <Monitor className="w-3 h-3 text-primary-100" />
+              <span className="text-text-100">{layout.label}</span>
             </div>
             <div className="text-text-100">
-              {screen.timeSlots?.length || 0} time slot{(screen.timeSlots?.length || 0) !== 1 ? 's' : ''}
+              {totalSlots} time slot{totalSlots !== 1 ? 's' : ''}
             </div>
           </div>
         </div>

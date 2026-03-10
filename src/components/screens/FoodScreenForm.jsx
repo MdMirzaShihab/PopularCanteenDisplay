@@ -1,361 +1,389 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useData } from '../../context/DataContext';
 import { useNotification } from '../../context/NotificationContext';
-import ImageUpload from '../common/ImageUpload';
-import TimeSlotBuilder from '../schedules/TimeSlotBuilder';
-import ThemeSelector from './ThemeSelector';
 import { validateFoodScreen } from '../../utils/validators';
-import { Plus, Trash2, ChevronUp, ChevronDown } from 'lucide-react';
+import { buildEmptySections } from '../gallery/themes/layoutRegistry';
+import LayoutPicker from './LayoutPicker';
+import SectionConfigTab from './SectionConfigTab';
+import ImageUpload from '../common/ImageUpload';
+import { Layout, Layers, Settings, FolderOpen, Upload } from 'lucide-react';
+import { getMediaByType } from '../../assets/media';
+
+const TABS = [
+  { id: 'layout', label: 'Layout & Info', icon: Layout },
+  { id: 'sections', label: 'Sections', icon: Layers },
+  { id: 'settings', label: 'Settings', icon: Settings }
+];
+
+const GAP_OPTIONS = [
+  { value: 4, label: 'Small' },
+  { value: 8, label: 'Medium' },
+  { value: 12, label: 'Large' }
+];
 
 const FoodScreenForm = ({ screen, onSubmit, onCancel }) => {
   const { menus } = useData();
   const { error: showError } = useNotification();
-  const [activeTab, setActiveTab] = useState('basic');
-  const [formData, setFormData] = useState({
-    title: '',
-    screenId: '',
-    defaultMenuId: '',
-    timeSlots: [],
-    backgroundType: 'image',
-    backgroundMedia: null,
-    foregroundMedia: null,
-    customMessages: [],
-    theme: 'card-grid',
-    showPrices: true,
-    transitionDuration: 500,
-    slideDelay: 5000
-  });
-  const [errors, setErrors] = useState({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
-    if (screen) {
-      setFormData({
-        title: screen.title || '',
-        screenId: screen.screenId || '',
-        defaultMenuId: screen.defaultMenuId || '',
-        timeSlots: screen.timeSlots || [],
-        backgroundType: screen.backgroundType || 'image',
-        backgroundMedia: screen.backgroundMedia || null,
-        foregroundMedia: screen.foregroundMedia || null,
-        customMessages: screen.customMessages || [],
-        theme: screen.theme || 'card-grid',
-        showPrices: screen.showPrices ?? true,
-        transitionDuration: screen.transitionDuration ?? 500,
-        slideDelay: screen.slideDelay ?? 5000
-      });
-    } else {
-      if (menus.length > 0 && !formData.defaultMenuId) {
-        setFormData(prev => ({ ...prev, defaultMenuId: menus[0].id }));
-      }
-    }
-  }, [screen, menus]);
+  const [activeTab, setActiveTab] = useState('layout');
+  const [activeSectionIdx, setActiveSectionIdx] = useState(0);
+  const [bgMediaSource, setBgMediaSource] = useState('gallery');
+
+  const [formData, setFormData] = useState({
+    title: screen?.title || '',
+    screenId: screen?.screenId || '',
+    layoutTheme: screen?.layoutTheme || 'layout-1',
+    backgroundType: screen?.backgroundType || 'color',
+    backgroundMedia: screen?.backgroundMedia || null,
+    backgroundColor: screen?.backgroundColor || '#1a1a2e',
+    sections: screen?.sections || buildEmptySections('layout-1'),
+    gap: screen?.gap || 8
+  });
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    const newValue = type === 'checkbox' ? checked : value;
-    setFormData(prev => ({ ...prev, [name]: newValue }));
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: null }));
-    }
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleTimeSlotsChange = (timeSlots) => {
-    setFormData(prev => ({ ...prev, timeSlots }));
-    if (errors.timeSlots) setErrors(prev => ({ ...prev, timeSlots: null }));
+  const handleLayoutChange = (newLayoutId) => {
+    setFormData(prev => ({
+      ...prev,
+      layoutTheme: newLayoutId,
+      sections: buildEmptySections(newLayoutId)
+    }));
+    setActiveSectionIdx(0);
   };
 
-  const handleBackgroundChange = (base64) => {
-    setFormData(prev => ({ ...prev, backgroundMedia: base64 }));
-    if (errors.backgroundMedia) setErrors(prev => ({ ...prev, backgroundMedia: null }));
+  const handleSectionChange = (updatedSection) => {
+    setFormData(prev => ({
+      ...prev,
+      sections: prev.sections.map((s, i) =>
+        i === activeSectionIdx ? updatedSection : s
+      )
+    }));
   };
 
-  const handleForegroundMediaChange = (base64) => {
-    setFormData(prev => ({ ...prev, foregroundMedia: base64 }));
+  const handleBackgroundTypeChange = (type) => {
+    setFormData(prev => ({
+      ...prev,
+      backgroundType: type,
+      backgroundMedia: type === 'color' ? null : prev.backgroundMedia,
+      backgroundColor: type === 'color' ? prev.backgroundColor : prev.backgroundColor
+    }));
   };
 
-  const handleThemeChange = (theme) => {
-    setFormData(prev => ({ ...prev, theme }));
-    if (errors.theme) setErrors(prev => ({ ...prev, theme: null }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-
-    const validation = validateFoodScreen(formData);
-    if (!validation.isValid) {
-      setErrors(validation.errors);
-      setIsSubmitting(false);
-      if (validation.errors.title || validation.errors.screenId) {
-        setActiveTab('basic');
-      } else if (validation.errors.defaultMenuId || validation.errors.timeSlots) {
-        setActiveTab('schedule');
-      } else if (validation.errors.backgroundMedia || validation.errors.theme) {
-        setActiveTab('appearance');
-      }
+  const handleSubmit = () => {
+    const { isValid, errors } = validateFoodScreen(formData);
+    if (!isValid) {
+      const firstError = Object.values(errors).find(e => typeof e === 'string')
+        || 'Please fix validation errors';
+      showError(firstError);
       return;
     }
-
-    try {
-      await onSubmit(formData);
-    } catch {
-      showError('Failed to save screen. Please try again.');
-    } finally {
-      setIsSubmitting(false);
-    }
+    onSubmit(formData);
   };
 
-  const tabs = [
-    { id: 'basic', label: 'Basic Info' },
-    { id: 'schedule', label: 'Schedule' },
-    { id: 'appearance', label: 'Appearance' }
-  ];
-
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Tabs */}
-      <div className="border-b border-bg-300">
-        <div className="flex gap-4">
-          {tabs.map(tab => (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => setActiveTab(tab.id)}
-              className={`px-4 py-2 text-sm font-medium border-b-2 transition-all duration-200 ${
-                activeTab === tab.id
-                  ? 'border-primary-100 text-primary-100'
-                  : 'border-transparent text-text-200 hover:text-text-100'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
+    <div className="flex flex-col max-h-[80vh]">
+      {/* Tab navigation */}
+      <div className="border-b border-bg-300 flex-shrink-0">
+        <div className="flex gap-1">
+          {TABS.map(tab => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-all duration-200 ${
+                  isActive
+                    ? 'border-primary-100 text-primary-100'
+                    : 'border-transparent text-text-200 hover:text-text-100'
+                }`}
+              >
+                <Icon className="w-4 h-4" />
+                {tab.label}
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      {/* Basic Info Tab */}
-      {activeTab === 'basic' && (
-        <div className="space-y-4">
-          <div>
-            <label htmlFor="title" className="block text-sm font-medium text-text-100 mb-2">Screen Title *</label>
-            <input type="text" id="title" name="title" value={formData.title} onChange={handleChange}
-              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-100 bg-bg-100 text-text-100 ${errors.title ? 'border-accent-200' : 'border-bg-300'}`}
-              placeholder="e.g., Main Dining Hall Display" />
-            {errors.title && <p className="mt-1 text-sm text-accent-200">{errors.title}</p>}
-          </div>
-          <div>
-            <label htmlFor="screenId" className="block text-sm font-medium text-text-100 mb-2">Screen ID *</label>
-            <input type="text" id="screenId" name="screenId" value={formData.screenId} onChange={handleChange}
-              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-100 bg-bg-100 text-text-100 ${errors.screenId ? 'border-accent-200' : 'border-bg-300'}`}
-              placeholder="e.g., HALL-A-01" />
-            <p className="mt-1 text-xs text-text-200">Unique identifier for tracking and management</p>
-            {errors.screenId && <p className="mt-1 text-sm text-accent-200">{errors.screenId}</p>}
-          </div>
-        </div>
-      )}
+      {/* Tab content — scrollable */}
+      <div className="flex-1 overflow-y-auto p-1">
+        {/* Tab 1: Layout & Info */}
+        {activeTab === 'layout' && (
+          <div className="space-y-6 py-4">
+            <div>
+              <label htmlFor="title" className="block text-sm font-medium text-text-100 mb-2">
+                Screen Title *
+              </label>
+              <input
+                type="text"
+                id="title"
+                name="title"
+                value={formData.title}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border border-bg-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-100 bg-bg-100 text-text-100"
+                placeholder="e.g., Main Dining Hall Display"
+              />
+            </div>
 
-      {/* Schedule Tab */}
-      {activeTab === 'schedule' && (
-        <div className="space-y-4">
-          <div>
-            <label htmlFor="defaultMenuId" className="block text-sm font-medium text-text-100 mb-2">Default Menu *</label>
-            <select id="defaultMenuId" name="defaultMenuId" value={formData.defaultMenuId} onChange={handleChange}
-              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-100 bg-bg-100 text-text-100 ${errors.defaultMenuId ? 'border-accent-200' : 'border-bg-300'}`}>
-              <option value="">Select default menu...</option>
-              {menus.map(menu => (<option key={menu.id} value={menu.id}>{menu.title}</option>))}
-            </select>
-            <p className="mt-1 text-xs text-text-200">Displayed when no time slot is active</p>
-            {errors.defaultMenuId && <p className="mt-1 text-sm text-accent-200">{errors.defaultMenuId}</p>}
-          </div>
-          <div>
-            <TimeSlotBuilder timeSlots={formData.timeSlots} onChange={handleTimeSlotsChange} />
-            {errors.timeSlots && <p className="mt-1 text-sm text-accent-200">{errors.timeSlots}</p>}
-          </div>
-        </div>
-      )}
-
-      {/* Appearance Tab */}
-      {activeTab === 'appearance' && (
-        <div className="space-y-6">
-          {/* Background Media */}
-          <div className="space-y-3">
-            <div className="p-3 bg-primary-100/10 border border-primary-100/30 rounded-lg">
-              <p className="text-xs text-text-100">
-                <strong>Tip:</strong> Compress media before uploading (images &lt;500KB, videos &lt;2MB).
+            <div>
+              <label htmlFor="screenId" className="block text-sm font-medium text-text-100 mb-2">
+                Screen ID *
+              </label>
+              <input
+                type="text"
+                id="screenId"
+                name="screenId"
+                value={formData.screenId}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border border-bg-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-100 bg-bg-100 text-text-100"
+                placeholder="e.g., HALL-A-01"
+              />
+              <p className="mt-1 text-xs text-text-200">
+                Unique identifier for tracking and management
               </p>
             </div>
-            <ImageUpload value={formData.backgroundMedia} onChange={handleBackgroundChange} onError={showError}
-              accept="image/*,video/*" label="Background Image/Video *" />
-            {errors.backgroundMedia && <p className="mt-1 text-sm text-accent-200">{errors.backgroundMedia}</p>}
-          </div>
-
-          {/* Theme Selector */}
-          <ThemeSelector value={formData.theme} onChange={handleThemeChange} error={errors.theme} />
-
-          {/* Foreground Media (only for media-focus theme) */}
-          {formData.theme === 'media-focus' && (
-            <div className="space-y-3 pt-4 border-t border-bg-300">
-              <h3 className="text-sm font-semibold text-text-100">Foreground Media (Overlay)</h3>
-              <p className="text-xs text-text-200">Upload a promotional image/video to display alongside the menu</p>
-              <ImageUpload value={formData.foregroundMedia} onChange={handleForegroundMediaChange} onError={showError}
-                accept="image/*,video/*" label="Upload Foreground Media" />
-            </div>
-          )}
-
-          {/* Custom Messages (only for none/blank theme) */}
-          {formData.theme === 'none' && (
-            <CustomMessageEditor
-              messages={formData.customMessages}
-              onChange={(customMessages) => setFormData(prev => ({ ...prev, customMessages }))}
-            />
-          )}
-
-          {/* Fine-tuning */}
-          <div className="pt-4 border-t border-bg-300 space-y-4">
-            <h3 className="text-sm font-semibold text-text-100">Fine-tuning</h3>
-
-            <div className="flex items-center gap-3">
-              <input type="checkbox" id="showPrices" name="showPrices" checked={formData.showPrices} onChange={handleChange}
-                className="w-4 h-4 text-primary-100 border-bg-300 rounded focus:ring-primary-100" />
-              <label htmlFor="showPrices" className="text-sm font-medium text-text-100">Show item prices</label>
-            </div>
 
             <div>
-              <label htmlFor="transitionDuration" className="block text-sm font-medium text-text-100 mb-2">Page Transition (ms)</label>
-              <input type="number" id="transitionDuration" name="transitionDuration" value={formData.transitionDuration} onChange={handleChange}
-                min="0" max="2000" step="100"
-                className="w-full px-4 py-2 border border-bg-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-100 bg-bg-100 text-text-100" />
-            </div>
-
-            <div>
-              <label htmlFor="slideDelay" className="block text-sm font-medium text-text-100 mb-2">Page Display Duration (ms)</label>
-              <input type="number" id="slideDelay" name="slideDelay" value={formData.slideDelay} onChange={handleChange}
-                min="1000" max="30000" step="500"
-                className="w-full px-4 py-2 border border-bg-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-100 bg-bg-100 text-text-100" />
+              <label className="block text-sm font-medium text-text-100 mb-3">
+                Layout *
+              </label>
+              <LayoutPicker
+                value={formData.layoutTheme}
+                onChange={handleLayoutChange}
+              />
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Actions */}
-      <div className="flex gap-3 pt-4 border-t border-bg-300">
-        <button type="button" onClick={onCancel}
-          className="flex-1 px-4 py-2 text-sm font-medium text-text-100 bg-bg-100 border border-bg-300 rounded-lg hover:bg-bg-200 transition-all duration-200 hover:border-primary-100">
-          Cancel
-        </button>
-        <button type="submit" disabled={isSubmitting}
-          className="flex-1 px-4 py-2 text-sm font-medium text-white bg-primary-100 rounded-lg hover:bg-primary-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg">
-          {isSubmitting ? 'Saving...' : screen ? 'Update Screen' : 'Create Screen'}
-        </button>
-      </div>
-    </form>
-  );
-};
-
-const CustomMessageEditor = ({ messages, onChange }) => {
-  const [newMessage, setNewMessage] = useState('');
-
-  const handleAdd = () => {
-    const trimmed = newMessage.trim();
-    if (!trimmed) return;
-    onChange([...messages, trimmed]);
-    setNewMessage('');
-  };
-
-  const handleRemove = (index) => {
-    onChange(messages.filter((_, i) => i !== index));
-  };
-
-  const handleMoveUp = (index) => {
-    if (index === 0) return;
-    const updated = [...messages];
-    [updated[index - 1], updated[index]] = [updated[index], updated[index - 1]];
-    onChange(updated);
-  };
-
-  const handleMoveDown = (index) => {
-    if (index === messages.length - 1) return;
-    const updated = [...messages];
-    [updated[index], updated[index + 1]] = [updated[index + 1], updated[index]];
-    onChange(updated);
-  };
-
-  return (
-    <div className="space-y-3 pt-4 border-t border-bg-300">
-      <h3 className="text-sm font-semibold text-text-100">Custom Messages</h3>
-      <p className="text-xs text-text-200">
-        Add text messages that auto-rotate over the background. Displayed centered with a dark overlay.
-      </p>
-
-      {/* Add new message */}
-      <div className="flex gap-2">
-        <input
-          type="text"
-          value={newMessage}
-          onChange={(e) => setNewMessage(e.target.value)}
-          onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAdd(); } }}
-          placeholder="e.g., Today's Special: Biryani 50% off"
-          className="flex-1 px-4 py-2 border border-bg-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-100 bg-bg-100 text-text-100 text-sm"
-        />
-        <button
-          type="button"
-          onClick={handleAdd}
-          disabled={!newMessage.trim()}
-          className="px-4 py-2 text-sm font-medium text-white bg-primary-100 rounded-lg hover:bg-primary-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-1"
-        >
-          <Plus className="w-4 h-4" />
-          Add
-        </button>
-      </div>
-
-      {/* Message list */}
-      {messages.length > 0 && (
-        <div className="space-y-2">
-          {messages.map((msg, index) => (
-            <div
-              key={index}
-              className="flex items-center gap-2 p-3 bg-bg-100 border border-bg-300 rounded-lg group"
-            >
-              <span className="text-xs font-mono text-text-300 w-6 text-center flex-shrink-0">
-                {index + 1}
-              </span>
-              <span className="flex-1 text-sm text-text-100 truncate">{msg}</span>
-              <div className="flex items-center gap-1 flex-shrink-0">
+        {/* Tab 2: Sections */}
+        {activeTab === 'sections' && (
+          <div className="space-y-4 py-4">
+            {/* Section sub-tabs */}
+            <div className="flex flex-wrap gap-2">
+              {formData.sections.map((section, idx) => (
                 <button
+                  key={section.id}
                   type="button"
-                  onClick={() => handleMoveUp(index)}
-                  disabled={index === 0}
-                  className="p-1 text-text-300 hover:text-primary-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                  onClick={() => setActiveSectionIdx(idx)}
+                  className={`px-3 py-1.5 text-sm font-medium rounded-lg border transition-all duration-200 ${
+                    activeSectionIdx === idx
+                      ? 'bg-primary-100 text-white border-primary-100'
+                      : 'bg-bg-100 text-text-200 border-bg-300 hover:border-primary-100 hover:text-text-100'
+                  }`}
                 >
-                  <ChevronUp className="w-4 h-4" />
+                  {section.label}
                 </button>
-                <button
-                  type="button"
-                  onClick={() => handleMoveDown(index)}
-                  disabled={index === messages.length - 1}
-                  className="p-1 text-text-300 hover:text-primary-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                >
-                  <ChevronDown className="w-4 h-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleRemove(index)}
-                  className="p-1 text-text-300 hover:text-accent-200 transition-colors"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+              ))}
+            </div>
+
+            {/* Active section config */}
+            {formData.sections[activeSectionIdx] && (
+              <SectionConfigTab
+                section={formData.sections[activeSectionIdx]}
+                onChange={handleSectionChange}
+                menus={menus}
+              />
+            )}
+          </div>
+        )}
+
+        {/* Tab 3: Settings */}
+        {activeTab === 'settings' && (
+          <div className="space-y-6 py-4">
+            {/* Background type */}
+            <div>
+              <label className="block text-sm font-medium text-text-100 mb-3">
+                Background Type
+              </label>
+              <div className="flex gap-2">
+                {['image', 'video', 'color'].map(type => (
+                  <button
+                    key={type}
+                    type="button"
+                    onClick={() => handleBackgroundTypeChange(type)}
+                    className={`px-4 py-2 text-sm font-medium rounded-lg border transition-all duration-200 capitalize ${
+                      formData.backgroundType === type
+                        ? 'bg-primary-100 text-white border-primary-100'
+                        : 'bg-bg-100 text-text-200 border-bg-300 hover:border-primary-100'
+                    }`}
+                  >
+                    {type}
+                  </button>
+                ))}
               </div>
             </div>
-          ))}
-        </div>
-      )}
 
-      {messages.length === 0 && (
-        <p className="text-xs text-text-300 italic p-3 bg-bg-100 rounded-lg text-center">
-          No messages added yet. The screen will show only the background media.
-        </p>
-      )}
+            {/* Image or Video: Gallery + Upload */}
+            {(formData.backgroundType === 'image' || formData.backgroundType === 'video') && (
+              <div className="space-y-3">
+                {/* Source toggle */}
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setBgMediaSource('gallery')}
+                    className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border transition-colors ${
+                      bgMediaSource === 'gallery'
+                        ? 'border-primary-100 bg-primary-100/10 text-primary-100'
+                        : 'border-bg-300 bg-white text-text-200 hover:border-primary-100/50'
+                    }`}
+                  >
+                    <FolderOpen className="w-4 h-4" />
+                    Gallery
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setBgMediaSource('upload')}
+                    className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border transition-colors ${
+                      bgMediaSource === 'upload'
+                        ? 'border-primary-100 bg-primary-100/10 text-primary-100'
+                        : 'border-bg-300 bg-white text-text-200 hover:border-primary-100/50'
+                    }`}
+                  >
+                    <Upload className="w-4 h-4" />
+                    Upload
+                  </button>
+                </div>
+
+                {/* Gallery picker */}
+                {bgMediaSource === 'gallery' && (
+                  <div>
+                    <label className="block text-sm font-medium text-text-200 mb-2">
+                      Select from Gallery
+                    </label>
+                    <div className={`grid ${formData.backgroundType === 'image' ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-2 sm:grid-cols-3'} gap-2`}>
+                      {getMediaByType(formData.backgroundType).map((item) => {
+                        const isSelected = formData.backgroundMedia === item.src;
+                        return (
+                          <button
+                            key={item.id}
+                            type="button"
+                            onClick={() => setFormData(prev => ({ ...prev, backgroundMedia: item.src }))}
+                            className={`relative rounded-lg overflow-hidden border-2 transition-all ${
+                              isSelected
+                                ? 'border-primary-100 ring-2 ring-primary-100/30'
+                                : 'border-bg-300 hover:border-primary-100/50'
+                            }`}
+                          >
+                            {formData.backgroundType === 'image' ? (
+                              <img src={item.src} alt={item.name} className="w-full aspect-video object-cover" />
+                            ) : (
+                              <video
+                                src={item.src}
+                                muted
+                                className="w-full aspect-video object-cover"
+                                onMouseEnter={(e) => e.target.play()}
+                                onMouseLeave={(e) => { e.target.pause(); e.target.currentTime = 0; }}
+                              />
+                            )}
+                            <div className="absolute bottom-0 inset-x-0 bg-black/60 px-1.5 py-1">
+                              <span className="text-[10px] text-white font-medium truncate block">{item.name}</span>
+                            </div>
+                            {isSelected && (
+                              <div className="absolute top-1 right-1 w-5 h-5 bg-primary-100 rounded-full flex items-center justify-center">
+                                <span className="text-white text-xs font-bold">&#10003;</span>
+                              </div>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Upload */}
+                {bgMediaSource === 'upload' && (
+                  <ImageUpload
+                    value={formData.backgroundMedia}
+                    onChange={(base64) => setFormData(prev => ({ ...prev, backgroundMedia: base64 }))}
+                    onError={showError}
+                    accept={formData.backgroundType === 'image' ? 'image/*' : 'video/*'}
+                    label={`Background ${formData.backgroundType === 'image' ? 'Image' : 'Video'}`}
+                  />
+                )}
+
+                {/* Preview */}
+                {formData.backgroundMedia && (
+                  <div>
+                    <label className="block text-sm font-medium text-text-200 mb-1">Preview</label>
+                    <div className="rounded-lg overflow-hidden border border-bg-300 max-h-40">
+                      {formData.backgroundType === 'image' ? (
+                        <img src={formData.backgroundMedia} alt="Background" className="w-full max-h-40 object-cover" />
+                      ) : (
+                        <video src={formData.backgroundMedia} muted autoPlay loop className="w-full max-h-40 object-cover" />
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Color picker */}
+            {formData.backgroundType === 'color' && (
+              <div>
+                <label htmlFor="backgroundColor" className="block text-sm font-medium text-text-100 mb-2">
+                  Background Color
+                </label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="color"
+                    id="backgroundColor"
+                    name="backgroundColor"
+                    value={formData.backgroundColor}
+                    onChange={handleChange}
+                    className="w-12 h-10 rounded border border-bg-300 cursor-pointer"
+                  />
+                  <span className="text-sm text-text-200 font-mono">
+                    {formData.backgroundColor}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Gap size */}
+            <div>
+              <label htmlFor="gap" className="block text-sm font-medium text-text-100 mb-2">
+                Section Gap
+              </label>
+              <select
+                id="gap"
+                name="gap"
+                value={formData.gap}
+                onChange={(e) => setFormData(prev => ({ ...prev, gap: Number(e.target.value) }))}
+                className="w-full px-4 py-2 border border-bg-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-100 bg-bg-100 text-text-100"
+              >
+                {GAP_OPTIONS.map(opt => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label} ({opt.value}px)
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Footer actions */}
+      <div className="flex gap-3 pt-4 border-t border-bg-300 flex-shrink-0">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="flex-1 px-4 py-2 text-sm font-medium text-text-100 bg-bg-100 border border-bg-300 rounded-lg hover:bg-bg-200 transition-all duration-200 hover:border-primary-100"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          onClick={handleSubmit}
+          className="flex-1 px-4 py-2 text-sm font-medium text-white bg-primary-100 rounded-lg hover:bg-primary-200 transition-all duration-200 shadow-md hover:shadow-lg"
+        >
+          {screen ? 'Update Screen' : 'Create Screen'}
+        </button>
+      </div>
     </div>
   );
 };

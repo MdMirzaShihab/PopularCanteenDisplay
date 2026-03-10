@@ -2,7 +2,21 @@ import { useEffect, useState } from 'react';
 import { Clock, Calendar, ChefHat } from 'lucide-react';
 import { useData } from '../context/DataContext';
 import { getAllCurrentMenuIds, getAllActiveTimeSlots, getCurrentTime, getCurrentDayOfWeek, formatTimeDisplay, formatDaysOfWeek, formatTimeRange } from '../utils/timeUtils';
-import MenuItemDisplay from '../components/gallery/MenuItemDisplay';
+// Simple inline item display for this hidden page (MenuItemDisplay was removed)
+const SimpleItemDisplay = ({ item, showPrices }) => (
+  <div className="bg-bg-100 rounded-xl overflow-hidden border border-bg-300">
+    {item.image && (
+      <div className="h-40 overflow-hidden">
+        <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+      </div>
+    )}
+    <div className="p-4">
+      <h4 className="font-semibold text-text-100">{item.name}</h4>
+      {showPrices && <p className="text-primary-100 font-bold mt-1">৳{item.price?.toFixed(0)}</p>}
+      {item.description && <p className="text-sm text-text-200 mt-1">{item.description}</p>}
+    </div>
+  </div>
+);
 
 const CurrentMenuPage = () => {
   const { getSingleSchedule, getMenuById, getItemsByIds } = useData();
@@ -205,12 +219,10 @@ const CurrentMenuPage = () => {
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {uniqueItems.map(item => (
-                <MenuItemDisplay
+                <SimpleItemDisplay
                   key={item.id}
                   item={item}
                   showPrices={true}
-                  showIngredients={true}
-                  layoutStyle="grid"
                 />
               ))}
             </div>

@@ -39,7 +39,7 @@ const ScreensPage = () => {
 
   const handleDuplicate = (screen) => {
     try {
-      const duplicated = { ...screen, title: `${screen.title} (Copy)`, id: undefined };
+      const duplicated = { ...screen, title: `${screen.title} (Copy)`, id: undefined, screenId: `${screen.screenId || ''}-copy` };
       createFoodScreen(duplicated);
       success('Screen duplicated successfully!');
     } catch {

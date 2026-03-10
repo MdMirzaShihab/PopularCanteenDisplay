@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useData } from '../../context/DataContext';
 import { speakTokenNumber } from '../../utils/speechUtils';
 import { getCurrentTime, formatTimeDisplay, formatDateDisplay } from '../../utils/timeUtils';
-import { Hash, Clock, Calendar, Users, ChevronRight } from 'lucide-react';
+import { Hash, Clock, Calendar } from 'lucide-react';
 
 const TokenGalleryDisplay = ({ screen }) => {
   const { servingToken, tokenHistory } = useData();
@@ -38,6 +38,8 @@ const TokenGalleryDisplay = ({ screen }) => {
     announceToken();
   }, [servingToken]);
 
+  const previousTokens = tokenHistory.slice(1);
+
   return (
     <div className="fixed inset-0 flex flex-col">
       {/* Background Layer */}
@@ -50,134 +52,223 @@ const TokenGalleryDisplay = ({ screen }) => {
       {screen.backgroundType === 'color' && (
         <div className="fixed inset-0" style={{ backgroundColor: screen.backgroundColor || '#1f2937' }} />
       )}
-      {/* Default fallback if no backgroundType */}
       {!screen.backgroundType && (
-        <div className="fixed inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900" />
+        <div className="fixed inset-0" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)' }} />
       )}
-      {/* Dark overlay for image/video readability */}
+      {/* Overlay for image/video */}
       {(screen.backgroundType === 'image' || screen.backgroundType === 'video') && (
-        <div className="fixed inset-0 bg-black/40" />
+        <div className="fixed inset-0 bg-black/50" />
       )}
 
-      {/* Content (with relative z-10 to sit above background) */}
+      {/* Content */}
       <div className="relative z-10 flex flex-col h-full">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-green-500/85 via-emerald-500/85 to-teal-500/85 backdrop-blur-md shadow-xl">
-          <div className="px-8 py-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <Users className="w-8 h-8 text-white" />
-                <h1 className="text-4xl xl:text-5xl font-bold text-white drop-shadow-xl font-heading tracking-wider">
-                  {screen.title}
-                </h1>
+
+        {/* Header Bar */}
+        <div
+          className="flex-shrink-0"
+          style={{
+            background: 'rgba(0,0,0,0.35)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            boxShadow: '0 4px 30px rgba(0,0,0,0.3), inset 0 -1px 0 rgba(255,255,255,0.06)'
+          }}
+        >
+          <div className="px-8 py-5 flex items-center justify-between">
+            {/* Title */}
+            <div>
+              <h1
+                className={`text-3xl xl:text-4xl font-bold tracking-[0.12em] ${screen.titleFont || 'font-heading'}`}
+                style={{ color: screen.titleColor || '#ffffff' }}
+              >
+                {screen.title}
+              </h1>
+            </div>
+
+            {/* Date & Time */}
+            <div
+              className="flex items-center gap-5 px-6 py-3 rounded-2xl"
+              style={{
+                background: 'rgba(255,255,255,0.06)',
+                border: '1px solid rgba(255,255,255,0.08)',
+                backdropFilter: 'blur(8px)'
+              }}
+            >
+              <div className="flex items-center gap-2.5">
+                <Calendar className="w-4.5 h-4.5 text-white/50" />
+                <span className="text-base xl:text-lg font-medium text-white/80 font-body tracking-wide">
+                  {currentDate}
+                </span>
               </div>
-              <div className="flex items-center gap-5 px-6 py-3 bg-black/30 backdrop-blur-sm rounded-xl border border-white/20">
-                <div className="flex items-center gap-2.5">
-                  <Calendar className="w-5 h-5 text-white/90" />
-                  <span className="text-lg xl:text-xl font-semibold text-white drop-shadow-md font-body tracking-wide">
-                    {currentDate}
-                  </span>
-                </div>
-                <div className="w-px h-8 bg-white/30"></div>
-                <div className="flex items-center gap-2.5">
-                  <Clock className="w-5 h-5 text-white/90" />
-                  <span className="text-xl xl:text-2xl font-bold text-white drop-shadow-md font-heading tracking-wider">
-                    {formatTimeDisplay(currentTime)}
-                  </span>
-                </div>
+              <div className="w-px h-7" style={{ background: 'rgba(255,255,255,0.12)' }} />
+              <div className="flex items-center gap-2.5">
+                <Clock className="w-4.5 h-4.5 text-white/50" />
+                <span className="text-lg xl:text-xl font-bold text-white/90 font-heading tracking-wider">
+                  {formatTimeDisplay(currentTime)}
+                </span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Main Token Display */}
-        <div className="flex-1 flex flex-col items-center justify-center p-8">
+        {/* Main Token Area */}
+        <div className="flex-1 flex flex-col items-center justify-center px-8">
           {servingToken ? (
             <>
-              {/* NOW SERVING Badge */}
-              <div className="mb-8">
-                <div className="inline-flex items-center justify-center gap-3 px-8 py-4 bg-white bg-opacity-10 rounded-full backdrop-blur-sm border border-white/20">
-                  <Hash className="w-8 h-8 text-yellow-400" />
-                  <span className="text-2xl xl:text-3xl font-bold text-white uppercase tracking-widest">
+              {/* NOW SERVING Label */}
+              <div className="mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="h-[1px] w-12 xl:w-20" style={{ background: 'linear-gradient(to right, transparent, rgba(250,204,21,0.4))' }} />
+                  <span className="text-xl xl:text-2xl font-bold text-white/60 uppercase tracking-[0.3em] font-heading">
                     Now Serving
                   </span>
+                  <div className="h-[1px] w-12 xl:w-20" style={{ background: 'linear-gradient(to left, transparent, rgba(250,204,21,0.4))' }} />
                 </div>
               </div>
 
-              {/* Large Token Number */}
-              <div className="relative mb-12">
-                <div className="absolute inset-0 bg-yellow-400 opacity-20 blur-[100px] rounded-full animate-pulse"></div>
-                <div className="relative bg-gradient-to-br from-yellow-400 via-orange-500 to-red-500 text-white rounded-[2rem] px-16 py-12 shadow-2xl">
-                  <div className="text-[12rem] xl:text-[16rem] font-black leading-none drop-shadow-2xl text-center">
+              {/* Token Number Card */}
+              <div className="relative mb-8">
+                {/* Glow */}
+                <div
+                  className="absolute -inset-12 rounded-full animate-pulse"
+                  style={{
+                    background: 'radial-gradient(ellipse, rgba(250,204,21,0.18) 0%, transparent 70%)',
+                    filter: 'blur(50px)'
+                  }}
+                />
+                <div
+                  className="relative px-28 xl:px-40 py-14 xl:py-20"
+                  style={{
+                    background: 'linear-gradient(145deg, rgba(250,204,21,0.12) 0%, rgba(251,146,60,0.08) 100%)',
+                    borderRadius: '3rem',
+                    border: '2px solid rgba(250,204,21,0.2)',
+                    boxShadow: '0 0 80px rgba(250,204,21,0.1), inset 0 1px 0 rgba(255,255,255,0.06)',
+                    backdropFilter: 'blur(20px)',
+                    WebkitBackdropFilter: 'blur(20px)'
+                  }}
+                >
+                  <div
+                    className="text-[14rem] xl:text-[20rem] font-black leading-none text-center font-heading"
+                    style={{
+                      background: 'linear-gradient(180deg, #fde68a 0%, #facc15 30%, #f59e0b 70%, #d97706 100%)',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                      filter: 'drop-shadow(0 4px 12px rgba(250,204,21,0.3))'
+                    }}
+                  >
                     {servingToken.number}
                   </div>
                 </div>
               </div>
 
-              {/* Please collect message */}
-              <p className="text-2xl text-gray-300 mb-8">Please collect your order</p>
+              {/* Collect message */}
+              <p className="text-xl xl:text-2xl text-white/40 font-body tracking-wide">
+                Please collect your order
+              </p>
             </>
           ) : (
-            <div className="text-center text-gray-400">
-              <Hash className="w-32 h-32 mx-auto mb-8 opacity-30" />
-              <p className="text-4xl font-semibold">No Active Token</p>
-              <p className="text-xl mt-4 opacity-70">Waiting for next customer</p>
+            <div className="text-center">
+              <div
+                className="w-28 h-28 xl:w-36 xl:h-36 rounded-3xl mx-auto mb-8 flex items-center justify-center"
+                style={{
+                  background: 'rgba(255,255,255,0.03)',
+                  border: '1px solid rgba(255,255,255,0.06)'
+                }}
+              >
+                <Hash className="w-14 h-14 xl:w-18 xl:h-18 text-white/15" />
+              </div>
+              <p className="text-3xl xl:text-4xl font-semibold text-white/30 font-heading tracking-wider">
+                No Active Token
+              </p>
+              <p className="text-lg mt-3 text-white/15 font-body">
+                Waiting for next customer
+              </p>
             </div>
           )}
         </div>
 
-        {/* Full-Width Bottom Strip — Called Tokens History */}
-        <div className="border-t border-white/10 bg-black/60 backdrop-blur-md">
-          {/* Label Row */}
-          <div className="flex items-center gap-3 px-6 pt-3 pb-1">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
-              <span className="text-xs font-bold text-yellow-400/90 uppercase tracking-[0.2em] font-heading">
-                Called Tokens
+        {/* Bottom History Strip */}
+        <div
+          className="flex-shrink-0"
+          style={{
+            background: 'rgba(0,0,0,0.4)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)'
+          }}
+        >
+          {/* Label */}
+          <div className="flex items-center gap-3 px-8 pt-4 pb-2">
+            <div className="flex items-center gap-2.5">
+              <div
+                className="w-2 h-2 rounded-full animate-pulse"
+                style={{ backgroundColor: '#facc15', boxShadow: '0 0 8px rgba(250,204,21,0.4)' }}
+              />
+              <span className="text-xs font-bold uppercase tracking-[0.2em] font-heading" style={{ color: 'rgba(250,204,21,0.7)' }}>
+                Previous Tokens
               </span>
             </div>
-            <div className="flex-1 h-px bg-gradient-to-r from-yellow-400/30 to-transparent"></div>
-            <span className="text-xs text-gray-500 font-body">
-              {tokenHistory.length > 1 ? `${tokenHistory.length - 1} previous` : 'Waiting'}
+            <div className="flex-1 h-px" style={{ background: 'linear-gradient(to right, rgba(250,204,21,0.15), transparent)' }} />
+            <span className="text-xs font-body" style={{ color: 'rgba(255,255,255,0.25)' }}>
+              {previousTokens.length > 0 ? `${previousTokens.length} called` : 'Waiting'}
             </span>
           </div>
 
-          {/* Token Strip */}
-          <div className="px-4 pb-3 pt-1">
-            {tokenHistory.length > 1 ? (
-              <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
-                {tokenHistory.slice(1).map((token, index) => (
-                  <div
-                    key={token.updatedAt}
-                    className={`flex-shrink-0 flex items-center gap-2 rounded-lg border transition-all duration-300 ${
-                      index === 0
-                        ? 'bg-yellow-400/15 border-yellow-400/40 px-5 py-2.5'
-                        : index === 1
-                          ? 'bg-white/8 border-white/20 px-4 py-2'
-                          : 'bg-white/5 border-white/10 px-4 py-2'
-                    }`}
-                  >
-                    <Hash className={`w-3.5 h-3.5 ${
-                      index === 0 ? 'text-yellow-400/70' : 'text-gray-500'
-                    }`} />
-                    <span className={`font-bold font-heading tracking-wide ${
-                      index === 0
-                        ? 'text-2xl xl:text-3xl text-yellow-100'
-                        : index === 1
-                          ? 'text-xl xl:text-2xl text-gray-300'
-                          : 'text-lg xl:text-xl text-gray-400'
-                    }`}>
-                      {token.number}
-                    </span>
-                    {index === 0 && (
-                      <ChevronRight className="w-4 h-4 text-yellow-400/40 ml-1" />
-                    )}
-                  </div>
-                ))}
+          {/* Token Chips */}
+          <div className="px-6 pb-4 pt-1">
+            {previousTokens.length > 0 ? (
+              <div className="flex items-center gap-3 overflow-x-auto scrollbar-hide">
+                {previousTokens.map((token, index) => {
+                  const isFirst = index === 0;
+                  const isSecond = index === 1;
+                  return (
+                    <div
+                      key={token.updatedAt}
+                      className="flex-shrink-0 flex items-center gap-2 rounded-xl transition-all duration-300"
+                      style={{
+                        padding: isFirst ? '10px 20px' : '8px 16px',
+                        background: isFirst
+                          ? 'rgba(250,204,21,0.1)'
+                          : isSecond
+                            ? 'rgba(255,255,255,0.05)'
+                            : 'rgba(255,255,255,0.02)',
+                        border: `1px solid ${
+                          isFirst
+                            ? 'rgba(250,204,21,0.25)'
+                            : isSecond
+                              ? 'rgba(255,255,255,0.1)'
+                              : 'rgba(255,255,255,0.05)'
+                        }`,
+                        backdropFilter: 'blur(8px)'
+                      }}
+                    >
+                      <Hash
+                        className="w-3.5 h-3.5"
+                        style={{
+                          color: isFirst ? 'rgba(250,204,21,0.5)' : 'rgba(255,255,255,0.2)'
+                        }}
+                      />
+                      <span
+                        className="font-bold font-heading tracking-wide"
+                        style={{
+                          fontSize: isFirst ? '1.5rem' : isSecond ? '1.25rem' : '1.1rem',
+                          color: isFirst
+                            ? 'rgba(254,240,138,0.9)'
+                            : isSecond
+                              ? 'rgba(255,255,255,0.6)'
+                              : 'rgba(255,255,255,0.35)'
+                        }}
+                      >
+                        {token.number}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
             ) : (
               <div className="flex items-center justify-center py-2">
-                <span className="text-sm text-gray-600 italic font-body">No previous tokens yet</span>
+                <span className="text-sm italic font-body" style={{ color: 'rgba(255,255,255,0.15)' }}>
+                  No previous tokens yet
+                </span>
               </div>
             )}
           </div>
