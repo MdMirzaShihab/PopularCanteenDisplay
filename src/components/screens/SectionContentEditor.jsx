@@ -1,14 +1,11 @@
-import { useState } from 'react';
-import { UtensilsCrossed, Image as ImageIcon, Video, Upload, FolderOpen } from 'lucide-react';
+import { UtensilsCrossed, Film } from 'lucide-react';
 import { VISUAL_STYLES } from '../gallery/themes/visualStyleRegistry';
-import ImageUpload from '../common/ImageUpload';
-import { useNotification } from '../../context/NotificationContext';
-import { getMediaByType } from '../../assets/media';
+import MediaMultiPicker from './MediaMultiPicker';
+import { TRANSITION_EFFECTS, DEFAULT_SLIDE_DURATION, DEFAULT_TRANSITION } from '../../utils/mediaUtils';
 
 const CONTENT_TYPES = [
   { type: 'menu', label: 'Menu', icon: UtensilsCrossed },
-  { type: 'image', label: 'Image', icon: ImageIcon },
-  { type: 'video', label: 'Video', icon: Video }
+  { type: 'media', label: 'Media', icon: Film }
 ];
 
 const TITLE_FONTS = [
@@ -20,77 +17,18 @@ const TITLE_FONTS = [
   { id: 'font-body', label: 'Poppins', sample: 'Menu Title' }
 ];
 
-const MediaGalleryPicker = ({ type, value, onSelect }) => {
-  const items = getMediaByType(type);
-
-  if (items.length === 0) return null;
-
-  return (
-    <div>
-      <label className="block text-sm font-medium text-text-200 mb-2">
-        Select from Gallery
-      </label>
-      <div className={`grid ${type === 'image' ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-2 sm:grid-cols-3'} gap-2`}>
-        {items.map((item) => {
-          const isSelected = value === item.src;
-          return (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => onSelect(item.src)}
-              className={`relative rounded-lg overflow-hidden border-2 transition-all ${
-                isSelected
-                  ? 'border-primary-100 ring-2 ring-primary-100/30'
-                  : 'border-bg-300 hover:border-primary-100/50'
-              }`}
-            >
-              {type === 'image' ? (
-                <img
-                  src={item.src}
-                  alt={item.name}
-                  className="w-full aspect-video object-cover"
-                />
-              ) : (
-                <video
-                  src={item.src}
-                  muted
-                  className="w-full aspect-video object-cover"
-                  onMouseEnter={(e) => e.target.play()}
-                  onMouseLeave={(e) => { e.target.pause(); e.target.currentTime = 0; }}
-                />
-              )}
-              <div className="absolute bottom-0 inset-x-0 bg-black/60 px-1.5 py-1">
-                <span className="text-[10px] text-white font-medium truncate block">{item.name}</span>
-              </div>
-              {isSelected && (
-                <div className="absolute top-1 right-1 w-5 h-5 bg-primary-100 rounded-full flex items-center justify-center">
-                  <span className="text-white text-xs font-bold">&#10003;</span>
-                </div>
-              )}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-};
-
 const SectionContentEditor = ({ content, onChange, menus, label }) => {
-  const { showError } = useNotification();
-  const currentType = content?.type || 'menu';
-  const [mediaSource, setMediaSource] = useState('gallery'); // 'gallery' or 'upload'
+  // Normalize legacy types for the form
+  const currentType = (content?.type === 'image' || content?.type === 'video') ? 'media' : (content?.type || 'menu');
 
   const handleTypeChange = (newType) => {
     if (newType === currentType) return;
 
     if (newType === 'menu') {
-      onChange({ type: 'menu', menuId: '', visualStyle: 'card-grid', titleFont: 'font-heading', titleColor: '#ffffff', media: undefined });
-    } else if (newType === 'image') {
-      onChange({ type: 'image', media: undefined, menuId: undefined, visualStyle: undefined });
-    } else if (newType === 'video') {
-      onChange({ type: 'video', media: undefined, menuId: undefined, visualStyle: undefined });
+      onChange({ type: 'menu', menuId: '', visualStyle: 'card-grid', titleFont: 'font-heading', titleColor: '#ffffff' });
+    } else if (newType === 'media') {
+      onChange({ type: 'media', media: [], slideDuration: DEFAULT_SLIDE_DURATION, transition: DEFAULT_TRANSITION });
     }
-    setMediaSource('gallery');
   };
 
   const handleMenuChange = (e) => {
@@ -99,14 +37,6 @@ const SectionContentEditor = ({ content, onChange, menus, label }) => {
 
   const handleVisualStyleChange = (styleId) => {
     onChange({ ...content, visualStyle: styleId });
-  };
-
-  const handleMediaChange = (mediaValue) => {
-    onChange({ ...content, media: mediaValue });
-  };
-
-  const handleMediaError = (errorMsg) => {
-    showError(errorMsg);
   };
 
   return (
@@ -245,69 +175,59 @@ const SectionContentEditor = ({ content, onChange, menus, label }) => {
         </div>
       )}
 
-      {/* Image/Video content */}
-      {(currentType === 'image' || currentType === 'video') && (
-        <div className="space-y-3">
-          {/* Source toggle: Gallery vs Upload */}
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => setMediaSource('gallery')}
-              className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border transition-colors ${
-                mediaSource === 'gallery'
-                  ? 'border-primary-100 bg-primary-100/10 text-primary-100'
-                  : 'border-bg-300 bg-white text-text-200 hover:border-primary-100/50'
-              }`}
-            >
-              <FolderOpen className="w-4 h-4" />
-              Gallery
-            </button>
-            <button
-              type="button"
-              onClick={() => setMediaSource('upload')}
-              className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border transition-colors ${
-                mediaSource === 'upload'
-                  ? 'border-primary-100 bg-primary-100/10 text-primary-100'
-                  : 'border-bg-300 bg-white text-text-200 hover:border-primary-100/50'
-              }`}
-            >
-              <Upload className="w-4 h-4" />
-              Upload
-            </button>
-          </div>
+      {/* Media content */}
+      {currentType === 'media' && (
+        <div className="space-y-4">
+          <MediaMultiPicker
+            value={Array.isArray(content?.media) ? content.media : (content?.media ? [content.media] : [])}
+            onChange={(items) => onChange({ ...content, type: 'media', media: items })}
+          />
 
-          {/* Gallery picker */}
-          {mediaSource === 'gallery' && (
-            <MediaGalleryPicker
-              type={currentType}
-              value={content?.media}
-              onSelect={handleMediaChange}
-            />
-          )}
-
-          {/* Upload */}
-          {mediaSource === 'upload' && (
-            <ImageUpload
-              value={content?.media || null}
-              onChange={handleMediaChange}
-              onError={handleMediaError}
-              accept={currentType === 'image' ? 'image/*' : 'video/*'}
-              label={currentType === 'image' ? 'Upload Image' : 'Upload Video'}
-            />
-          )}
-
-          {/* Preview of selected media */}
-          {content?.media && (
-            <div className="mt-2">
-              <label className="block text-sm font-medium text-text-200 mb-1">Preview</label>
-              <div className="rounded-lg overflow-hidden border border-bg-300 max-h-40">
-                {currentType === 'image' ? (
-                  <img src={content.media} alt="Selected" className="w-full max-h-40 object-cover" />
-                ) : (
-                  <video src={content.media} muted autoPlay loop className="w-full max-h-40 object-cover" />
-                )}
+          {/* Slide Duration */}
+          {Array.isArray(content?.media) && content.media.length > 0 && (
+            <>
+              <div>
+                <label className="block text-sm font-medium text-text-200 mb-1">
+                  Slide Duration (seconds)
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  max="60"
+                  step="1"
+                  value={content?.slideDuration ?? DEFAULT_SLIDE_DURATION}
+                  onChange={(e) => onChange({ ...content, slideDuration: Math.max(1, Math.min(60, parseInt(e.target.value) || DEFAULT_SLIDE_DURATION)) })}
+                  className="w-full px-3 py-2 border border-bg-300 rounded-lg bg-white text-text-100 focus:outline-none focus:ring-2 focus:ring-primary-100"
+                />
+                <p className="text-xs text-text-200 mt-1">How long each image is displayed. Videos play to their natural end.</p>
               </div>
-            </div>
+
+              {/* Transition Effect */}
+              <div>
+                <label className="block text-sm font-medium text-text-200 mb-2">
+                  Transition Effect
+                </label>
+                <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                  {Object.values(TRANSITION_EFFECTS).map((effect) => {
+                    const isSelected = (content?.transition || DEFAULT_TRANSITION) === effect.id;
+                    return (
+                      <button
+                        key={effect.id}
+                        type="button"
+                        onClick={() => onChange({ ...content, transition: effect.id })}
+                        className={`px-3 py-2 rounded-lg border-2 text-sm font-medium transition-colors ${
+                          isSelected
+                            ? 'border-primary-100 bg-primary-50 text-primary-100'
+                            : 'border-bg-300 bg-white text-text-200 hover:border-primary-100/50'
+                        }`}
+                      >
+                        {effect.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </>
           )}
         </div>
       )}

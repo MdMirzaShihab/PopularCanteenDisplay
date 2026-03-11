@@ -39,8 +39,7 @@ const SectionTimeSlotEditor = ({ timeSlots, onChange, menus }) => {
 
   const getSlotLabel = (slot) => {
     if (!slot.content) return 'No content';
-    if (slot.content.type === 'image') return 'Image';
-    if (slot.content.type === 'video') return 'Video';
+    if (slot.content.type === 'media' || slot.content.type === 'image' || slot.content.type === 'video') return 'Media';
     if (slot.content.type === 'menu' && slot.content.menuId) {
       const menu = menus.find(m => m.id === slot.content.menuId);
       return menu?.title || 'Menu';

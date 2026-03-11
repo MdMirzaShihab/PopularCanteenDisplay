@@ -28,4 +28,5 @@ export const mediaGallery = [
 ];
 
 export const getMediaByType = (type) => mediaGallery.filter(m => m.type === type);
+export const getAllMedia = () => mediaGallery;
 export const getMediaById = (id) => mediaGallery.find(m => m.id === id);

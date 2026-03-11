@@ -134,8 +134,8 @@ export const validateFoodScreen = (screenData) => {
         if (!section.defaultContent.visualStyle || !VALID_VISUAL_STYLE_IDS.includes(section.defaultContent.visualStyle)) {
           se.defaultContentStyle = 'Please select a visual style';
         }
-      } else if ((section.defaultContent.type === 'image' || section.defaultContent.type === 'video') && !section.defaultContent.media) {
-        se.defaultContent = 'Please upload media for default content';
+      } else if (section.defaultContent.type === 'media' && (!Array.isArray(section.defaultContent.media) || section.defaultContent.media.length === 0)) {
+        se.defaultContent = 'Please select at least one media item';
       }
 
       if (section.timeSlots && section.timeSlots.length > 0) {
@@ -150,8 +150,8 @@ export const validateFoodScreen = (screenData) => {
             se[`timeSlot_${slotIdx}_content`] = 'Content is required for each time slot';
           } else if (slot.content.type === 'menu' && !slot.content.menuId) {
             se[`timeSlot_${slotIdx}_content`] = 'Please select a menu';
-          } else if ((slot.content.type === 'image' || slot.content.type === 'video') && !slot.content.media) {
-            se[`timeSlot_${slotIdx}_content`] = 'Please upload media';
+          } else if (slot.content.type === 'media' && (!Array.isArray(slot.content.media) || slot.content.media.length === 0)) {
+            se[`timeSlot_${slotIdx}_content`] = 'Please select at least one media item';
           }
         });
 

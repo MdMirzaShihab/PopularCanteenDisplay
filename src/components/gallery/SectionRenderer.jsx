@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, memo } from 'react';
 import { getCurrentTime, getCurrentDayOfWeek, isTimeInRange } from '../../utils/timeUtils';
 import { getStyleRenderer } from './styles/index.js';
+import { normalizeContent } from '../../utils/mediaUtils';
+import MediaSlideshow from './MediaSlideshow';
 
 const SectionRenderer = memo(function SectionRenderer({ section, items, menus, gridArea }) {
   const resolveContent = useCallback(() => {
@@ -29,8 +31,10 @@ const SectionRenderer = memo(function SectionRenderer({ section, items, menus, g
   const renderContent = () => {
     if (!content) return null;
 
-    if (content.type === 'menu') {
-      const menu = menus.find(m => m.id === content.menuId);
+    const normalized = normalizeContent(content);
+
+    if (normalized.type === 'menu') {
+      const menu = menus.find(m => m.id === normalized.menuId);
       if (!menu) {
         return (
           <div className="w-full h-full flex items-center justify-center text-white/50">
@@ -42,8 +46,8 @@ const SectionRenderer = memo(function SectionRenderer({ section, items, menus, g
         .map(id => items.find(item => item.id === id))
         .filter(Boolean)
         .filter(item => item.isActive);
-      const StyleRenderer = getStyleRenderer(content.visualStyle);
-      const titleColor = content.titleColor || '#ffffff';
+      const StyleRenderer = getStyleRenderer(normalized.visualStyle);
+      const titleColor = normalized.titleColor || '#ffffff';
       return (
         <div className="w-full h-full flex flex-col">
           {/* Section Title with decorative accents */}
@@ -51,7 +55,7 @@ const SectionRenderer = memo(function SectionRenderer({ section, items, menus, g
             <div className="flex items-center gap-3">
               <div className="h-[2px] w-8 rounded-full opacity-60" style={{ backgroundColor: titleColor }} />
               <h3
-                className={`${content.titleFont || 'font-heading'} text-2xl 3xl:text-4xl uppercase tracking-[0.15em] drop-shadow-lg`}
+                className={`${normalized.titleFont || 'font-heading'} text-2xl 3xl:text-4xl uppercase tracking-[0.15em] drop-shadow-lg`}
                 style={{ color: titleColor }}
               >
                 {menu.title}
@@ -66,19 +70,13 @@ const SectionRenderer = memo(function SectionRenderer({ section, items, menus, g
       );
     }
 
-    if (content.type === 'image') {
-      return <img src={content.media} className="w-full h-full object-cover rounded-xl" alt="" />;
-    }
-
-    if (content.type === 'video') {
+    if (normalized.type === 'media') {
+      if (!normalized.media || normalized.media.length === 0) return null;
       return (
-        <video
-          src={content.media}
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="w-full h-full object-cover rounded-xl"
+        <MediaSlideshow
+          mediaItems={normalized.media}
+          slideDuration={normalized.slideDuration}
+          transition={normalized.transition}
         />
       );
     }

@@ -2,6 +2,9 @@
 // All data stored here will be used as initial data and persisted to localStorage
 
 import { foodImages } from '../assets';
+import { mediaGallery } from '../assets/media';
+
+const getGallerySrc = (id) => mediaGallery.find(m => m.id === id)?.src;
 
 // Generate unique ID helper
 const generateId = () => `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
@@ -322,41 +325,37 @@ export const initialFoodScreens = [
       {
         id: 'section-001',
         label: 'Left Large',
-        defaultContent: { type: 'menu', menuId: 'menu-001', visualStyle: 'card-grid' },
-        timeSlots: [
-          {
-            id: 'slot-001',
-            startTime: '07:00',
-            endTime: '11:00',
-            daysOfWeek: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'],
-            content: { type: 'menu', menuId: 'menu-001', visualStyle: 'card-grid' }
-          },
-          {
-            id: 'slot-002',
-            startTime: '12:00',
-            endTime: '16:00',
-            daysOfWeek: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'],
-            content: { type: 'menu', menuId: 'menu-002', visualStyle: 'card-grid' }
-          },
-          {
-            id: 'slot-003',
-            startTime: '18:00',
-            endTime: '22:00',
-            daysOfWeek: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'],
-            content: { type: 'menu', menuId: 'menu-003', visualStyle: 'card-grid' }
-          }
-        ]
+        defaultContent: { type: 'menu', menuId: 'menu-004', visualStyle: 'card-grid', titleFont: 'font-heading', titleColor: '#ffffff' },
+        timeSlots: []
       },
       {
         id: 'section-002',
         label: 'Top Right',
-        defaultContent: { type: 'menu', menuId: 'menu-002', visualStyle: 'elegant' },
+        defaultContent: {
+          type: 'media',
+          media: [
+            getGallerySrc('img-food-fruits'),
+            getGallerySrc('img-indian-bowls'),
+            getGallerySrc('img-fresh-veggies'),
+            getGallerySrc('vid-cheeseburger')
+          ],
+          slideDuration: 5,
+          transition: 'crossfade'
+        },
         timeSlots: []
       },
       {
         id: 'section-003',
         label: 'Bottom Right',
-        defaultContent: { type: 'menu', menuId: 'menu-003', visualStyle: 'compact' },
+        defaultContent: {
+          type: 'media',
+          media: [
+            getGallerySrc('vid-fried-chicken'),
+            getGallerySrc('vid-coffee')
+          ],
+          slideDuration: 5,
+          transition: 'crossfade'
+        },
         timeSlots: []
       }
     ],
