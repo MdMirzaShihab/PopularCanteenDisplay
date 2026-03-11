@@ -318,8 +318,8 @@ export const initialFoodScreens = [
     screenId: 'HALL-A-01',
     type: 'food',
     layoutTheme: 'layout-4',
-    backgroundType: 'color',
-    backgroundMedia: null,
+    backgroundType: 'video',
+    backgroundMedia: getGallerySrc('vid-orange-juice'),
     backgroundColor: '#1a1a2e',
     sections: [
       {
