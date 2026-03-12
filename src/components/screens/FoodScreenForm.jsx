@@ -28,6 +28,7 @@ const FoodScreenForm = ({ screen, onSubmit, onCancel }) => {
   const [activeTab, setActiveTab] = useState('layout');
   const [activeSectionIdx, setActiveSectionIdx] = useState(0);
   const [bgMediaSource, setBgMediaSource] = useState('gallery');
+  const [formErrors, setFormErrors] = useState({});
 
   const [formData, setFormData] = useState({
     title: screen?.title || '',
@@ -40,9 +41,16 @@ const FoodScreenForm = ({ screen, onSubmit, onCancel }) => {
     gap: screen?.gap || 8
   });
 
+  const clearFieldError = (field) => {
+    if (formErrors[field]) {
+      setFormErrors(prev => ({ ...prev, [field]: undefined }));
+    }
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    clearFieldError(name);
   };
 
   const handleLayoutChange = (newLayoutId) => {
@@ -52,6 +60,7 @@ const FoodScreenForm = ({ screen, onSubmit, onCancel }) => {
       sections: buildEmptySections(newLayoutId)
     }));
     setActiveSectionIdx(0);
+    setFormErrors(prev => ({ ...prev, layoutTheme: undefined, sections: undefined, sectionCount: undefined }));
   };
 
   const handleSectionChange = (updatedSection) => {
@@ -61,6 +70,14 @@ const FoodScreenForm = ({ screen, onSubmit, onCancel }) => {
         i === activeSectionIdx ? updatedSection : s
       )
     }));
+    if (formErrors.sections && Array.isArray(formErrors.sections)) {
+      setFormErrors(prev => {
+        if (!Array.isArray(prev.sections)) return prev;
+        const updated = [...prev.sections];
+        updated[activeSectionIdx] = undefined;
+        return { ...prev, sections: updated.some(e => e) ? updated : undefined };
+      });
+    }
   };
 
   const handleBackgroundTypeChange = (type) => {
@@ -70,16 +87,30 @@ const FoodScreenForm = ({ screen, onSubmit, onCancel }) => {
       backgroundMedia: type === 'color' ? null : prev.backgroundMedia,
       backgroundColor: type === 'color' ? prev.backgroundColor : prev.backgroundColor
     }));
+    setFormErrors(prev => ({ ...prev, backgroundMedia: undefined, backgroundColor: undefined }));
   };
 
   const handleSubmit = () => {
-    const { isValid, errors } = validateFoodScreen(formData);
+    const { isValid, errors, tabErrors, firstErrorSectionIdx } = validateFoodScreen(formData);
     if (!isValid) {
-      const firstError = Object.values(errors).find(e => typeof e === 'string')
-        || 'Please fix validation errors';
-      showError(firstError);
+      // Auto-navigate to the first tab with errors
+      if (tabErrors.layout) {
+        setActiveTab('layout');
+        showError(tabErrors.layout);
+      } else if (tabErrors.sections) {
+        setActiveTab('sections');
+        setActiveSectionIdx(firstErrorSectionIdx);
+        showError(tabErrors.sections);
+      } else if (tabErrors.settings) {
+        setActiveTab('settings');
+        showError(tabErrors.settings);
+      } else {
+        showError('Please fix validation errors');
+      }
+      setFormErrors(errors);
       return;
     }
+    setFormErrors({});
     onSubmit(formData);
   };
 
@@ -91,6 +122,9 @@ const FoodScreenForm = ({ screen, onSubmit, onCancel }) => {
           {TABS.map(tab => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
+            const hasError = (tab.id === 'layout' && (formErrors.title || formErrors.screenId || formErrors.layoutTheme || formErrors.sectionCount))
+              || (tab.id === 'sections' && formErrors.sections)
+              || (tab.id === 'settings' && (formErrors.backgroundMedia || formErrors.backgroundColor));
             return (
               <button
                 key={tab.id}
@@ -99,11 +133,16 @@ const FoodScreenForm = ({ screen, onSubmit, onCancel }) => {
                 className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-all duration-200 ${
                   isActive
                     ? 'border-primary-100 text-primary-100'
-                    : 'border-transparent text-text-200 hover:text-text-100'
+                    : hasError
+                      ? 'border-accent-200 text-accent-200'
+                      : 'border-transparent text-text-200 hover:text-text-100'
                 }`}
               >
                 <Icon className="w-4 h-4" />
                 {tab.label}
+                {hasError && !isActive && (
+                  <span className="w-2 h-2 rounded-full bg-accent-200" />
+                )}
               </button>
             );
           })}
@@ -125,9 +164,10 @@ const FoodScreenForm = ({ screen, onSubmit, onCancel }) => {
                 name="title"
                 value={formData.title}
                 onChange={handleChange}
-                className="w-full px-4 py-2 border border-bg-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-100 bg-bg-100 text-text-100"
+                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-100 bg-bg-100 text-text-100 ${formErrors.title ? 'border-accent-200' : 'border-bg-300'}`}
                 placeholder="e.g., Main Dining Hall Display"
               />
+              {formErrors.title && <p className="mt-1 text-sm text-accent-200">{formErrors.title}</p>}
             </div>
 
             <div>
@@ -140,12 +180,13 @@ const FoodScreenForm = ({ screen, onSubmit, onCancel }) => {
                 name="screenId"
                 value={formData.screenId}
                 onChange={handleChange}
-                className="w-full px-4 py-2 border border-bg-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-100 bg-bg-100 text-text-100"
+                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-100 bg-bg-100 text-text-100 ${formErrors.screenId ? 'border-accent-200' : 'border-bg-300'}`}
                 placeholder="e.g., HALL-A-01"
               />
               <p className="mt-1 text-xs text-text-200">
                 Unique identifier for tracking and management
               </p>
+              {formErrors.screenId && <p className="mt-1 text-sm text-accent-200">{formErrors.screenId}</p>}
             </div>
 
             <div>

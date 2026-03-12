@@ -107,7 +107,7 @@ export const validateFoodScreen = (screenData) => {
   } else {
     const expectedSections = getLayoutTheme(screenData.layoutTheme).sections;
     if (!screenData.sections || screenData.sections.length !== expectedSections) {
-      errors.sections = `Layout requires ${expectedSections} section${expectedSections !== 1 ? 's' : ''} but found ${screenData.sections?.length || 0}`;
+      errors.sectionCount = `Layout requires ${expectedSections} section${expectedSections !== 1 ? 's' : ''} but found ${screenData.sections?.length || 0}`;
     }
   }
 
@@ -171,9 +171,32 @@ export const validateFoodScreen = (screenData) => {
     errors.sections = sectionErrors;
   }
 
+  // Build a flat map of tab -> first error message for auto-navigation
+  const tabErrors = {};
+  let firstErrorSectionIdx = 0;
+
+  if (errors.title || errors.screenId || errors.layoutTheme || errors.sectionCount) {
+    tabErrors.layout = errors.title || errors.screenId || errors.layoutTheme || errors.sectionCount;
+  }
+  if (errors.sections && Array.isArray(errors.sections)) {
+    // Per-section content/timeslot errors
+    const idx = errors.sections.findIndex(e => e);
+    if (idx !== -1) {
+      const sectionErrs = errors.sections[idx];
+      const firstSectionError = Object.values(sectionErrs)[0];
+      tabErrors.sections = `Section ${idx + 1}: ${firstSectionError}`;
+      firstErrorSectionIdx = idx;
+    }
+  }
+  if (errors.backgroundMedia || errors.backgroundColor) {
+    tabErrors.settings = errors.backgroundMedia || errors.backgroundColor;
+  }
+
   return {
     isValid: Object.keys(errors).length === 0,
-    errors
+    errors,
+    tabErrors,
+    firstErrorSectionIdx
   };
 };
 
