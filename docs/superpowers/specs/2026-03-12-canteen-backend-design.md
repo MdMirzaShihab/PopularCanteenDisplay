@@ -1,7 +1,7 @@
 # Canteen Management System — Backend Design Spec
 
 **Date:** 2026-03-12
-**Status:** Approved (brainstorming complete)
+**Status:** Approved (brainstorming complete, spec review passed)
 
 ---
 
@@ -110,6 +110,7 @@ canteen-backend/
   name: String,            // required, min 2
   description: String,     // required
   price: Number,           // required, min 0, max 10000
+  category: String,        // optional (e.g., 'rice', 'snacks', 'beverages')
   ingredients: String,     // comma-separated
   image: String,           // R2 URL
   isActive: Boolean,       // default: true
@@ -135,7 +136,7 @@ canteen-backend/
   screenId: String,        // unique, display identifier
   type: { default: 'food' },
   layoutTheme: String,
-  backgroundType: String,  // 'color' | 'video'
+  backgroundType: String,  // 'color' | 'image' | 'video'
   backgroundMedia: String, // R2 URL
   backgroundColor: String, // hex
   sections: [{
@@ -225,12 +226,18 @@ canteen-backend/
 
 ## 3. API Endpoints
 
+### Health Check
+| Method | Endpoint | Access | Description |
+|--------|----------|--------|-------------|
+| GET | `/api/v1/health` | Public | Returns `{ status: 'ok', uptime, dbStatus }` |
+
 ### Auth
 | Method | Endpoint | Access | Description |
 |--------|----------|--------|-------------|
 | POST | `/api/v1/auth/login` | Public | Login, returns JWT + user object |
-| POST | `/api/v1/auth/logout` | Authenticated | Client-side token discard |
 | GET | `/api/v1/auth/me` | Authenticated | Get current user from JWT |
+
+**Note:** No server-side logout endpoint. With JWT-only auth (no token blacklist), logout is handled client-side by discarding the token.
 
 ### Items
 | Method | Endpoint | Access | Description |
@@ -269,10 +276,12 @@ canteen-backend/
 | PUT | `/api/v1/token-screens/:id` | Admin, Manager | Update token screen |
 | DELETE | `/api/v1/token-screens/:id` | Admin, Manager | Delete token screen |
 
-### Screens (unified lookup)
+### Screens (unified lookup for gallery)
 | Method | Endpoint | Access | Description |
 |--------|----------|--------|-------------|
-| GET | `/api/v1/screens/:screenId` | Public | Find by `screenId` across both collections |
+| GET | `/api/v1/screens/:id` | Public | Find by MongoDB `_id` across both collections. Returns deeply populated response: screen → sections → menuId populated with menu → menu.items populated with full item objects. This is the primary endpoint for gallery displays — a single call returns all data needed to render the screen. |
+
+**Gallery URL identifier:** The frontend gallery route `/gallery/:screenId` uses the MongoDB `_id` (auto-generated) as the URL parameter, NOT the user-set `screenId` field. The `screenId` field on screen models is a human-readable label (e.g., "Main Hall Display") for admin UI only. All gallery lookups use `_id`.
 
 ### Tokens
 | Method | Endpoint | Access | Description |
@@ -294,7 +303,15 @@ canteen-backend/
 ### Activity Logs
 | Method | Endpoint | Access | Description |
 |--------|----------|--------|-------------|
-| GET | `/api/v1/logs` | Authenticated | List logs (admin: all, others: own). `?userId=`, `?resourceType=`, `?action=`, `?startDate=`, `?endDate=` |
+| GET | `/api/v1/logs` | Authenticated | List logs (admin: all, others: own). `?userId=`, `?resourceType=`, `?action=`, `?startDate=`, `?endDate=`, `?page=1`, `?limit=50` |
+
+### Pagination
+
+All list endpoints support `?page=` and `?limit=` query parameters:
+- Default: `page=1`, `limit=50`
+- Response includes: `{ data: [...], pagination: { page, limit, total, totalPages } }`
+- Applies to: items, menus, food-screens, token-screens, users, logs
+- Logs endpoint defaults to `limit=50` and sorts by `createdAt` descending
 
 ### Upload (R2 Presigned URLs)
 | Method | Endpoint | Access | Description |
@@ -310,34 +327,34 @@ canteen-backend/
 
 | Event | Direction | Payload | Description |
 |-------|-----------|---------|-------------|
-| `join-screen` | Client → Server | `{ screenId }` | Subscribe to token screen updates |
-| `leave-screen` | Client → Server | `{ screenId }` | Unsubscribe |
-| `token-updated` | Server → Room | `{ currentToken, history }` | Broadcast on token update |
-| `token-cleared` | Server → Room | `{ currentToken: null, history }` | Broadcast on token clear |
+| `token-updated` | Server → All | `{ currentToken, history }` | Broadcast on token update |
+| `token-cleared` | Server → All | `{ currentToken: null, history }` | Broadcast on token clear |
 
 ### Flow
 1. Gallery token screen connects to `/tokens` namespace on mount
-2. Emits `join-screen` with its `screenId` → joins Socket.IO room
-3. Token operator updates/clears token via REST API (with auth)
-4. Controller saves to MongoDB, then calls `socketManager.emitTokenUpdate(screenId, data)`
-5. All gallery screens in that room receive the event instantly
-6. Voice announcement triggered client-side on receiving `token-updated`
+2. Token operator updates/clears token via REST API (with auth)
+3. Controller saves to MongoDB, then calls `socketManager.emitTokenUpdate(data)`
+4. All connected token screen clients receive the event instantly
+5. Voice announcement triggered client-side on receiving `token-updated`
+
+**Note:** Since there is a single global token state (one `TokenState` document), all token screen displays show the same token. Broadcasting goes to all clients on the `/tokens` namespace — no room filtering needed.
 
 ### socketManager utility
 ```javascript
 let io;
 const init = (socketIo) => { io = socketIo; };
-const emitTokenUpdate = (screenId, data) => {
-  io.of('/tokens').to(screenId).emit('token-updated', data);
+const emitTokenUpdate = (data) => {
+  io.of('/tokens').emit('token-updated', data);
 };
-const emitTokenClear = (screenId, data) => {
-  io.of('/tokens').to(screenId).emit('token-cleared', data);
+const emitTokenClear = (data) => {
+  io.of('/tokens').emit('token-cleared', data);
 };
 ```
 
 - No auth on socket namespace — gallery screens are public (read-only)
 - Mutations stay REST-only (with JWT auth)
-- Socket.IO client handles reconnection automatically; re-emits `join-screen` on reconnect
+- Socket.IO client handles reconnection automatically
+- CORS configured on Socket.IO server: `cors: { origin: process.env.FRONTEND_URL, credentials: true }`
 
 ---
 
@@ -488,3 +505,14 @@ These rules must be enforced server-side:
 8. **Activity logs** record every CRUD mutation with before/after snapshots
 9. **Gallery endpoints are public** — no auth for `GET /food-screens/:id`, `GET /token-screens/:id`, `GET /screens/:screenId`, `GET /tokens/current`
 10. **Role access:** Admin = full access, Manager (restaurant_user) = items/menus/screens/tokens, Operator (token_operator) = tokens only
+
+---
+
+## 9. Deprecated / Dropped Features
+
+### Schedules Entity — DROPPED
+The frontend has a `schedules` entity (hidden in demo UI) with its own CRUD in DataContext. The backend **does not include a schedules collection**. Time slots are now embedded directly within `FoodScreen.sections[].timeSlots[]`. The old `deleteMenu` check against schedules is replaced by checking `FoodScreen` sections for menu references.
+
+### Frontend Migration Notes
+- `deleteMenu` service must scan `FoodScreen.sections[].defaultContent.menuId` AND `FoodScreen.sections[].timeSlots[].content.menuId` to check for menu references (the frontend currently checks the deprecated `schedules` array — this is a frontend bug to fix during migration)
+- `displaySettings` fields (`showPrices`, `foregroundMediaDisplay`) are screen-level settings that exist in the frontend. If still in active use, they should be added to the FoodScreen model. Currently omitted as they appear to be superseded by section-level content settings.
