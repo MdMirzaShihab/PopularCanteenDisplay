@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { UtensilsCrossed, Film } from 'lucide-react';
 import { VISUAL_STYLES } from '../gallery/themes/visualStyleRegistry';
 import MediaMultiPicker from './MediaMultiPicker';
@@ -21,10 +22,18 @@ const SectionContentEditor = ({ content, onChange, menus, label }) => {
   // Normalize legacy types for the form
   const currentType = (content?.type === 'image' || content?.type === 'video') ? 'media' : (content?.type || 'menu');
 
+  const contentCacheRef = useRef({});
+
   const handleTypeChange = (newType) => {
     if (newType === currentType) return;
 
-    if (newType === 'menu') {
+    // Cache current content under its type
+    contentCacheRef.current[currentType] = content;
+
+    // Restore cached content for the new type, or use defaults
+    if (contentCacheRef.current[newType]) {
+      onChange(contentCacheRef.current[newType]);
+    } else if (newType === 'menu') {
       onChange({ type: 'menu', menuId: '', visualStyle: 'card-grid', titleFont: 'font-heading', titleColor: '#ffffff' });
     } else if (newType === 'media') {
       onChange({ type: 'media', media: [], slideDuration: DEFAULT_SLIDE_DURATION, transition: DEFAULT_TRANSITION });
