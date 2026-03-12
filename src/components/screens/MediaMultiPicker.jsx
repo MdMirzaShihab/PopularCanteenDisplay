@@ -7,7 +7,7 @@ import { isVideoUrl } from '../../utils/fileUtils';
 import { MAX_MEDIA_ITEMS } from '../../utils/mediaUtils';
 
 const MediaMultiPicker = ({ value = [], onChange, maxItems = MAX_MEDIA_ITEMS }) => {
-  const { showError } = useNotification();
+  const { error: showError } = useNotification();
   const [activeTab, setActiveTab] = useState('gallery');
   const dragIndexRef = useRef(null);
   const dragListRef = useRef(value);
