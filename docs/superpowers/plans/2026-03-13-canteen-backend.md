@@ -733,6 +733,7 @@ const foodScreenSchema = new mongoose.Schema(
     backgroundType: { type: String, enum: ['color', 'image', 'video'] },
     backgroundMedia: { type: String },
     backgroundColor: { type: String },
+    gap: { type: Number, default: 8 },
     sections: [sectionSchema],
   },
   { timestamps: true }
@@ -1848,7 +1849,9 @@ router.post('/:id/duplicate', auth, authorize('admin', 'restaurant_user'), ctrl.
 module.exports = router;
 ```
 
-**Note:** `GET /:id` is placed before `GET /` to avoid auth middleware. The order matters — public single-screen fetch must be accessible without auth for gallery displays.
+**Note:** `GET /:id` is public (no auth) for gallery displays. `GET /` is protected (requires auth). Express matches `/` exactly before `/:id`, so the order is safe.
+
+**Frontend migration note:** Token archive entries use `recordedAt` in the frontend but `updatedAt` in the backend `TokenState.archive[]`. The frontend will need to map this field when consuming the archive API.
 
 - [ ] **Step 4: Mount in app.js**
 
@@ -2472,7 +2475,7 @@ const seed = async () => {
   const foodScreens = await FoodScreen.create([
     {
       title: 'Main Dining Hall Display', screenId: 'main-hall', layoutTheme: 'layout-4',
-      backgroundType: 'color', backgroundColor: '#1a1a2e',
+      backgroundType: 'color', backgroundColor: '#1a1a2e', gap: 8,
       sections: [
         { label: 'Main', defaultContent: { type: 'menu', menuId: menus[3]._id, visualStyle: 'card-grid' }, timeSlots: [
           { startTime: '07:00', endTime: '10:00', daysOfWeek: ['monday','tuesday','wednesday','thursday','friday'], content: { type: 'menu', menuId: menus[0]._id, visualStyle: 'card-grid' } },
@@ -2483,7 +2486,7 @@ const seed = async () => {
     },
     {
       title: 'Cafeteria Display', screenId: 'cafeteria', layoutTheme: 'layout-1',
-      backgroundType: 'color', backgroundColor: '#0f3460',
+      backgroundType: 'color', backgroundColor: '#0f3460', gap: 8,
       sections: [
         { label: 'Full', defaultContent: { type: 'menu', menuId: menus[3]._id, visualStyle: 'menu-board' }, timeSlots: [] },
       ],

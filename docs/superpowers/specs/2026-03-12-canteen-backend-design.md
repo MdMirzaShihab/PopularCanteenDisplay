@@ -139,6 +139,7 @@ canteen-backend/
   backgroundType: String,  // 'color' | 'image' | 'video'
   backgroundMedia: String, // R2 URL
   backgroundColor: String, // hex
+  gap: Number,             // 4, 8, or 12 pixels between sections (default: 8)
   sections: [{
     label: String,
     defaultContent: {
@@ -513,6 +514,11 @@ These rules must be enforced server-side:
 ### Schedules Entity — DROPPED
 The frontend has a `schedules` entity (hidden in demo UI) with its own CRUD in DataContext. The backend **does not include a schedules collection**. Time slots are now embedded directly within `FoodScreen.sections[].timeSlots[]`. The old `deleteMenu` check against schedules is replaced by checking `FoodScreen` sections for menu references.
 
+### displaySettings Object — DROPPED
+The old `displaySettings` object (`orientation`, `tokenWindow`, `showPrices`, `foregroundMediaDisplay`, `transitionDuration`, `slideDelay`) has been fully removed from the frontend. These were replaced by:
+- **Section-level**: `slideDuration`, `transition`, `titleFont`, `titleColor` per content block
+- **Screen-level**: `gap` (pixel spacing between sections)
+- `showPrices` is hardcoded to `true` in `SectionRenderer.jsx` (not user-configurable)
+
 ### Frontend Migration Notes
 - `deleteMenu` service must scan `FoodScreen.sections[].defaultContent.menuId` AND `FoodScreen.sections[].timeSlots[].content.menuId` to check for menu references (the frontend currently checks the deprecated `schedules` array — this is a frontend bug to fix during migration)
-- `displaySettings` fields (`showPrices`, `foregroundMediaDisplay`) are screen-level settings that exist in the frontend. If still in active use, they should be added to the FoodScreen model. Currently omitted as they appear to be superseded by section-level content settings.

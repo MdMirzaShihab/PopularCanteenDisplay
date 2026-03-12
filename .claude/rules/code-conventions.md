@@ -6,9 +6,10 @@
 
 | Type | Convention | Example |
 |------|-----------|---------|
-| Components | PascalCase + `.jsx` | `MenuGrid.jsx`, `ScreenCard.jsx` |
+| Components | PascalCase + `.jsx` | `ScreenCard.jsx`, `FoodScreenForm.jsx` |
 | Utilities | camelCase + `.js` | `timeUtils.js`, `validators.js` |
 | Context | PascalCase + `.jsx` | `AuthContext.jsx`, `DataContext.jsx` |
+| Custom hooks | camelCase + `.js` | `useTokenArchive.js` |
 | Data | camelCase + `.js` | `mockData.js` |
 
 ## Exports
@@ -16,6 +17,8 @@
 - **Components**: default export only
 - **Utilities**: named exports
 - **Context hooks**: named exports (`useAuth`, `useData`, `useNotification`)
+- **Custom hooks**: named exports from `src/hooks/` (e.g., `useTokenArchive`)
+- **Gallery styles**: barrel export from `src/components/gallery/styles/index.js`
 - **Assets**: barrel export from `src/assets/index.js`
 
 ## Component Structure Order
@@ -47,8 +50,7 @@ export const validateEntity = (data) => {
 };
 ```
 
-One validator per entity: `validateItem`, `validateMenu`, `validateScreen`, `validateTimeSlot`
-<!-- validateSchedule exists but Schedule feature is hidden in current demo -->
+One validator per entity: `validateItem`, `validateMenu`, `validateFoodScreen`, `validateTokenScreen`, `validateTimeSlot`, `validateUser`
 
 ## Asset Imports
 

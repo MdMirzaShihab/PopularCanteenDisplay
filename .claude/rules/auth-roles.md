@@ -12,10 +12,10 @@
 
 ## Auth Rules
 
-- Only predefined accounts in `mockData.js` are accepted
-- Unknown credentials are **always rejected** — no registration
+- Default accounts seeded from `mockData.js`; additional users can be created via the Users management page (admin only)
 - Password is stripped from the stored user object before saving to context/localStorage
 - User persisted to localStorage key: `canteen_auth_user`
+- All users stored in `canteen_users` localStorage key
 
 ## Role Checks
 

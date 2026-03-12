@@ -20,11 +20,21 @@
 
 ## Adding a New Screen Display Feature
 
-1. Update `displaySettings` shape in screen creation/editing (`ScreensPage.jsx`, `ScreenForm`)
-2. Update `validateScreen()` in `validators.js`
-3. Update `TimeBasedRenderer.jsx` to consume the new setting
-4. Test in both portrait and landscape orientations
-5. Test with the `3xl` breakpoint if relevant to large displays
+1. Determine if the feature applies to food screens, token screens, or both
+2. Update `displaySettings` shape in the relevant form (`FoodScreenForm.jsx` or `TokenScreenForm.jsx`)
+3. Update the relevant validator in `validators.js`
+4. Update gallery rendering: `GalleryDisplay.jsx` → `ScreenGridRenderer.jsx` → `SectionRenderer.jsx` as needed
+5. If adding a new layout style: create renderer in `gallery/styles/`, register in `gallery/themes/layoutRegistry.js`
+6. Test in both portrait and landscape orientations
+7. Test with the `3xl` breakpoint if relevant to large displays
+
+## Adding a New Gallery Layout Style
+
+1. Create a new renderer component in `src/components/gallery/styles/` (e.g., `NewStyleRenderer.jsx`)
+2. Export it from `src/components/gallery/styles/index.js`
+3. Register the layout key in `src/components/gallery/themes/layoutRegistry.js`
+4. Optionally add visual style variants in `visualStyleRegistry.js`
+5. Add the option to `FoodScreenForm.jsx` section layout picker
 
 ## Debugging Checklist
 

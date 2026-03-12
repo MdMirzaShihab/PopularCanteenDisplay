@@ -6,7 +6,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-A **client-side demo** of a Canteen Management System for digital menu displays. Built with React 19 + Vite + Tailwind CSS. All data is stored in browser localStorage — there is no backend or database. The production version will use MERN stack (see `ProjectContext.md`).
+A **client-side demo** of a Canteen Management System for digital menu displays. Built with React 19 + Vite + Tailwind CSS + date-fns. All data is stored in browser localStorage — there is no backend or database. The production version will use MERN stack (see `ProjectContext.md`).
+
+Key concepts: **food screens** (menu displays with sections, layouts, themes) and **token screens** (serving number displays) are separate entities. Users are managed via an admin panel.
 
 ## Commands
 
