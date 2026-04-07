@@ -1,23 +1,22 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
-import { useData } from '../context/DataContext';
+import { getScreenById } from '../api/screens.api';
 import GalleryDisplay from '../components/gallery/GalleryDisplay';
 import TokenGalleryDisplay from '../components/gallery/TokenGalleryDisplay';
 
 const GalleryViewPage = () => {
   const { screenId } = useParams();
-  const { getScreenById, foodScreens, tokenScreens } = useData();
   const containerRef = useRef(null);
-  const [isDataReady, setIsDataReady] = useState(false);
+  const [screen, setScreen] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const screen = getScreenById(screenId);
-
-  // Mark data as ready once both screen arrays have loaded
   useEffect(() => {
-    if (foodScreens !== undefined && tokenScreens !== undefined) {
-      setIsDataReady(true);
-    }
-  }, [foodScreens, tokenScreens]);
+    getScreenById(screenId)
+      .then((data) => setScreen(data))
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false));
+  }, [screenId]);
 
   // Auto-enter fullscreen on mount
   useEffect(() => {
@@ -35,7 +34,7 @@ const GalleryViewPage = () => {
     return () => clearTimeout(timeoutId);
   }, []);
 
-  if (!isDataReady) {
+  if (loading) {
     return (
       <div className="fixed inset-0 bg-gray-900 flex items-center justify-center">
         <div className="text-center">
@@ -46,7 +45,7 @@ const GalleryViewPage = () => {
     );
   }
 
-  if (!screen) {
+  if (error || !screen) {
     return (
       <div className="fixed inset-0 bg-gray-900 flex items-center justify-center">
         <div className="text-center text-white">

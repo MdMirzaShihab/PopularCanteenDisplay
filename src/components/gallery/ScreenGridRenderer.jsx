@@ -1,10 +1,8 @@
 import { memo } from 'react';
-import { useData } from '../../context/DataContext';
 import { getLayoutTheme } from './themes/layoutRegistry';
 import SectionRenderer from './SectionRenderer';
 
 const ScreenGridRenderer = memo(({ screen }) => {
-  const { items, menus } = useData();
   const layout = getLayoutTheme(screen.layoutTheme);
 
   return (
@@ -44,8 +42,6 @@ const ScreenGridRenderer = memo(({ screen }) => {
           <SectionRenderer
             key={section.id}
             section={section}
-            items={items}
-            menus={menus}
             gridArea={layout.areas[idx]?.gridArea}
           />
         ))}

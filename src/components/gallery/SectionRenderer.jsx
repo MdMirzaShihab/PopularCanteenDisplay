@@ -4,7 +4,7 @@ import { getStyleRenderer } from './styles/index.js';
 import { normalizeContent } from '../../utils/mediaUtils';
 import MediaSlideshow from './MediaSlideshow';
 
-const SectionRenderer = memo(function SectionRenderer({ section, items, menus, gridArea }) {
+const SectionRenderer = memo(function SectionRenderer({ section, gridArea }) {
   const resolveContent = useCallback(() => {
     const currentTime = getCurrentTime();
     const currentDay = getCurrentDayOfWeek();
@@ -34,16 +34,15 @@ const SectionRenderer = memo(function SectionRenderer({ section, items, menus, g
     const normalized = normalizeContent(content);
 
     if (normalized.type === 'menu') {
-      const menu = menus.find(m => m.id === normalized.menuId);
-      if (!menu) {
+      const menu = normalized.menuId;
+      if (!menu || typeof menu !== 'object') {
         return (
           <div className="w-full h-full flex items-center justify-center text-white/50">
             Menu not found
           </div>
         );
       }
-      const menuItems = menu.itemIds
-        .map(id => items.find(item => item.id === id))
+      const menuItems = (menu.items || [])
         .filter(Boolean)
         .filter(item => item.isActive);
       const StyleRenderer = getStyleRenderer(normalized.visualStyle);

@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
-import { useData } from '../../context/DataContext';
+import { useSocketTokens } from '../../hooks/useSocketTokens';
 import { speakTokenNumber } from '../../utils/speechUtils';
 import { getCurrentTime, formatTimeDisplay, formatDateDisplay } from '../../utils/timeUtils';
 import { Hash, Clock, Calendar } from 'lucide-react';
 
 const TokenGalleryDisplay = ({ screen }) => {
-  const { servingToken, tokenHistory } = useData();
+  const { currentToken: servingToken, tokenHistory } = useSocketTokens();
   const [currentTime, setCurrentTime] = useState(getCurrentTime());
   const [currentDate, setCurrentDate] = useState(formatDateDisplay());
   const prevTokenRef = useRef(null);
