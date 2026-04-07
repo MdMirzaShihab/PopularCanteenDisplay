@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Filter, X } from 'lucide-react';
-import { initialUsers } from '../../data/mockData';
+import { useUsers } from '../../hooks/useUsers';
 
 const LogFilters = ({ onApplyFilters }) => {
+  const { users } = useUsers();
   const [filters, setFilters] = useState({
     userId: '',
     resourceType: '',
@@ -76,8 +77,8 @@ const LogFilters = ({ onApplyFilters }) => {
                 className="w-full px-3 py-2 text-sm border border-bg-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-100 bg-bg-100 text-text-100"
               >
                 <option value="">All users</option>
-                {initialUsers.map(user => (
-                  <option key={user.id} value={user.id}>
+                {users.map(user => (
+                  <option key={user._id} value={user._id}>
                     {user.name}
                   </option>
                 ))}

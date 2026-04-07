@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import { useData } from '../../context/DataContext';
+import { useMenus } from '../../hooks/useMenus';
 import { useNotification } from '../../context/NotificationContext';
 import TimeSlotBuilder from './TimeSlotBuilder';
 import { validateSchedule } from '../../utils/validators';
 
 const ScheduleForm = ({ schedule, onSubmit, onCancel }) => {
-  const { menus } = useData();
+  const { menus } = useMenus();
   const { error: showError } = useNotification();
   const [formData, setFormData] = useState({
     defaultMenuId: '',

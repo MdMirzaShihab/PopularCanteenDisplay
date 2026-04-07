@@ -1,9 +1,10 @@
 import { Edit2, Trash2, Clock } from 'lucide-react';
 import { getTimePercentage, formatTimeRange, formatDaysOfWeek, calculateTimeSlotRows, groupSlotsByDay } from '../../utils/timeUtils';
-import { useData } from '../../context/DataContext';
+import { useMenus } from '../../hooks/useMenus';
 
 const ScheduleCard = ({ schedule, onEdit, onDelete }) => {
-  const { getMenuById } = useData();
+  const { menus } = useMenus();
+  const getMenuById = (id) => menus.find(m => m._id === id);
 
   // Group slots by day of week
   const slotsByDay = groupSlotsByDay(schedule.timeSlots);

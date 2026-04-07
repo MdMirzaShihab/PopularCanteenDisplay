@@ -1,5 +1,4 @@
 import { Plus, Trash2, AlertTriangle, Info } from 'lucide-react';
-import { generateId } from '../../data/mockData';
 import { checkSectionTimeSlotOverlaps } from '../../utils/validators';
 import { getTimePercentage, formatTimeRange, calculateTimeSlotRows, groupSlotsByDay } from '../../utils/timeUtils';
 import SectionContentEditor from './SectionContentEditor';
@@ -81,7 +80,7 @@ const SectionTimeSlotEditor = ({ timeSlots, onChange, menus }) => {
     onChange([
       ...(timeSlots || []),
       {
-        id: generateId(),
+        id: crypto.randomUUID(),
         startTime: '08:00',
         endTime: '17:00',
         daysOfWeek: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'],

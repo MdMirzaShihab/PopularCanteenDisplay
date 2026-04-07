@@ -1,17 +1,16 @@
 import { useState } from 'react';
 import { Plus, Trash2, AlertTriangle, Info } from 'lucide-react';
-import { useData } from '../../context/DataContext';
-import { generateId } from '../../data/mockData';
+import { useMenus } from '../../hooks/useMenus';
 import { checkTimeSlotOverlaps, validateTimeSlot } from '../../utils/validators';
 import { getTimePercentage, formatTimeRange, calculateTimeSlotRows, groupSlotsByDay } from '../../utils/timeUtils';
 
 const TimeSlotBuilder = ({ timeSlots, onChange }) => {
-  const { menus } = useData();
+  const { menus } = useMenus();
   const [errors, setErrors] = useState({});
 
   const addTimeSlot = () => {
     const newSlot = {
-      id: generateId(),
+      id: crypto.randomUUID(),
       startTime: '09:00',
       endTime: '10:00',
       menuId: menus.length > 0 ? menus[0].id : '',
