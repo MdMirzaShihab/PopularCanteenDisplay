@@ -1,12 +1,20 @@
 import { Link } from 'react-router-dom';
 import { UtensilsCrossed, BookOpen, Monitor, Plus } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { useData } from '../context/DataContext';
+import { useItems } from '../hooks/useItems';
+import { useMenus } from '../hooks/useMenus';
+import { useFoodScreens } from '../hooks/useFoodScreens';
+import { useTokenScreens } from '../hooks/useTokenScreens';
+import { useLogs } from '../hooks/useLogs';
 import { format } from 'date-fns';
 
 const Dashboard = () => {
   const { user } = useAuth();
-  const { items, menus, foodScreens, tokenScreens, activityLogs } = useData();
+  const { items } = useItems();
+  const { menus } = useMenus();
+  const { foodScreens } = useFoodScreens();
+  const { tokenScreens } = useTokenScreens();
+  const { logs: activityLogs } = useLogs();
 
   const stats = [
     { label: 'Total Items', value: items.length, icon: UtensilsCrossed, color: 'bg-primary-100', link: '/items' },
@@ -17,7 +25,10 @@ const Dashboard = () => {
 
   // Filter activity logs to show only current user's activity
   const recentLogs = activityLogs
-    .filter(log => log.userId === user?.id)
+    .filter(log => {
+      const logUserId = typeof log.userId === 'object' ? log.userId?._id : log.userId;
+      return logUserId === user?._id;
+    })
     .slice(0, 5);
 
   return (
@@ -116,7 +127,7 @@ const Dashboard = () => {
           ) : (
             <div className="divide-y divide-bg-300">
               {recentLogs.map((log) => (
-                <div key={log.id} className="p-4 hover:bg-bg-100 transition-colors">
+                <div key={log._id} className="p-4 hover:bg-bg-100 transition-colors">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
@@ -135,7 +146,7 @@ const Dashboard = () => {
                     </div>
                     <div className="text-right ml-4">
                       <p className="text-xs text-text-200">
-                        {format(new Date(log.timestamp), 'MMM dd, HH:mm')}
+                        {format(new Date(log.createdAt), 'MMM dd, HH:mm')}
                       </p>
                     </div>
                   </div>
