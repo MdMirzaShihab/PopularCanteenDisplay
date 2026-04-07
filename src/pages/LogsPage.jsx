@@ -1,16 +1,14 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useData } from '../context/DataContext';
+import { useLogs } from '../hooks/useLogs';
 import ActivityTable from '../components/logs/ActivityTable';
 import LogFilters from '../components/logs/LogFilters';
 
 const LogsPage = () => {
   const { isAdmin } = useAuth();
-  const { getActivityLogs } = useData();
   const [activeFilters, setActiveFilters] = useState({});
-
-  const filteredLogs = useMemo(() => getActivityLogs(activeFilters), [activeFilters, getActivityLogs]);
+  const { logs: filteredLogs, loading } = useLogs(activeFilters);
 
   // Redirect if not admin — placed after all hooks
   if (!isAdmin) {
