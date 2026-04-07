@@ -1,26 +1,32 @@
 import { useState } from 'react';
-import { useData } from '../context/DataContext';
+import { useTokens } from '../hooks/useTokens';
 import { Hash, Trash2, Clock } from 'lucide-react';
 import ConfirmDialog from '../components/common/ConfirmDialog';
 import TokenArchiveSection from '../components/token/TokenArchiveSection';
 
 const TokenManagementPage = () => {
-  const { servingToken, tokenHistory, updateServingToken, clearServingToken, archiveEntries } = useData();
+  const { currentToken, tokenHistory, loading: _loading, updateToken, clearToken, archiveEntries } = useTokens();
   const [inputValue, setInputValue] = useState('');
   const [showClearConfirm, setShowClearConfirm] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (inputValue.trim() === '') return;
-
-    updateServingToken(inputValue.trim());
-    setInputValue('');
+    try {
+      await updateToken(inputValue.trim());
+      setInputValue('');
+    } catch {
+      // useTokens hook handles error notification internally
+    }
   };
 
-  const handleClear = () => {
-    clearServingToken();
-    setInputValue('');
+  const handleClear = async () => {
+    try {
+      await clearToken();
+      setInputValue('');
+    } catch {
+      // useTokens hook handles error notification internally
+    }
   };
 
   const formatTimestamp = (timestamp) => {
@@ -45,15 +51,15 @@ const TokenManagementPage = () => {
           <Hash className="w-8 h-8 text-white" />
           <h2 className="text-2xl font-bold text-white">Current Serving Token</h2>
         </div>
-        {servingToken ? (
+        {currentToken ? (
           <>
             <div className="text-8xl font-bold text-white mb-4">
-              {servingToken.number}
+              {currentToken.number}
             </div>
             <div className="flex items-center justify-center gap-2 text-bg-100">
               <Clock className="w-4 h-4" />
               <p className="text-sm">
-                Last updated: {formatTimestamp(servingToken.updatedAt)}
+                Last updated: {formatTimestamp(currentToken.updatedAt)}
               </p>
             </div>
           </>
@@ -95,7 +101,7 @@ const TokenManagementPage = () => {
             >
               Update Token
             </button>
-            {servingToken && (
+            {currentToken && (
               <button
                 type="button"
                 onClick={() => setShowClearConfirm(true)}
