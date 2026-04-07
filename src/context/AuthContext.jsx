@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
-import { initialUsers } from '../data/mockData';
+import * as authApi from '../api/auth.api';
+import { registerAuthExpiredHandler } from '../api/client';
 
 const AuthContext = createContext(null);
 
@@ -15,67 +16,32 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Load user from localStorage on mount
+  // Restore session on mount via httpOnly cookie
   useEffect(() => {
-    const savedUser = localStorage.getItem('canteen_auth_user');
-    if (savedUser) {
-      try {
-        const parsedUser = JSON.parse(savedUser);
-        setUser(parsedUser);
-      } catch (error) {
-        console.error('Failed to parse saved user:', error);
-        localStorage.removeItem('canteen_auth_user');
-      }
-    }
-    setLoading(false);
+    authApi.getMe()
+      .then((data) => setUser(data.user))
+      .catch(() => setUser(null))
+      .finally(() => setLoading(false));
   }, []);
 
-  // Save user to localStorage whenever it changes
+  // Register 401 handler so expired sessions auto-logout
   useEffect(() => {
-    if (user) {
-      localStorage.setItem('canteen_auth_user', JSON.stringify(user));
-    } else {
-      localStorage.removeItem('canteen_auth_user');
-    }
-  }, [user]);
-
-  const login = useCallback((credentials) => {
-    const { username, password } = credentials;
-
-    // Read live user list from localStorage; fall back to seed data on first run
-    const stored = localStorage.getItem('canteen_users');
-    const users = stored ? JSON.parse(stored) : initialUsers;
-
-    const foundUser = users.find(
-      u => u.username === username || u.email === username
-    );
-
-    if (!foundUser || foundUser.password !== password) {
-      return { success: false, error: 'Invalid username or password' };
-    }
-
-    // Remove password from user object before storing
-    const { password: _, ...userWithoutPassword } = foundUser;
-    setUser(userWithoutPassword);
-    return { success: true, user: userWithoutPassword };
+    registerAuthExpiredHandler(() => setUser(null));
   }, []);
 
-  const logout = useCallback(() => {
+  const login = useCallback(async (credentials) => {
+    const data = await authApi.login(credentials.username, credentials.password);
+    setUser(data.user);
+    return data;
+  }, []);
+
+  const logout = useCallback(async () => {
+    try {
+      await authApi.logout();
+    } catch {
+      // Even if backend fails, clear local state
+    }
     setUser(null);
-    localStorage.removeItem('canteen_auth_user');
-  }, []);
-
-  // Called by DataContext when the current user is deleted or password changed
-  const refreshCurrentUser = useCallback((updatedUser) => {
-    if (!updatedUser) {
-      // User was deleted — force logout
-      setUser(null);
-      localStorage.removeItem('canteen_auth_user');
-    } else {
-      // Profile updated — refresh session without password
-      const { password: _, ...userWithoutPassword } = updatedUser;
-      setUser(userWithoutPassword);
-    }
   }, []);
 
   const value = useMemo(() => ({
@@ -83,12 +49,11 @@ export const AuthProvider = ({ children }) => {
     loading,
     login,
     logout,
-    refreshCurrentUser,
     isAdmin: user?.role === 'admin',
     isRestaurantUser: user?.role === 'restaurant_user',
     isTokenOperator: user?.role === 'token_operator',
-    isAuthenticated: !!user
-  }), [user, loading, login, logout, refreshCurrentUser]);
+    isAuthenticated: !!user,
+  }), [user, loading, login, logout]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

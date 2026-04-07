@@ -20,7 +20,7 @@ const LoginPage = () => {
     setCredentials(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!credentials.username) {
@@ -28,16 +28,16 @@ const LoginPage = () => {
       return;
     }
 
-    const result = login(credentials);
-    if (result.success) {
-      success(`Welcome back, ${result.user.name}!`);
+    try {
+      const data = await login(credentials);
+      success(`Welcome back, ${data.user.name}!`);
       navigate('/dashboard');
-    } else {
-      error(result.error || 'Login failed. Please try again.');
+    } catch (err) {
+      error(err.message || 'Login failed. Please try again.');
     }
   };
 
-  const handleDemoLogin = (role) => {
+  const handleDemoLogin = async (role) => {
     let demoCredentials;
     if (role === 'admin') {
       demoCredentials = { username: 'admin', password: 'admin123' };
@@ -48,11 +48,12 @@ const LoginPage = () => {
     }
 
     setCredentials(demoCredentials);
-    const result = login(demoCredentials);
-    if (result.success) {
-      success(`Logged in as ${result.user.name}!`);
-      // Token operators go directly to token page, others to dashboard
+    try {
+      const data = await login(demoCredentials);
+      success(`Logged in as ${data.user.name}!`);
       navigate(role === 'operator' ? '/token' : '/dashboard');
+    } catch (err) {
+      error(err.message || 'Demo login failed.');
     }
   };
 
