@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useData } from '../../context/DataContext';
+import { useMenus } from '../../hooks/useMenus';
 import { useNotification } from '../../context/NotificationContext';
 import { validateFoodScreen } from '../../utils/validators';
 import { buildEmptySections } from '../gallery/themes/layoutRegistry';
@@ -22,7 +22,7 @@ const GAP_OPTIONS = [
 ];
 
 const FoodScreenForm = ({ screen, onSubmit, onCancel }) => {
-  const { menus } = useData();
+  const { menus } = useMenus();
   const { error: showError } = useNotification();
 
   const [activeTab, setActiveTab] = useState('layout');

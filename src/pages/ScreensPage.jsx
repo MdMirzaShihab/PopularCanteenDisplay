@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Plus } from 'lucide-react';
-import { useData } from '../context/DataContext';
+import { useFoodScreens } from '../hooks/useFoodScreens';
+import { useTokenScreens } from '../hooks/useTokenScreens';
 import { useNotification } from '../context/NotificationContext';
 import ScreenList from '../components/screens/ScreenList';
 import TokenScreenCard from '../components/screens/TokenScreenCard';
@@ -10,10 +11,8 @@ import Modal from '../components/common/Modal';
 import ConfirmDialog from '../components/common/ConfirmDialog';
 
 const ScreensPage = () => {
-  const {
-    foodScreens, createFoodScreen, updateFoodScreen, deleteFoodScreen,
-    tokenScreens, createTokenScreen, updateTokenScreen, deleteTokenScreen
-  } = useData();
+  const { foodScreens, loading: foodLoading, createFoodScreen, updateFoodScreen, deleteFoodScreen, duplicateFoodScreen } = useFoodScreens();
+  const { tokenScreens, loading: tokenLoading, createTokenScreen, updateTokenScreen, deleteTokenScreen } = useTokenScreens();
   const { success, error } = useNotification();
 
   const [activeTab, setActiveTab] = useState('food');
@@ -37,55 +36,54 @@ const ScreensPage = () => {
     setDeletingScreen(screen);
   };
 
-  const handleDuplicate = (screen) => {
+  const handleDuplicate = async (screen) => {
     try {
-      const duplicated = { ...screen, title: `${screen.title} (Copy)`, id: undefined, screenId: `${screen.screenId || ''}-copy` };
-      createFoodScreen(duplicated);
+      await duplicateFoodScreen(screen._id);
       success('Screen duplicated successfully!');
-    } catch {
-      error('Failed to duplicate screen. Please try again.');
+    } catch (err) {
+      error(err.message || 'Failed to duplicate screen. Please try again.');
     }
   };
 
   const handleFoodSubmit = async (formData) => {
     try {
       if (editingScreen) {
-        updateFoodScreen(editingScreen.id, formData);
+        await updateFoodScreen(editingScreen._id, formData);
         success('Food screen updated successfully!');
       } else {
-        createFoodScreen(formData);
+        await createFoodScreen(formData);
         success('Food screen created successfully!');
       }
       setIsModalOpen(false);
       setEditingScreen(null);
-    } catch {
-      error('Failed to save screen. Please try again.');
+    } catch (err) {
+      error(err.message || 'Failed to save screen. Please try again.');
     }
   };
 
   const handleTokenSubmit = async (formData) => {
     try {
       if (editingScreen) {
-        updateTokenScreen(editingScreen.id, formData);
+        await updateTokenScreen(editingScreen._id, formData);
         success('Token screen updated successfully!');
       } else {
-        createTokenScreen(formData);
+        await createTokenScreen(formData);
         success('Token screen created successfully!');
       }
       setIsModalOpen(false);
       setEditingScreen(null);
-    } catch {
-      error('Failed to save screen. Please try again.');
+    } catch (err) {
+      error(err.message || 'Failed to save screen. Please try again.');
     }
   };
 
-  const confirmDelete = () => {
-    const deleteFunc = deletingScreen?.type === 'token' ? deleteTokenScreen : deleteFoodScreen;
-    const result = deleteFunc(deletingScreen.id);
-    if (result.success) {
+  const confirmDelete = async () => {
+    try {
+      const deleteFunc = deletingScreen?.type === 'token' ? deleteTokenScreen : deleteFoodScreen;
+      await deleteFunc(deletingScreen._id);
       success('Screen deleted successfully!');
-    } else {
-      error(result.error);
+    } catch (err) {
+      error(err.message || 'Failed to delete screen.');
     }
     setDeletingScreen(null);
   };
