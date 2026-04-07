@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Plus } from 'lucide-react';
-import { useData } from '../context/DataContext';
+import { useItems } from '../hooks/useItems';
 import { useNotification } from '../context/NotificationContext';
 import ItemList from '../components/items/ItemList';
 import ItemForm from '../components/items/ItemForm';
@@ -8,7 +8,7 @@ import Modal from '../components/common/Modal';
 import ConfirmDialog from '../components/common/ConfirmDialog';
 
 const ItemsPage = () => {
-  const { items, createItem, updateItem, deleteItem } = useData();
+  const { items, loading, createItem, updateItem, deleteItem } = useItems();
   const { success, error } = useNotification();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -32,25 +32,25 @@ const ItemsPage = () => {
   const handleSubmit = async (formData) => {
     try {
       if (editingItem) {
-        updateItem(editingItem.id, formData);
+        await updateItem(editingItem._id, formData);
         success('Item updated successfully!');
       } else {
-        createItem(formData);
+        await createItem(formData);
         success('Item created successfully!');
       }
       setIsModalOpen(false);
       setEditingItem(null);
-    } catch {
-      error('Failed to save item. Please try again.');
+    } catch (err) {
+      error(err.message || 'Failed to save item. Please try again.');
     }
   };
 
-  const confirmDelete = () => {
-    const result = deleteItem(deletingItem.id);
-    if (result.success) {
+  const confirmDelete = async () => {
+    try {
+      await deleteItem(deletingItem._id);
       success('Item deleted successfully!');
-    } else {
-      error(result.error);
+    } catch (err) {
+      error(err.message || 'Failed to delete item.');
     }
     setDeletingItem(null);
   };
@@ -73,11 +73,17 @@ const ItemsPage = () => {
       </div>
 
       {/* Items List */}
-      <ItemList
-        items={items}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-      />
+      {loading ? (
+        <div className="text-center py-12">
+          <p className="text-text-200">Loading items...</p>
+        </div>
+      ) : (
+        <ItemList
+          items={items}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+        />
+      )}
 
       {/* Create/Edit Modal */}
       <Modal
