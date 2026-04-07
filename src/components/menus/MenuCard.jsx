@@ -1,9 +1,7 @@
 import { Edit2, Trash2, UtensilsCrossed } from 'lucide-react';
-import { useData } from '../../context/DataContext';
 
 const MenuCard = ({ menu, onEdit, onDelete }) => {
-  const { getItemsByIds } = useData();
-  const menuItems = getItemsByIds(menu.itemIds);
+  const menuItems = menu.items || [];
 
   return (
     <div className="group bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-bg-300 hover:border-accent-100">

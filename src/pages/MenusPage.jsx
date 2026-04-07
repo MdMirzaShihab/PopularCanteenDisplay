@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Plus } from 'lucide-react';
-import { useData } from '../context/DataContext';
+import { useMenus } from '../hooks/useMenus';
 import { useNotification } from '../context/NotificationContext';
 import MenuList from '../components/menus/MenuList';
 import MenuForm from '../components/menus/MenuForm';
@@ -8,7 +8,7 @@ import Modal from '../components/common/Modal';
 import ConfirmDialog from '../components/common/ConfirmDialog';
 
 const MenusPage = () => {
-  const { menus, createMenu, updateMenu, deleteMenu } = useData();
+  const { menus, loading, createMenu, updateMenu, deleteMenu } = useMenus();
   const { success, error } = useNotification();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -32,25 +32,25 @@ const MenusPage = () => {
   const handleSubmit = async (formData) => {
     try {
       if (editingMenu) {
-        updateMenu(editingMenu.id, formData);
+        await updateMenu(editingMenu._id, formData);
         success('Menu updated successfully!');
       } else {
-        createMenu(formData);
+        await createMenu(formData);
         success('Menu created successfully!');
       }
       setIsModalOpen(false);
       setEditingMenu(null);
-    } catch {
-      error('Failed to save menu. Please try again.');
+    } catch (err) {
+      error(err.message || 'Failed to save menu. Please try again.');
     }
   };
 
-  const confirmDelete = () => {
-    const result = deleteMenu(deletingMenu.id);
-    if (result.success) {
+  const confirmDelete = async () => {
+    try {
+      await deleteMenu(deletingMenu._id);
       success('Menu deleted successfully!');
-    } else {
-      error(result.error);
+    } catch (err) {
+      error(err.message || 'Failed to delete menu.');
     }
     setDeletingMenu(null);
   };
@@ -73,11 +73,11 @@ const MenusPage = () => {
       </div>
 
       {/* Menus List */}
-      <MenuList
-        menus={menus}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-      />
+      {loading ? (
+        <div className="text-center py-12"><p className="text-text-200">Loading menus...</p></div>
+      ) : (
+        <MenuList menus={menus} onEdit={handleEdit} onDelete={handleDelete} />
+      )}
 
       {/* Create/Edit Modal */}
       <Modal

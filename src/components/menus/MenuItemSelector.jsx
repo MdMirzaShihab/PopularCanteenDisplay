@@ -1,9 +1,9 @@
 import { useState, useMemo } from 'react';
 import { Search, X, Check } from 'lucide-react';
-import { useData } from '../../context/DataContext';
+import { useItems } from '../../hooks/useItems';
 
 const MenuItemSelector = ({ selectedItemIds, onChange }) => {
-  const { items } = useData();
+  const { items } = useItems();
   const [searchTerm, setSearchTerm] = useState('');
 
   const activeItems = items.filter(item => item.isActive);
