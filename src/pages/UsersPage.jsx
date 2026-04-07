@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { Plus } from 'lucide-react';
-import { useData } from '../context/DataContext';
+import { useUsers } from '../hooks/useUsers';
 import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
 import UserList from '../components/users/UserList';
@@ -10,7 +10,7 @@ import Modal from '../components/common/Modal';
 import ConfirmDialog from '../components/common/ConfirmDialog';
 
 const UsersPage = () => {
-  const { users, createUser, updateUser, deleteUser } = useData();
+  const { users, loading, createUser, updateUser, deleteUser } = useUsers();
   const { isAdmin } = useAuth();
   const { success, error } = useNotification();
 
@@ -38,31 +38,27 @@ const UsersPage = () => {
   };
 
   const handleSubmit = async (formData) => {
-    if (editingUser) {
-      const result = updateUser(editingUser.id, formData);
-      if (result?.success === false) {
-        error(result.error);
-        return;
+    try {
+      if (editingUser) {
+        await updateUser(editingUser._id, formData);
+        success('User updated successfully!');
+      } else {
+        await createUser(formData);
+        success('User created successfully!');
       }
-      success('User updated successfully!');
-    } else {
-      const result = createUser(formData);
-      if (result?.success === false) {
-        error(result.error);
-        return;
-      }
-      success('User created successfully!');
+      setIsModalOpen(false);
+      setEditingUser(null);
+    } catch (err) {
+      error(err.message || 'Failed to save user.');
     }
-    setIsModalOpen(false);
-    setEditingUser(null);
   };
 
-  const confirmDelete = () => {
-    const result = deleteUser(deletingUser.id);
-    if (result.success) {
+  const confirmDelete = async () => {
+    try {
+      await deleteUser(deletingUser._id);
       success('User deleted successfully!');
-    } else {
-      error(result.error);
+    } catch (err) {
+      error(err.message || 'Failed to delete user.');
     }
     setDeletingUser(null);
   };
@@ -82,11 +78,15 @@ const UsersPage = () => {
       </div>
 
       {/* User List */}
-      <UserList
-        users={users}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-      />
+      {loading ? (
+        <div className="text-center py-12"><p className="text-text-200">Loading users...</p></div>
+      ) : (
+        <UserList
+          users={users}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+        />
+      )}
 
       {/* Create/Edit Modal */}
       <Modal
