@@ -2,15 +2,15 @@
 
 ## Core Entities
 
-- **Item**: A food/beverage entry — name, price, description, ingredients, category, base64 image
+- **Item**: A food/beverage entry — name, price, description, ingredients, category, image
 - **Menu**: A named collection of item IDs (many-to-many with Items)
-- **Food Screen**: A display configuration for a physical TV/monitor showing food menus. Has sections (each with time slots + menu ref + layout/visual style), background/foreground media, and `displaySettings`. Stored in `canteen_food_screens`
-- **Token Screen**: A display configuration for token serving number displays. Stored separately in `canteen_token_screens`
+- **Food Screen**: A display configuration for a physical TV/monitor showing food menus. Has sections (each with time slots + menu ref + layout/visual style), background/foreground media, and `displaySettings`
+- **Token Screen**: A display configuration for token serving number displays (separate from food screens)
 - **Section**: A configurable block within a food screen — contains time slots, menu reference, and layout/visual style settings
 - **TimeSlot**: A rule mapping a time range + days-of-week filter to a menu. Used inside screen sections
 - **Token**: A serving number called out to customers (voice announcement via Web Speech API)
-- **Token Archive**: Historical record of called tokens, stored in `canteen_token_archive`
-- **User**: A managed account with role assignment (admin, restaurant_user, token_operator). Stored in `canteen_users`
+- **Token Archive**: Historical record of called tokens
+- **User**: A managed account with role assignment (admin, restaurant_user, token_operator)
 
 ## Food Screen Fields
 
@@ -20,7 +20,7 @@
 | `screenId` | Human-readable identifier |
 | `layoutTheme` | Layout ID from layoutRegistry (e.g., `layout-1`, `layout-p3`) |
 | `backgroundType` | `'color'` / `'image'` / `'video'` |
-| `backgroundMedia` | Base64 background (if image/video) |
+| `backgroundMedia` | Background media (base64 in legacy, cloud URL in production) |
 | `backgroundColor` | Hex color (if color type) |
 | `sections` | Array of section configs (count must match layout) |
 | `gap` | Pixel gap between sections (4, 8, or 12; default 8) |
@@ -36,7 +36,7 @@ Each section has `defaultContent` and optional `timeSlots[].content` with:
 | `visualStyle` | Style renderer ID: `card-grid`, `elegant`, `compact`, `catalog`, `menu-board`, `minimal-rows` |
 | `titleFont` | Font class for section title (e.g., `font-heading`) |
 | `titleColor` | Hex color for section title |
-| `media` | Array of base64 strings (if media type, max 10) |
+| `media` | Array of media URLs/base64 strings (if media type, max 10) |
 | `slideDuration` | Seconds between slides (default 5) |
 | `transition` | Transition effect: `crossfade`, `slide`, `fadeBlack`, `zoom`, `cut` |
 
@@ -49,8 +49,8 @@ Food screen sections use a layout + visual style system:
 
 ## Screen IDs & Gallery URLs
 
-- Screen `id` is auto-generated (e.g., `food-screen-001`, `token-screen-001`)
-- Gallery URL format: `/gallery/food-screen-001`
+- Screen `id`: MongoDB `_id` in production, auto-generated `food-screen-001` format in legacy
+- Gallery URL format: `/gallery/:screenId`
 - `ScreenCard` (food) and `TokenScreenCard` (token) have "Copy URL" and "Preview" buttons
 
 ## Time Logic
@@ -61,7 +61,24 @@ Food screen sections use a layout + visual style system:
 - **Overnight slots**: when end time < start time, the slot spans midnight (handled explicitly)
 - Menu recalculation: every 60 seconds via `setInterval` (no page reload)
 
-## localStorage Keys
+## API Endpoints
+
+Backend base URL: `VITE_API_URL/api/v1`
+
+| Endpoint | Methods | Notes |
+|----------|---------|-------|
+| `/auth/login`, `/auth/logout`, `/auth/me` | POST, POST, GET | Cookie-based JWT |
+| `/items` | GET, POST, PUT, DELETE | Paginated list |
+| `/menus` | GET, POST, PUT, DELETE | Paginated list |
+| `/food-screens` | GET, POST, PUT, DELETE | |
+| `/token-screens` | GET, POST, PUT, DELETE | |
+| `/tokens` | GET, POST | Current token, history, archive |
+| `/users` | GET, POST, PUT, DELETE | Admin only |
+| `/logs` | GET | Activity logs |
+| `/upload/presigned-url` | POST | R2 cloud storage upload |
+| `/screens/:screenId` | GET | Public unified lookup (food or token) |
+
+## localStorage Keys (Legacy — will be removed)
 
 All state persists under `canteen_*` prefix:
 
@@ -79,21 +96,13 @@ All state persists under `canteen_*` prefix:
 
 ## Common Gotchas
 
-1. **Two screen types** — Food screens and token screens are separate entities with different forms (`FoodScreenForm` vs `TokenScreenForm`), cards, and localStorage keys
-2. **Schedule is hidden** — The schedule feature exists in code but is not active in the current demo UI
-3. **Screen ID = URL param** — The auto-generated `id` field is what appears in `/gallery/:screenId`
-4. **No separate gallery admin page** — Gallery listing was merged into the Screens page
-5. **Overnight time slots** — `isTimeInRange()` handles the case where end < start
-6. **Base64 media** — Images/videos stored as base64 in localStorage (demo constraint). Watch for `QuotaExceededError`
+1. **Two screen types** — Food screens and token screens are separate entities with different forms, cards, and storage
+2. **Hybrid state** — Pages still use `useData()` (localStorage) even though API hooks exist. Don't mix the two systems in a single page
+3. **Schedule is hidden** — The schedule feature exists in code but is not active in the UI
+4. **Screen ID = URL param** — The `id` field is what appears in `/gallery/:screenId`
+5. **No separate gallery admin page** — Gallery listing was merged into the Screens page
+6. **Overnight time slots** — `isTimeInRange()` handles the case where end < start
 7. **Boolean role checks** — `isAdmin` is a boolean, not a function. Don't call `isAdmin()`
 8. **Context nesting order** — NotificationProvider → AuthProvider → DataProvider. Changing this breaks the app
 9. **Asset imports** — Always through `src/assets/index.js`, never direct paths
-10. **Old `canteen_screens` key** — Migrated to `canteen_food_screens`. DataContext removes the old key on init
-
-## Future Migration Notes
-
-- localStorage → MongoDB collections
-- Base64 images → Cloud storage (S3/Cloudinary)
-- Mock auth → JWT + Express API
-- `canteen_*` keys → API endpoints
-- `QuotaExceededError` handling becomes irrelevant
+10. **Cookie auth** — API client uses `withCredentials: true`. Backend sets httpOnly cookie. No manual token management needed

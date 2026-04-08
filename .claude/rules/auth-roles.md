@@ -1,6 +1,6 @@
 # Authentication & Roles
 
-**Applies to:** `src/context/AuthContext.jsx`, `src/pages/**/*`, `src/components/**/*`
+**Applies to:** `src/context/AuthContext.jsx`, `src/api/auth.api.js`, `src/pages/**/*`, `src/components/**/*`
 
 ## Three Roles
 
@@ -10,12 +10,18 @@
 | `restaurant_user` | manager | manager123 | Menu/item/screen management |
 | `token_operator` | operator | operator123 | Token management only |
 
-## Auth Rules
+## Auth Architecture (Hybrid State)
 
-- Default accounts seeded from `mockData.js`; additional users can be created via the Users management page (admin only)
-- Password is stripped from the stored user object before saving to context/localStorage
-- User persisted to localStorage key: `canteen_auth_user`
-- All users stored in `canteen_users` localStorage key
+### Current (Legacy — still active)
+- AuthContext reads from `canteen_auth_user` localStorage key
+- Validates credentials against `canteen_users` localStorage key
+- Password stripped from stored user object before saving to context
+
+### Target (Backend — infrastructure ready, not yet wired)
+- API endpoints: `POST /auth/login`, `POST /auth/logout`, `GET /auth/me`
+- httpOnly cookie-based JWT auth (`withCredentials: true` in axios client)
+- 401 interceptor in `src/api/client.js` calls `registerAuthExpiredHandler()` to trigger logout
+- No JWT stored in localStorage — cookie is managed by the browser
 
 ## Role Checks
 
@@ -37,7 +43,3 @@ if (isAdmin()) { /* ... */ }
 - Unauthenticated users redirected to `/login`
 - `PublicRoute` redirects authenticated users to `/dashboard`
 - Gallery route (`/gallery/:screenId`) is **unprotected** — no auth required
-
-## Future Migration Note
-
-Production will use JWT-based auth with a Node.js/Express backend. Roles will be stored server-side. The `useAuth()` hook interface and boolean role checks will remain the same — only the auth mechanism (localStorage → JWT + API) changes.

@@ -3,20 +3,42 @@
 ## New Feature Workflow
 
 1. Read the relevant page in `src/pages/` to understand current state
-2. Check data model — does it need new fields in `DataContext`?
-3. If new entity fields: update `mockData.js` seed data
-4. Add validation rules in `src/utils/validators.js`
-5. Create/update components in `src/components/[domain]/`
-6. Wire up the page in `src/pages/`
-7. Add route in `src/App.jsx` if needed
-8. Run `npm run lint` and `npm run build`
+2. Check if the page has been migrated to domain hooks or still uses `useData()`
+3. Add API endpoint in `src/api/[entity].api.js` if needed
+4. Add/update domain hook in `src/hooks/use[Entity].js` if needed
+5. Add validation rules in `src/utils/validators.js`
+6. Create/update components in `src/components/[domain]/`
+7. Wire up the page in `src/pages/`
+8. Add route in `src/App.jsx` if needed
+9. Run `npm run lint` and `npm run build`
 
-## Adding a New Context Function
+## Adding a New API Service
 
-1. Add the function in the relevant context file (`DataContext.jsx`, `AuthContext.jsx`, etc.)
-2. Wrap it in `useCallback` with correct dependencies
-3. Add it to the context value object (already memoized with `useMemo`)
-4. Log mutations to the activity log (DataContext pattern: `addLog()` after every state change)
+1. Create `src/api/[entity].api.js`
+2. Import `apiClient` from `./client`
+3. Export pure functions (no React logic) that return promises
+4. Follow existing pattern: `.then((r) => r.data)` to unwrap axios response
+5. Support pagination params `{ page, limit }` for list endpoints
+
+## Adding a New Domain Hook
+
+1. Create `src/hooks/use[Entity].js`
+2. Import the corresponding API service
+3. Use `usePagination()` for paginated lists
+4. Use `useNotification()` for error/success feedback
+5. Fetch data on mount via `useEffect` + `useCallback`
+6. Return `{ data, loading, pagination, CRUD functions }`
+7. Export as named export
+
+## Migrating a Page from DataContext to API Hooks
+
+1. Identify all `useData()` calls in the page
+2. Replace with the corresponding domain hook (e.g., `useItems()`, `useMenus()`)
+3. Update component props to match hook return shape (especially pagination)
+4. Add `Pagination` component if the page now supports pagination
+5. Remove `useData()` import
+6. Test that all CRUD operations work against the backend
+7. Once ALL pages are migrated, `DataContext.jsx` and `mockData.js` can be deleted
 
 ## Adding a New Screen Display Feature
 
@@ -40,17 +62,13 @@
 
 - **Blank screen on gallery**: Check screen ID in URL matches an existing screen's `id` field
 - **Wrong menu showing**: Check time slots — log `getCurrentTime()` and `getCurrentDayOfWeek()` output
-- **Data not persisting**: Check localStorage quota. Look for `QuotaExceededError` in console
+- **API errors**: Check browser Network tab. Verify `VITE_API_URL` in `.env.local`. Check CORS on backend
+- **401 errors**: Cookie may have expired. Check that `withCredentials: true` is set. Verify backend cookie config
 - **Auth redirect loop**: Check `loading` state in ProtectedRoute — may be resolving auth before redirect
 - **Broken images**: Ensure assets imported via `src/assets/index.js`, not hardcoded paths
 - **Context undefined**: Verify provider nesting order in `main.jsx`
-
-## localStorage Management
-
-- All keys prefixed with `canteen_`
-- To reset demo data: clear all `canteen_*` keys from localStorage, then refresh
-- `DataContext` initializes from localStorage with fallback to `mockData.js` defaults
-- `QuotaExceededError` is caught gracefully — logs warning, continues without persisting
+- **Socket.io not connecting**: Verify `VITE_API_URL` is correct. Check backend Socket.io `/tokens` namespace is running
+- **Data not persisting (legacy)**: Check localStorage quota. Look for `QuotaExceededError` in console
 
 ## Build & Deploy
 
@@ -62,14 +80,5 @@ npm run lint     # ESLint check
 ```
 
 - Deployed on Vercel with `vercel.json` SPA fallback routing
-- No environment variables required
+- Environment variable: `VITE_API_URL` (backend URL)
 - No test framework configured
-
-## Future Migration Workflow
-
-When transitioning to MERN stack:
-1. Replace `DataContext` CRUD with API service layer + backend calls
-2. Replace `AuthContext` mock auth with JWT-based auth
-3. Replace localStorage with MongoDB via Express API
-4. Replace base64 media with cloud storage uploads
-5. Keep: component structure, time logic, validation patterns, routing layout
