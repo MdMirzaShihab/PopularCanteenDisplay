@@ -6,7 +6,7 @@ const Navbar = ({ onMenuClick }) => {
   const { user, logout } = useAuth();
 
   return (
-    <nav className="fixed top-0 left-0 right-0 bg-white border-b border-bg-300 px-4 py-3 z-50">
+    <nav className="fixed top-0 left-0 right-0 bg-white border-b border-bg-300 px-4 py-3 z-[70]">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           {/* Mobile menu button */}
