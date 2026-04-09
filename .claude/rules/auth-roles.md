@@ -10,18 +10,13 @@
 | `restaurant_user` | manager | manager123 | Menu/item/screen management |
 | `token_operator` | operator | operator123 | Token management only |
 
-## Auth Architecture (Hybrid State)
+## Auth Architecture
 
-### Current (Legacy — still active)
-- AuthContext reads from `canteen_auth_user` localStorage key
-- Validates credentials against `canteen_users` localStorage key
-- Password stripped from stored user object before saving to context
-
-### Target (Backend — infrastructure ready, not yet wired)
 - API endpoints: `POST /auth/login`, `POST /auth/logout`, `GET /auth/me`
 - httpOnly cookie-based JWT auth (`withCredentials: true` in axios client)
 - 401 interceptor in `src/api/client.js` calls `registerAuthExpiredHandler()` to trigger logout
 - No JWT stored in localStorage — cookie is managed by the browser
+- Session restored on mount via `GET /auth/me`
 
 ## Role Checks
 

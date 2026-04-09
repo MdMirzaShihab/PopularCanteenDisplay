@@ -1,4 +1,4 @@
-// File upload utilities for handling images and videos in the demo
+// File upload utilities for handling images and videos
 
 /**
  * Convert a File object to base64 data URL

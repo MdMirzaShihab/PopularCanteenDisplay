@@ -6,13 +6,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-A **Canteen Management System** for digital menu displays, currently **mid-migration** from a localStorage demo to a full MERN stack backend. Built with React 19 + Vite + Tailwind CSS + date-fns. The backend (Express + MongoDB) is production-ready; the frontend is in a **hybrid state** where API infrastructure (services, hooks, Socket.io) is built but pages still consume the legacy `DataContext`.
+A **Canteen Management System** for digital menu displays at Popular Medical College Hospital. Built with React 19 + Vite + Tailwind CSS + date-fns. Full MERN stack with Express + MongoDB backend. All pages use API-based domain hooks. Cookie-based auth via httpOnly JWT.
 
 Key concepts: **food screens** (menu displays with sections, layouts, themes) and **token screens** (serving number displays) are separate entities. Users are managed via an admin panel.
 
 ## Migration Status
 
-The project follows an 8-phase migration plan (see `../IMPLEMENTATION_PLAN.md`):
+Migration from localStorage to API backend is **complete**. DataContext and mockData have been deleted. All active pages use domain hooks (`useItems`, `useMenus`, etc.). AuthContext uses cookie-based API auth.
 
 | Layer | Status |
 |-------|--------|
@@ -20,12 +20,12 @@ The project follows an 8-phase migration plan (see `../IMPLEMENTATION_PLAN.md`):
 | Domain hooks (`src/hooks/`) | Done |
 | Socket.io real-time tokens | Done |
 | Pagination hook + component | Done |
-| AuthContext rewrite | Pending |
-| Page migration (useData → hooks) | Pending |
-| Gallery migration | Pending |
-| Cleanup (delete DataContext, mockData) | Pending |
+| AuthContext rewrite | Done |
+| Page migration (useData → hooks) | Done |
+| Gallery migration | Done |
+| Cleanup (delete DataContext, mockData) | Done |
 
-**Pages still call `useData()` from DataContext (localStorage).** The new domain hooks (`useItems`, `useMenus`, etc.) are ready but not yet wired into pages.
+**Note:** `SchedulesPage` and `CurrentMenuPage` are hidden/inactive and still reference the deleted DataContext. They need a rewrite if re-enabled.
 
 ## Commands
 
@@ -69,10 +69,12 @@ Deployed on **AWS Lightsail** (single Ubuntu 22.04 instance at `canteen.mirzashi
 - **Workflow:** `.github/workflows/deploy.yml`
 - **No Vercel** — `vercel.json` is legacy and unused
 
-## Demo Credentials
+## Default Accounts
 
-| Role | Username | Password |
-|------|----------|----------|
-| Admin | admin | admin123 |
-| Manager | manager | manager123 |
-| Token Operator | operator | operator123 |
+Managed via the backend Users API. Default accounts are seeded on first deploy:
+
+| Role | Username |
+|------|----------|
+| Admin | admin |
+| Manager | manager |
+| Token Operator | operator |

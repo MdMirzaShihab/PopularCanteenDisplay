@@ -37,26 +37,6 @@ const LoginPage = () => {
     }
   };
 
-  const handleDemoLogin = async (role) => {
-    let demoCredentials;
-    if (role === 'admin') {
-      demoCredentials = { username: 'admin', password: 'admin123' };
-    } else if (role === 'operator') {
-      demoCredentials = { username: 'operator', password: 'operator123' };
-    } else {
-      demoCredentials = { username: 'manager', password: 'manager123' };
-    }
-
-    setCredentials(demoCredentials);
-    try {
-      const data = await login(demoCredentials);
-      success(`Logged in as ${data.user.name}!`);
-      navigate(role === 'operator' ? '/token' : '/dashboard');
-    } catch (err) {
-      error(err.message || 'Demo login failed.');
-    }
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-200 to-primary-300 flex items-center justify-center p-6">
       <div className="w-full max-w-7xl grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
@@ -71,7 +51,7 @@ const LoginPage = () => {
           </div>
           <h1 className="text-4xl font-bold text-white mb-3">Popular Medical College Hospital</h1>
           <p className="text-2xl font-semibold text-white mb-2">Food Display System</p>
-          <p className="text-bg-100 text-lg">Demo Version - Client Presentation</p>
+          <p className="text-bg-100 text-lg">Canteen Management Portal</p>
         </div>
 
         {/* Right Side - Login Card */}
@@ -120,49 +100,6 @@ const LoginPage = () => {
               Sign In
             </button>
           </form>
-
-          {/* Demo Credentials */}
-          <div className="mt-4 pt-4 border-t border-bg-300">
-            <p className="text-sm font-medium text-text-100 mb-2">Demo Accounts:</p>
-            <div className="space-y-2">
-              <button
-                type="button"
-                onClick={() => handleDemoLogin('admin')}
-                className="w-full px-3 py-2 text-sm bg-bg-100 text-text-100 rounded-lg hover:bg-bg-200 transition-colors text-left"
-              >
-                <div className="font-medium">Admin Account</div>
-                <div className="text-xs text-text-200">admin / admin123</div>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleDemoLogin('manager')}
-                className="w-full px-3 py-2 text-sm bg-bg-100 text-text-100 rounded-lg hover:bg-bg-200 transition-colors text-left"
-              >
-                <div className="font-medium">Restaurant Manager</div>
-                <div className="text-xs text-text-200">manager / manager123</div>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleDemoLogin('operator')}
-                className="w-full px-3 py-2 text-sm bg-bg-100 text-text-100 rounded-lg hover:bg-bg-200 transition-colors text-left"
-              >
-                <div className="font-medium">Token Operator</div>
-                <div className="text-xs text-text-200">operator / operator123</div>
-              </button>
-            </div>
-          </div>
-
-          {/* Note */}
-          <div className="mt-4 p-3 bg-bg-200 rounded-lg">
-            <p className="text-xs text-text-100">
-              <strong>Note:</strong> This is a demo application with pre-configured data.
-            </p>
-          </div>
-
-          {/* Footer */}
-          <p className="text-center text-text-200 text-xs mt-4">
-            Built by <span className='font-bold'> Ali Automations </span> 
-          </p>
         </div>
       </div>
     </div>

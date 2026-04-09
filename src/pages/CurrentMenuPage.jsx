@@ -74,7 +74,7 @@ const CurrentMenuPage = () => {
 
   // Remove duplicates (same item in multiple menus)
   const uniqueItems = Array.from(
-    new Map(allActiveItems.map(item => [item.id, item])).values()
+    new Map(allActiveItems.map(item => [item._id, item])).values()
   );
 
   if (!schedule) {
@@ -135,7 +135,7 @@ const CurrentMenuPage = () => {
         <>
           {/* Multiple Menus Header */}
           {activeMenusWithItems.map(({ menu, items, slots }, menuIndex) => (
-            <div key={menu.id} className="bg-white rounded-xl shadow-md p-6 border border-bg-300">
+            <div key={menu._id} className="bg-white rounded-xl shadow-md p-6 border border-bg-300">
               <div className="flex items-start justify-between flex-wrap gap-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2 flex-wrap">
@@ -220,7 +220,7 @@ const CurrentMenuPage = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {uniqueItems.map(item => (
                 <SimpleItemDisplay
-                  key={item.id}
+                  key={item._id}
                   item={item}
                   showPrices={true}
                 />

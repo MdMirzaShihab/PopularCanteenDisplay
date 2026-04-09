@@ -19,11 +19,11 @@ const Sidebar = ({ isOpen, onClose }) => {
   // Define all available navigation items
   const allNavItems = [
     { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', roles: ['admin', 'restaurant_user'] },
-    // { path: '/current-menu', icon: ChefHat, label: 'Current Menu', roles: ['admin', 'restaurant_user'] }, // Hidden — not active in current demo
+    // { path: '/current-menu', icon: ChefHat, label: 'Current Menu', roles: ['admin', 'restaurant_user'] }, // Hidden — feature not active
     { path: '/token', icon: Hash, label: 'Token Display', roles: ['admin', 'restaurant_user', 'token_operator'] },
     { path: '/items', icon: UtensilsCrossed, label: 'Items', roles: ['admin', 'restaurant_user'] },
     { path: '/menus', icon: BookOpen, label: 'Menus', roles: ['admin', 'restaurant_user'] },
-    // { path: '/schedules', icon: Clock, label: 'Schedule', roles: ['admin', 'restaurant_user'] }, // Hidden — not active in current demo
+    // { path: '/schedules', icon: Clock, label: 'Schedule', roles: ['admin', 'restaurant_user'] }, // Hidden — feature not active
     { path: '/screens', icon: Monitor, label: 'Screens', roles: ['admin', 'restaurant_user'] },
     { path: '/users', icon: Users, label: 'Users', roles: ['admin'] },
     { path: '/logs', icon: FileText, label: 'Activity Logs', roles: ['admin'] },
@@ -100,9 +100,9 @@ const Sidebar = ({ isOpen, onClose }) => {
           {/* Footer */}
           <div className="p-4 border-t border-bg-300">
             <div className="bg-bg-100 rounded-lg p-3">
-              <p className="text-xs font-medium text-primary-100">Demo Mode</p>
+              <p className="text-xs font-medium text-primary-100">PMCH Canteen</p>
               <p className="text-xs text-text-200 mt-1">
-                All data is stored locally and will persist across sessions.
+                Food Display Management System
               </p>
             </div>
           </div>

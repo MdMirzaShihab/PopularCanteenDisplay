@@ -374,6 +374,7 @@ const TokenScreenForm = ({ screen, onSubmit, onCancel }) => {
                     onError={showError}
                     accept="image/*"
                     label="Upload Background Image"
+                    folder="backgrounds"
                   />
                 </>
               )}
@@ -443,6 +444,7 @@ const TokenScreenForm = ({ screen, onSubmit, onCancel }) => {
                     onError={showError}
                     accept="video/*"
                     label="Upload Background Video"
+                    folder="backgrounds"
                   />
                 </>
               )}

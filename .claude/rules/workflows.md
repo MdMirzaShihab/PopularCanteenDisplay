@@ -30,16 +30,6 @@
 6. Return `{ data, loading, pagination, CRUD functions }`
 7. Export as named export
 
-## Migrating a Page from DataContext to API Hooks
-
-1. Identify all `useData()` calls in the page
-2. Replace with the corresponding domain hook (e.g., `useItems()`, `useMenus()`)
-3. Update component props to match hook return shape (especially pagination)
-4. Add `Pagination` component if the page now supports pagination
-5. Remove `useData()` import
-6. Test that all CRUD operations work against the backend
-7. Once ALL pages are migrated, `DataContext.jsx` and `mockData.js` can be deleted
-
 ## Adding a New Screen Display Feature
 
 1. Determine if the feature applies to food screens, token screens, or both
@@ -68,7 +58,6 @@
 - **Broken images**: Ensure assets imported via `src/assets/index.js`, not hardcoded paths
 - **Context undefined**: Verify provider nesting order in `main.jsx`
 - **Socket.io not connecting**: Verify `VITE_API_URL` is correct. Check backend Socket.io `/tokens` namespace is running
-- **Data not persisting (legacy)**: Check localStorage quota. Look for `QuotaExceededError` in console
 
 ## Build & Deploy
 

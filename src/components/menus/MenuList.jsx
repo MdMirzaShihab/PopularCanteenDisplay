@@ -40,7 +40,7 @@ const MenuList = ({ menus, onEdit, onDelete }) => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredMenus.map(menu => (
             <MenuCard
-              key={menu.id}
+              key={menu._id}
               menu={menu}
               onEdit={onEdit}
               onDelete={onDelete}

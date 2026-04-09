@@ -7,7 +7,7 @@ const MenuForm = ({ menu, onSubmit, onCancel }) => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    itemIds: []
+    items: []
   });
 
   const { error: showError } = useNotification();
@@ -19,7 +19,7 @@ const MenuForm = ({ menu, onSubmit, onCancel }) => {
       setFormData({
         title: menu.title || '',
         description: menu.description || '',
-        itemIds: menu.itemIds || []
+        items: (menu.items || []).map(item => typeof item === 'string' ? item : item._id)
       });
     }
   }, [menu]);
@@ -33,10 +33,10 @@ const MenuForm = ({ menu, onSubmit, onCancel }) => {
     }
   };
 
-  const handleItemsChange = (itemIds) => {
-    setFormData(prev => ({ ...prev, itemIds }));
-    if (errors.itemIds) {
-      setErrors(prev => ({ ...prev, itemIds: null }));
+  const handleItemsChange = (items) => {
+    setFormData(prev => ({ ...prev, items }));
+    if (errors.items) {
+      setErrors(prev => ({ ...prev, items: null }));
     }
   };
 
@@ -105,10 +105,10 @@ const MenuForm = ({ menu, onSubmit, onCancel }) => {
       {/* Item Selector */}
       <div>
         <MenuItemSelector
-          selectedItemIds={formData.itemIds}
+          selectedItemIds={formData.items}
           onChange={handleItemsChange}
         />
-        {errors.itemIds && <p className="mt-1 text-sm text-accent-200">{errors.itemIds}</p>}
+        {errors.items && <p className="mt-1 text-sm text-accent-200">{errors.items}</p>}
       </div>
 
       {/* Actions */}

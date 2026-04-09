@@ -11,7 +11,6 @@
 | Context | PascalCase + `.jsx` | `AuthContext.jsx`, `NotificationContext.jsx` |
 | Custom hooks | camelCase + `.js` | `useItems.js`, `usePagination.js` |
 | API services | camelCase + `.api.js` | `items.api.js`, `auth.api.js` |
-| Data | camelCase + `.js` | `mockData.js` |
 
 ## Exports
 

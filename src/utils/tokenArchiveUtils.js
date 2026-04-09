@@ -1,7 +1,7 @@
 import { format, isToday, isYesterday, startOfDay, parseISO } from 'date-fns';
 
 export const groupEntriesByDate = (entries) => {
-  const sorted = [...entries].sort((a, b) => new Date(b.recordedAt) - new Date(a.recordedAt));
+  const sorted = [...entries].sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
   const map = new Map();
 
   sorted.forEach(entry => {

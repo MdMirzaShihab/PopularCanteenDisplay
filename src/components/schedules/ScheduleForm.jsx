@@ -84,7 +84,7 @@ const ScheduleForm = ({ schedule, onSubmit, onCancel }) => {
         >
           <option value="">Select default menu...</option>
           {menus.map(menu => (
-            <option key={menu.id} value={menu.id}>
+            <option key={menu._id} value={menu._id}>
               {menu.title}
             </option>
           ))}

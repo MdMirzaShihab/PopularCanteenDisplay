@@ -21,7 +21,7 @@ const ItemForm = ({ item, onSubmit, onCancel }) => {
       setFormData({
         name: item.name || '',
         description: item.description || '',
-        price: item.price || '',
+        price: item.price != null ? item.price : '',
         image: item.image || null,
         isActive: item.isActive !== undefined ? item.isActive : true
       });
@@ -40,8 +40,8 @@ const ItemForm = ({ item, onSubmit, onCancel }) => {
     }
   };
 
-  const handleImageChange = (base64) => {
-    setFormData(prev => ({ ...prev, image: base64 }));
+  const handleImageChange = (url) => {
+    setFormData(prev => ({ ...prev, image: url }));
     if (errors.image) {
       setErrors(prev => ({ ...prev, image: null }));
     }

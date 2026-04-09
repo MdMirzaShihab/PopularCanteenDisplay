@@ -44,7 +44,7 @@ const CatalogRenderer = React.memo(({ items, showPrices = true }) => {
       }}>
         {pageItems.map(item => (
           <div
-            key={item.id}
+            key={item._id}
             className="relative overflow-hidden rounded-xl"
             style={{
               height: `${CARD_HEIGHT}px`,

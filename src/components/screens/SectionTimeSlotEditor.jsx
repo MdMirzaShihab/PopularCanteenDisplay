@@ -40,7 +40,7 @@ const SectionTimeSlotEditor = ({ timeSlots, onChange, menus }) => {
     if (!slot.content) return 'No content';
     if (slot.content.type === 'media' || slot.content.type === 'image' || slot.content.type === 'video') return 'Media';
     if (slot.content.type === 'menu' && slot.content.menuId) {
-      const menu = menus.find(m => m.id === slot.content.menuId);
+      const menu = menus.find(m => m._id === slot.content.menuId);
       return menu?.title || 'Menu';
     }
     return 'Menu';
@@ -152,11 +152,11 @@ const SectionTimeSlotEditor = ({ timeSlots, onChange, menus }) => {
                       const startPercent = getTimePercentage(slot.startTime);
                       const endPercent = getTimePercentage(slot.endTime);
                       const width = endPercent - startPercent;
-                      const rowIndex = slotRows[slot.id] || 0;
+                      const rowIndex = slotRows[slot._id || slot.id] || 0;
 
                       return (
                         <div
-                          key={slot.id}
+                          key={slot._id || slot.id}
                           className={`absolute ${SLOT_COLORS[idx % SLOT_COLORS.length]} opacity-80 hover:opacity-100 transition-opacity cursor-pointer rounded`}
                           style={{
                             left: `${startPercent}%`,
@@ -203,7 +203,7 @@ const SectionTimeSlotEditor = ({ timeSlots, onChange, menus }) => {
       {/* Time slot list */}
       {(timeSlots || []).map((slot, slotIdx) => (
         <div
-          key={slot.id}
+          key={slot._id || slot.id}
           className="relative border border-bg-300 rounded-lg p-4 space-y-4"
         >
           {/* Delete button */}

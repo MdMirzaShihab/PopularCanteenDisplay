@@ -54,8 +54,8 @@ export const validateMenu = (menuData) => {
     errors.description = 'Description is required';
   }
 
-  if (!menuData.itemIds || menuData.itemIds.length === 0) {
-    errors.itemIds = 'At least one item must be selected';
+  if (!menuData.items || menuData.items.length === 0) {
+    errors.items = 'At least one item must be selected';
   }
 
   return {

@@ -19,7 +19,7 @@ const Dashboard = () => {
   const stats = [
     { label: 'Total Items', value: items.length, icon: UtensilsCrossed, color: 'bg-primary-100', link: '/items' },
     { label: 'Menus', value: menus.length, icon: BookOpen, color: 'bg-primary-200', link: '/menus' },
-    // { label: 'Schedules', value: schedules.length, icon: Activity, color: 'bg-accent-100', link: '/schedules' }, // Hidden — not active in current demo
+    // { label: 'Schedules', value: schedules.length, icon: Activity, color: 'bg-accent-100', link: '/schedules' }, // Hidden — feature not active
     { label: 'Screens', value: foodScreens.length + tokenScreens.length, icon: Monitor, color: 'bg-accent-200', link: '/screens' },
   ];
 
@@ -37,7 +37,7 @@ const Dashboard = () => {
       <div className="bg-gradient-to-r from-primary-200 to-primary-300 rounded-xl p-8 text-white">
         <h1 className="text-3xl font-bold mb-2">Welcome back, {user?.name}!</h1>
         <p className="text-bg-100">
-          Manage your canteen operations efficiently with our demo system
+          Manage your canteen operations efficiently
         </p>
       </div>
 
@@ -87,7 +87,7 @@ const Dashboard = () => {
             <span className="font-medium text-text-100">Create Menu</span>
           </Link>
 
-          {/* Hidden — Schedule not active in current demo
+          {/* Hidden — Schedule feature not active
           <Link
             to="/schedules"
             className="flex items-center gap-3 p-4 bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 border border-bg-300 hover:border-accent-100"

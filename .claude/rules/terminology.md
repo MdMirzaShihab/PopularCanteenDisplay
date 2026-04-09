@@ -78,26 +78,10 @@ Backend base URL: `VITE_API_URL/api/v1`
 | `/upload/presigned-url` | POST | R2 cloud storage upload |
 | `/screens/:screenId` | GET | Public unified lookup (food or token) |
 
-## localStorage Keys (Legacy — will be removed)
-
-All state persists under `canteen_*` prefix:
-
-| Key | Content |
-|-----|---------|
-| `canteen_items` | All food items |
-| `canteen_menus` | All menus |
-| `canteen_food_screens` | Food screen configs |
-| `canteen_token_screens` | Token screen configs |
-| `canteen_users` | Managed user accounts |
-| `canteen_logs` | Activity log |
-| `canteen_token_history` | Last 3 tokens (most recent first) |
-| `canteen_token_archive` | Historical token archive |
-| `canteen_auth_user` | Logged-in user object |
-
 ## Common Gotchas
 
 1. **Two screen types** — Food screens and token screens are separate entities with different forms, cards, and storage
-2. **Hybrid state** — Pages still use `useData()` (localStorage) even though API hooks exist. Don't mix the two systems in a single page
+2. **Hidden pages** — `SchedulesPage` and `CurrentMenuPage` still reference deleted DataContext. They need a rewrite if re-enabled
 3. **Schedule is hidden** — The schedule feature exists in code but is not active in the UI
 4. **Screen ID = URL param** — The `id` field is what appears in `/gallery/:screenId`
 5. **No separate gallery admin page** — Gallery listing was merged into the Screens page

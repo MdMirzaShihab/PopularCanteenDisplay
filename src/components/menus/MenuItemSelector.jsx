@@ -27,7 +27,7 @@ const MenuItemSelector = ({ selectedItemIds, onChange }) => {
     onChange(selectedItemIds.filter(id => id !== itemId));
   };
 
-  const selectedItems = items.filter(item => selectedItemIds.includes(item.id));
+  const selectedItems = items.filter(item => selectedItemIds.includes(item._id));
 
   return (
     <div className="space-y-4">
@@ -40,12 +40,12 @@ const MenuItemSelector = ({ selectedItemIds, onChange }) => {
           <div className="flex flex-wrap gap-2 p-3 bg-bg-100 rounded-lg border border-gray-200">
             {selectedItems.map(item => (
               <div
-                key={item.id}
+                key={item._id}
                 className="flex items-center gap-2 px-3 py-1.5 bg-primary-100 text-primary-800 rounded-lg text-sm"
               >
                 <span className="font-medium">{item.name}</span>
                 <button
-                  onClick={() => removeItem(item.id)}
+                  onClick={() => removeItem(item._id)}
                   className="hover:bg-primary-200 rounded-full p-0.5 transition-colors"
                 >
                   <X className="w-3.5 h-3.5" />
@@ -82,10 +82,10 @@ const MenuItemSelector = ({ selectedItemIds, onChange }) => {
         ) : (
           <div className="divide-y divide-gray-200">
             {filteredItems.map(item => {
-              const isSelected = selectedItemIds.includes(item.id);
+              const isSelected = selectedItemIds.includes(item._id);
               return (
                 <label
-                  key={item.id}
+                  key={item._id}
                   className={`flex items-center gap-3 p-3 cursor-pointer hover:bg-bg-100 transition-colors ${
                     isSelected ? 'bg-primary-50' : ''
                   }`}
@@ -93,7 +93,7 @@ const MenuItemSelector = ({ selectedItemIds, onChange }) => {
                   <input
                     type="checkbox"
                     checked={isSelected}
-                    onChange={() => toggleItem(item.id)}
+                    onChange={() => toggleItem(item._id)}
                     className="w-5 h-5 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
                   />
 

@@ -9,8 +9,8 @@ const MenuCard = ({ menu, onEdit, onDelete }) => {
       <div className="relative h-48 bg-gradient-to-br from-primary-100 to-primary-200 overflow-hidden">
         {menuItems.length > 0 ? (
           <div className="grid grid-cols-2 gap-1 h-full p-2">
-            {menuItems.slice(0, 4).map((item, idx) => (
-              <div key={idx} className="bg-bg-200 rounded-lg overflow-hidden group/item">
+            {menuItems.slice(0, 4).map((item) => (
+              <div key={item._id} className="bg-bg-200 rounded-lg overflow-hidden group/item">
                 {item.image && (
                   <img
                     src={item.image}

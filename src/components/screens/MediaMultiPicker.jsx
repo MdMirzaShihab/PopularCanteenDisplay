@@ -183,6 +183,7 @@ const MediaMultiPicker = ({ value = [], onChange, maxItems = MAX_MEDIA_ITEMS }) 
               onError={handleUploadError}
               accept="image/*,video/*"
               label="Upload Image or Video"
+              folder="sections"
             />
           )}
         </div>

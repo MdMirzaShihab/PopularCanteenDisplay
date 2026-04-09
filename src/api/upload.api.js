@@ -19,3 +19,14 @@ export const uploadToR2 = async (presignedUrl, file) => {
 
 export const deleteUpload = (key) =>
   apiClient.delete(`/upload/${key}`).then((r) => r.data);
+
+export const uploadFile = async (file, folder = 'items') => {
+  const { uploadUrl, fileUrl } = await getPresignedUrl({
+    fileName: file.name,
+    fileType: file.type,
+    fileSize: file.size,
+    folder,
+  });
+  await uploadToR2(uploadUrl, file);
+  return fileUrl;
+};

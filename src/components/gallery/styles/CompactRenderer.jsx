@@ -40,7 +40,7 @@ const CompactRenderer = React.memo(({ items, showPrices = true }) => {
       <div className="flex-1 grid grid-cols-2 gap-x-4 gap-y-1.5 content-start px-3 py-2">
         {pageItems.map((item, index) => (
           <div
-            key={item.id}
+            key={item._id}
             className="flex items-center px-4 rounded-xl"
             style={{
               height: `${ITEM_HEIGHT}px`,

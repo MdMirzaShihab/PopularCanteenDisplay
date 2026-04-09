@@ -40,7 +40,7 @@ const ScreenGridRenderer = memo(({ screen }) => {
       >
         {screen.sections.map((section, idx) => (
           <SectionRenderer
-            key={section.id}
+            key={section._id || section.id}
             section={section}
             gridArea={layout.areas[idx]?.gridArea}
           />

@@ -44,7 +44,7 @@ const CardGridRenderer = React.memo(({ items, showPrices = true }) => {
       }}>
         {pageItems.map(item => (
           <div
-            key={item.id}
+            key={item._id}
             className="rounded-xl flex items-center gap-3 px-3 py-2.5"
             style={{
               height: `${CARD_HEIGHT}px`,

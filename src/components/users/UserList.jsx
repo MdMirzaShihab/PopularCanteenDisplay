@@ -95,10 +95,10 @@ const UserList = ({ users, onEdit, onDelete }) => {
               {filteredUsers.map(u => {
                 const meta = ROLE_META[u.role] || ROLE_META.restaurant_user;
                 const RoleIcon = meta.icon;
-                const isSelf = currentUser?.id === u.id;
+                const isSelf = currentUser?._id === u._id;
 
                 return (
-                  <tr key={u.id} className="hover:bg-bg-100 transition-colors">
+                  <tr key={u._id} className="hover:bg-bg-100 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
                         <span className="font-medium text-text-100">{u.name}</span>

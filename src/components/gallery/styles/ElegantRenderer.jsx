@@ -43,7 +43,7 @@ const ElegantRenderer = React.memo(({ items, showPrices = true }) => {
       <div className="flex-1 flex flex-col gap-2 px-4 py-2 overflow-hidden">
         {pageItems.map(item => (
           <div
-            key={item.id}
+            key={item._id}
             className="flex items-center gap-4 px-4 rounded-xl"
             style={{
               height: `${ITEM_HEIGHT}px`,

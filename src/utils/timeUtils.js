@@ -199,7 +199,7 @@ export const calculateTimeSlotRows = (timeSlots) => {
       rows.push(slotEnd);
     }
 
-    slotRows[slot.id] = assignedRow;
+    slotRows[slot._id || slot.id] = assignedRow;
   });
 
   return {

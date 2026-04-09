@@ -90,7 +90,7 @@ const SectionContentEditor = ({ content, onChange, menus, label }) => {
             >
               <option value="">-- Select a menu --</option>
               {menus.map((menu) => (
-                <option key={menu.id} value={menu.id}>
+                <option key={menu._id} value={menu._id}>
                   {menu.title}
                 </option>
               ))}

@@ -16,7 +16,7 @@ const TokenArchiveGroup = ({ label, entries }) => {
       <div className="divide-y divide-bg-300">
         {entries.map((entry) => (
           <div
-            key={entry.id ?? entry.updatedAt}
+            key={entry.updatedAt}
             className="flex items-center justify-between py-3 px-2 hover:bg-bg-200/50 rounded-lg transition-colors"
           >
             <div className="flex items-center gap-3">

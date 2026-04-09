@@ -13,7 +13,7 @@ const TimeSlotBuilder = ({ timeSlots, onChange }) => {
       id: crypto.randomUUID(),
       startTime: '09:00',
       endTime: '10:00',
-      menuId: menus.length > 0 ? menus[0].id : '',
+      menuId: menus.length > 0 ? menus[0]._id : '',
       menuName: menus.length > 0 ? menus[0].title : '',
       daysOfWeek: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'] // Default to weekdays
     };
@@ -35,7 +35,7 @@ const TimeSlotBuilder = ({ timeSlots, onChange }) => {
 
         // If menu changed, update menu name
         if (field === 'menuId') {
-          const menu = menus.find(m => m.id === value);
+          const menu = menus.find(m => m._id === value);
           updated.menuName = menu?.title || '';
         }
 
@@ -269,7 +269,7 @@ const TimeSlotBuilder = ({ timeSlots, onChange }) => {
                       >
                         <option value="">Select menu...</option>
                         {menus.map(menu => (
-                          <option key={menu.id} value={menu.id}>
+                          <option key={menu._id} value={menu._id}>
                             {menu.title}
                           </option>
                         ))}

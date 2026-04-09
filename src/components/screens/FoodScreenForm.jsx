@@ -208,7 +208,7 @@ const FoodScreenForm = ({ screen, onSubmit, onCancel }) => {
             <div className="flex flex-wrap gap-2">
               {formData.sections.map((section, idx) => (
                 <button
-                  key={section.id}
+                  key={section._id || section.id}
                   type="button"
                   onClick={() => setActiveSectionIdx(idx)}
                   className={`px-3 py-1.5 text-sm font-medium rounded-lg border transition-all duration-200 ${
@@ -340,10 +340,11 @@ const FoodScreenForm = ({ screen, onSubmit, onCancel }) => {
                 {bgMediaSource === 'upload' && (
                   <ImageUpload
                     value={formData.backgroundMedia}
-                    onChange={(base64) => setFormData(prev => ({ ...prev, backgroundMedia: base64 }))}
+                    onChange={(url) => setFormData(prev => ({ ...prev, backgroundMedia: url }))}
                     onError={showError}
                     accept={formData.backgroundType === 'image' ? 'image/*' : 'video/*'}
                     label={`Background ${formData.backgroundType === 'image' ? 'Image' : 'Video'}`}
+                    folder="backgrounds"
                   />
                 )}
 
