@@ -25,7 +25,7 @@ const Toast = () => {
       case 'error':
         return 'bg-accent-200 text-white border-accent-200';
       case 'warning':
-        return 'bg-accent-100 text-white border-accent-100';
+        return 'bg-accent-100 text-text-100 border-accent-200';
       case 'info':
       default:
         return 'bg-bg-200 text-text-100 border-bg-300';

@@ -37,11 +37,11 @@ const MenuItemSelector = ({ selectedItemIds, onChange }) => {
           <label className="block text-sm font-medium text-text-100 mb-2">
             Selected Items ({selectedItems.length})
           </label>
-          <div className="flex flex-wrap gap-2 p-3 bg-bg-100 rounded-lg border border-gray-200">
+          <div className="flex flex-wrap gap-2 p-3 bg-bg-100 rounded-lg border border-bg-300">
             {selectedItems.map(item => (
               <div
                 key={item._id}
-                className="flex items-center gap-2 px-3 py-1.5 bg-primary-100 text-primary-800 rounded-lg text-sm"
+                className="flex items-center gap-2 px-3 py-1.5 bg-primary-100 text-white rounded-lg text-sm"
               >
                 <span className="font-medium">{item.name}</span>
                 <button
@@ -62,25 +62,25 @@ const MenuItemSelector = ({ selectedItemIds, onChange }) => {
           Add Items
         </label>
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-text-300" />
           <input
             type="text"
             placeholder="Search items..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="input-field pl-10"
           />
         </div>
       </div>
 
       {/* Available Items */}
-      <div className="border border-gray-200 rounded-lg max-h-96 overflow-y-auto">
+      <div className="border border-bg-300 rounded-lg max-h-96 overflow-y-auto">
         {filteredItems.length === 0 ? (
-          <div className="p-8 text-center text-gray-500">
+          <div className="p-8 text-center text-text-200">
             {searchTerm ? 'No items found' : 'No active items available'}
           </div>
         ) : (
-          <div className="divide-y divide-gray-200">
+          <div className="divide-y divide-bg-300">
             {filteredItems.map(item => {
               const isSelected = selectedItemIds.includes(item._id);
               return (
@@ -94,7 +94,7 @@ const MenuItemSelector = ({ selectedItemIds, onChange }) => {
                     type="checkbox"
                     checked={isSelected}
                     onChange={() => toggleItem(item._id)}
-                    className="w-5 h-5 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                    className="w-5 h-5 text-primary-100 border-bg-300 rounded focus:ring-primary-100"
                   />
 
                   {item.image && (
@@ -111,11 +111,11 @@ const MenuItemSelector = ({ selectedItemIds, onChange }) => {
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-semibold text-primary-600">
-                      ৳ {item.price.toFixed(2)}
+                    <span className="text-sm font-semibold text-primary-100">
+                      ৳ {item.price.toFixed(0)}
                     </span>
                     {isSelected && (
-                      <div className="w-6 h-6 bg-primary-600 rounded-full flex items-center justify-center">
+                      <div className="w-6 h-6 bg-primary-100 rounded-full flex items-center justify-center">
                         <Check className="w-4 h-4 text-white" />
                       </div>
                     )}

@@ -110,13 +110,13 @@ const ImageUpload = ({ value, onChange, onError, accept = 'image/*,video/*', lab
 
   return (
     <div className="w-full">
-      <label className="block text-sm font-medium text-gray-700 mb-2">
+      <label className="block text-sm font-medium text-text-100 mb-2">
         {label}
       </label>
 
       {preview ? (
         <div className="relative">
-          <div className="relative w-full h-64 bg-gray-100 rounded-lg overflow-hidden">
+          <div className="relative w-full h-64 bg-bg-200 rounded-lg overflow-hidden">
             {isVideo ? (
               <video
                 src={preview}
@@ -171,8 +171,8 @@ const ImageUpload = ({ value, onChange, onError, accept = 'image/*,video/*', lab
 
           <div className="flex flex-col items-center gap-3">
             <div className="flex gap-2">
-              <ImageIcon className="w-8 h-8 text-gray-400" />
-              <Video className="w-8 h-8 text-gray-400" />
+              <ImageIcon className="w-8 h-8 text-text-300" />
+              <Video className="w-8 h-8 text-text-300" />
             </div>
             <div>
               <p className="text-sm font-medium text-text-100">
@@ -182,7 +182,7 @@ const ImageUpload = ({ value, onChange, onError, accept = 'image/*,video/*', lab
                 PNG, JPG, GIF, WebP, MP4, WebM (max 10MB)
               </p>
             </div>
-            <Upload className="w-6 h-6 text-gray-400 mt-2" />
+            <Upload className="w-6 h-6 text-text-300 mt-2" />
           </div>
         </div>
       )}

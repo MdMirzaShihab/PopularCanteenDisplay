@@ -14,7 +14,7 @@ const Layout = ({ children }) => {
       {/* Navbar */}
       <Navbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
 
-      <div className="flex h-[calc(100vh-57px)] mt-[57px]">
+      <div className="flex h-[calc(100vh-73px)] mt-[73px]">
         {/* Sidebar */}
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 

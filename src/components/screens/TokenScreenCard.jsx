@@ -29,13 +29,13 @@ const TokenScreenCard = ({ screen, onEdit, onDelete }) => {
   return (
     <div className="group bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-bg-300 hover:border-accent-100">
       {/* Token Icon Header */}
-      <div className="relative h-36 bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center overflow-hidden">
+      <div className="relative h-36 bg-gradient-to-br from-primary-300 to-primary-200 flex items-center justify-center overflow-hidden">
         <div className="relative">
-          <div className="absolute inset-0 bg-yellow-400 opacity-20 blur-3xl rounded-full animate-pulse"></div>
-          <Hash className="w-16 h-16 text-yellow-400 relative" />
+          <div className="absolute inset-0 bg-accent-100 opacity-20 blur-3xl rounded-full animate-pulse"></div>
+          <Hash className="w-16 h-16 text-accent-100 relative" />
         </div>
         <div className="absolute top-2 left-2">
-          <div className="bg-yellow-500 text-gray-900 px-3 py-1.5 rounded-lg shadow-lg">
+          <div className="bg-accent-200 text-white px-3 py-1.5 rounded-lg shadow-lg">
             <span className="text-xs font-bold">Token</span>
           </div>
         </div>

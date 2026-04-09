@@ -119,7 +119,7 @@ const TokenManagementPage = () => {
       {tokenHistory.length > 1 && (
         <div className="bg-white rounded-xl shadow-md p-6 border border-bg-300">
           <h3 className="text-lg font-semibold text-text-100 mb-4">Recent Token History</h3>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {tokenHistory.slice(0, 3).map((token) => (
               <div
                 key={token.updatedAt}

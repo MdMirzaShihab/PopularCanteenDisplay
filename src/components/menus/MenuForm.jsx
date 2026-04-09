@@ -75,9 +75,7 @@ const MenuForm = ({ menu, onSubmit, onCancel }) => {
           name="title"
           value={formData.title}
           onChange={handleChange}
-          className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 ${
-            errors.title ? 'border-accent-200' : 'border-gray-300'
-          }`}
+          className={`input-field ${errors.title ? 'border-accent-200' : ''}`}
           placeholder="e.g., Breakfast Menu"
         />
         {errors.title && <p className="mt-1 text-sm text-accent-200">{errors.title}</p>}
@@ -94,9 +92,7 @@ const MenuForm = ({ menu, onSubmit, onCancel }) => {
           value={formData.description}
           onChange={handleChange}
           rows={3}
-          className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 ${
-            errors.description ? 'border-accent-200' : 'border-gray-300'
-          }`}
+          className={`input-field ${errors.description ? 'border-accent-200' : ''}`}
           placeholder="Describe the menu..."
         />
         {errors.description && <p className="mt-1 text-sm text-accent-200">{errors.description}</p>}
@@ -116,14 +112,14 @@ const MenuForm = ({ menu, onSubmit, onCancel }) => {
         <button
           type="button"
           onClick={onCancel}
-          className="flex-1 px-4 py-2 text-sm font-medium text-text-100 bg-white border border-gray-300 rounded-lg hover:bg-bg-100 transition-colors"
+          className="btn-secondary"
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={isSubmitting}
-          className="flex-1 px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isSubmitting ? 'Saving...' : menu ? 'Update Menu' : 'Create Menu'}
         </button>

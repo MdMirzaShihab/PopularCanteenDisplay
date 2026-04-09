@@ -14,6 +14,7 @@ const LoginPage = () => {
     username: '',
     password: ''
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -28,12 +29,15 @@ const LoginPage = () => {
       return;
     }
 
+    setIsSubmitting(true);
     try {
       const data = await login(credentials);
       success(`Welcome back, ${data.user.name}!`);
       navigate('/dashboard');
     } catch (err) {
       error(err.message || 'Login failed. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -94,10 +98,11 @@ const LoginPage = () => {
             {/* Submit Button */}
             <button
               type="submit"
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-primary-100 text-white font-medium rounded-lg hover:bg-primary-200 transition-colors"
+              disabled={isSubmitting}
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-primary-100 text-white font-medium rounded-lg hover:bg-primary-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <LogIn className="w-5 h-5" />
-              Sign In
+              {isSubmitting ? 'Signing In...' : 'Sign In'}
             </button>
           </form>
         </div>

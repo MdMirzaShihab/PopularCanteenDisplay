@@ -51,11 +51,11 @@ const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
+        <div className="flex items-center justify-between p-6 border-b border-bg-300">
+          <h2 className="text-2xl font-bold text-text-100">{title}</h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="text-text-300 hover:text-text-200 transition-colors"
           >
             <X className="w-6 h-6" />
           </button>

@@ -54,7 +54,7 @@ const Sidebar = ({ isOpen, onClose }) => {
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-[70px] left-0 h-[calc(100vh-70px)] w-64 bg-white border-r border-bg-300 z-40 transform transition-transform duration-300 lg:translate-x-0 ${
+        className={`fixed top-[73px] left-0 h-[calc(100vh-73px)] w-64 bg-white border-r border-bg-300 z-40 transform transition-transform duration-300 lg:translate-x-0 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
@@ -102,7 +102,7 @@ const Sidebar = ({ isOpen, onClose }) => {
             <div className="bg-bg-100 rounded-lg p-3">
               <p className="text-xs font-medium text-primary-100">PMCH Canteen</p>
               <p className="text-xs text-text-200 mt-1">
-                Food Display Management System
+                Canteen Management System
               </p>
             </div>
           </div>

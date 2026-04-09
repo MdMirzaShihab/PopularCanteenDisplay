@@ -77,10 +77,10 @@ const ConfirmDialog = ({ isOpen, onClose, onConfirm, title, message, confirmText
 
           {/* Content */}
           <div className="flex-1">
-            <h3 id="confirm-dialog-title" className="text-lg font-semibold text-gray-900 mb-2">
+            <h3 id="confirm-dialog-title" className="text-lg font-semibold text-text-100 mb-2">
               {title}
             </h3>
-            <p className="text-gray-600 text-sm">
+            <p className="text-text-200 text-sm">
               {message}
             </p>
           </div>
@@ -90,7 +90,7 @@ const ConfirmDialog = ({ isOpen, onClose, onConfirm, title, message, confirmText
         <div className="flex gap-3 mt-6 justify-end">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
+            className="px-4 py-2 text-sm font-medium text-text-100 bg-white border border-bg-300 rounded-lg hover:bg-bg-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-100 transition-colors"
           >
             {cancelText}
           </button>
