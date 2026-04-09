@@ -41,8 +41,10 @@ No test framework is configured.
 ## Environment Variables
 
 ```bash
-VITE_API_URL=http://localhost:5000   # Backend URL (see .env.local)
+VITE_API_URL=http://localhost:5001   # Local dev backend (see .env.local)
 ```
+
+In production, `VITE_API_URL` is set to `https://canteen.mirzashihab.com` via GitHub Actions secrets during build.
 
 ## Detailed Rules
 
@@ -59,7 +61,13 @@ Architecture, styling, code conventions, auth/roles, terminology, and developmen
 
 ## Deployment
 
-Deployed on Vercel. `vercel.json` configures SPA fallback routing.
+Deployed on **AWS Lightsail** (single Ubuntu 22.04 instance at `canteen.mirzashihab.com`).
+
+- **Server:** Nginx serves static files from `/var/www/canteen/dist/`, reverse proxies `/api/` and `/socket.io/` to Node.js on port 5000
+- **SSL:** Let's Encrypt via Certbot with auto-renewal
+- **Auto-deploy:** GitHub Actions on push to `main` — builds frontend, rsyncs `dist/` to the instance via SSH
+- **Workflow:** `.github/workflows/deploy.yml`
+- **No Vercel** — `vercel.json` is legacy and unused
 
 ## Demo Credentials
 

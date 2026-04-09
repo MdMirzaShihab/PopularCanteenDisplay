@@ -16,7 +16,7 @@ const TokenArchiveGroup = ({ label, entries }) => {
       <div className="divide-y divide-bg-300">
         {entries.map((entry) => (
           <div
-            key={entry.id ?? entry.recordedAt}
+            key={entry.id ?? entry.updatedAt}
             className="flex items-center justify-between py-3 px-2 hover:bg-bg-200/50 rounded-lg transition-colors"
           >
             <div className="flex items-center gap-3">
@@ -30,10 +30,10 @@ const TokenArchiveGroup = ({ label, entries }) => {
 
             <div
               className="flex items-center gap-1.5 text-sm text-text-200"
-              title={format(new Date(entry.recordedAt), 'PPpp')}
+              title={format(new Date(entry.updatedAt), 'PPpp')}
             >
               <Clock className="w-3.5 h-3.5" />
-              <span>{format(new Date(entry.recordedAt), 'HH:mm')}</span>
+              <span>{format(new Date(entry.updatedAt), 'HH:mm')}</span>
             </div>
           </div>
         ))}

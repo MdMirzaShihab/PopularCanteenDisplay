@@ -5,9 +5,9 @@ export const groupEntriesByDate = (entries) => {
   const map = new Map();
 
   sorted.forEach(entry => {
-    const dayKey = startOfDay(new Date(entry.recordedAt)).toISOString();
+    const dayKey = startOfDay(new Date(entry.updatedAt)).toISOString();
     if (!map.has(dayKey)) {
-      map.set(dayKey, { date: new Date(entry.recordedAt), entries: [] });
+      map.set(dayKey, { date: new Date(entry.updatedAt), entries: [] });
     }
     map.get(dayKey).entries.push(entry);
   });
@@ -26,7 +26,7 @@ export const filterEntries = (entries, { searchTerm = '', dateFilter = '' }) => 
     const matchesSearch = searchTerm === '' ||
       String(entry.number).toLowerCase().includes(searchTerm.toLowerCase());
     const matchesDate = dateFilter === '' ||
-      format(parseISO(entry.recordedAt), 'yyyy-MM-dd') === dateFilter;
+      format(parseISO(entry.updatedAt), 'yyyy-MM-dd') === dateFilter;
     return matchesSearch && matchesDate;
   });
 };

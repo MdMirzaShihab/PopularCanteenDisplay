@@ -21,7 +21,9 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     // Handle 401 — auth expired / invalid session
-    if (error.response?.status === 401 && onAuthExpired) {
+    // Skip for /auth/me — that 401 is expected when no session exists
+    const url = error.config?.url || '';
+    if (error.response?.status === 401 && onAuthExpired && !url.includes('/auth/me')) {
       onAuthExpired();
     }
 

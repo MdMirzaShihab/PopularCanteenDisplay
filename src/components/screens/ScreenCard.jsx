@@ -35,11 +35,11 @@ const ScreenCard = ({ screen, onEdit, onDelete, onDuplicate }) => {
   const totalSlots = (screen.sections || []).reduce((sum, s) => sum + (s.timeSlots?.length || 0), 0);
 
   const handlePreview = () => {
-    navigate(`/gallery/${screen.id}`);
+    navigate(`/gallery/${screen._id}`);
   };
 
   const handleCopyUrl = async () => {
-    const url = `${window.location.origin}/gallery/${screen.id}`;
+    const url = `${window.location.origin}/gallery/${screen._id}`;
     try {
       await navigator.clipboard.writeText(url);
       success('Display URL copied to clipboard!');

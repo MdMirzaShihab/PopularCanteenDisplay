@@ -7,11 +7,11 @@ const TokenScreenCard = ({ screen, onEdit, onDelete }) => {
   const { success } = useNotification();
 
   const handlePreview = () => {
-    navigate(`/gallery/${screen.id}`);
+    navigate(`/gallery/${screen._id}`);
   };
 
   const handleCopyUrl = async () => {
-    const url = `${window.location.origin}/gallery/${screen.id}`;
+    const url = `${window.location.origin}/gallery/${screen._id}`;
     try {
       await navigator.clipboard.writeText(url);
       success('Display URL copied to clipboard!');

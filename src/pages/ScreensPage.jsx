@@ -139,7 +139,7 @@ const ScreensPage = () => {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {tokenScreens.map(screen => (
-              <TokenScreenCard key={screen.id} screen={screen} onEdit={handleEdit} onDelete={handleDelete} />
+              <TokenScreenCard key={screen._id} screen={screen} onEdit={handleEdit} onDelete={handleDelete} />
             ))}
           </div>
         )

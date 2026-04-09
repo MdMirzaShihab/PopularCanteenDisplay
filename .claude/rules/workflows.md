@@ -79,6 +79,8 @@ npm run preview  # Preview production build
 npm run lint     # ESLint check
 ```
 
-- Deployed on Vercel with `vercel.json` SPA fallback routing
-- Environment variable: `VITE_API_URL` (backend URL)
+- Deployed on **AWS Lightsail** via GitHub Actions auto-deploy on push to `main`
+- Local dev: `.env.local` → `VITE_API_URL=http://localhost:5001`
+- Production: `VITE_API_URL=https://canteen.mirzashihab.com` (set via GitHub Actions secret)
+- Nginx serves `dist/` and proxies `/api/` + `/socket.io/` to backend on port 5000
 - No test framework configured

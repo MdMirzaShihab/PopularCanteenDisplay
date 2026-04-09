@@ -4,7 +4,7 @@ import { format } from 'date-fns';
 
 const ActivityTable = ({ logs }) => {
   const [expandedRows, setExpandedRows] = useState(new Set());
-  const [sortBy, setSortBy] = useState('timestamp');
+  const [sortBy, setSortBy] = useState('createdAt');
   const [sortOrder, setSortOrder] = useState('desc');
 
   const toggleRow = (logId) => {
@@ -30,7 +30,7 @@ const ActivityTable = ({ logs }) => {
     let aVal = a[sortBy];
     let bVal = b[sortBy];
 
-    if (sortBy === 'timestamp') {
+    if (sortBy === 'createdAt') {
       aVal = new Date(aVal).getTime();
       bVal = new Date(bVal).getTime();
     }
@@ -86,9 +86,9 @@ const ActivityTable = ({ logs }) => {
               <th className="w-10"></th>
               <th
                 className="px-4 py-3 text-left text-xs font-medium text-text-100 uppercase tracking-wider cursor-pointer hover:bg-bg-200 transition-colors"
-                onClick={() => handleSort('timestamp')}
+                onClick={() => handleSort('createdAt')}
               >
-                Timestamp {sortBy === 'timestamp' && (sortOrder === 'asc' ? '↑' : '↓')}
+                Timestamp {sortBy === 'createdAt' && (sortOrder === 'asc' ? '↑' : '↓')}
               </th>
               <th
                 className="px-4 py-3 text-left text-xs font-medium text-text-100 uppercase tracking-wider cursor-pointer hover:bg-bg-200 transition-colors"
@@ -115,15 +115,15 @@ const ActivityTable = ({ logs }) => {
           </thead>
           <tbody className="divide-y divide-bg-300">
             {sortedLogs.map((log) => (
-              <React.Fragment key={log.id}>
+              <React.Fragment key={log._id}>
                 <tr className="hover:bg-bg-100 transition-all duration-200">
                   <td className="px-4 py-3">
                     {(log.beforeData || log.afterData) && (
                       <button
-                        onClick={() => toggleRow(log.id)}
+                        onClick={() => toggleRow(log._id)}
                         className="text-text-200 hover:text-primary-100 transition-colors"
                       >
-                        {expandedRows.has(log.id) ? (
+                        {expandedRows.has(log._id) ? (
                           <ChevronDown className="w-4 h-4" />
                         ) : (
                           <ChevronRight className="w-4 h-4" />
@@ -132,7 +132,7 @@ const ActivityTable = ({ logs }) => {
                     )}
                   </td>
                   <td className="px-4 py-3 text-sm text-text-100 whitespace-nowrap font-medium">
-                    {format(new Date(log.timestamp), 'MMM dd, yyyy HH:mm')}
+                    {format(new Date(log.createdAt), 'MMM dd, yyyy HH:mm')}
                   </td>
                   <td className="px-4 py-3 text-sm text-text-100 font-medium">
                     {log.userName}
@@ -156,7 +156,7 @@ const ActivityTable = ({ logs }) => {
                 </tr>
 
                 {/* Expanded Row */}
-                {expandedRows.has(log.id) && (log.beforeData || log.afterData) && (
+                {expandedRows.has(log._id) && (log.beforeData || log.afterData) && (
                   <tr className="bg-bg-100">
                     <td colSpan="6" className="px-4 py-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl">
