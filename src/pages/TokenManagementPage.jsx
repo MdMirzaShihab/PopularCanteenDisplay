@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTokens } from '../hooks/useTokens';
-import { Hash, Trash2, Clock } from 'lucide-react';
+import { Hash, Trash2, Clock, User } from 'lucide-react';
 import ConfirmDialog from '../components/common/ConfirmDialog';
 import TokenArchiveSection from '../components/token/TokenArchiveSection';
 
@@ -142,6 +142,12 @@ const TokenManagementPage = () => {
                 }`}>
                   {token.number}
                 </div>
+                {token.calledBy && (
+                  <div className="flex items-center gap-1 text-xs text-text-200 mb-1">
+                    <User className="w-3 h-3" />
+                    <span>{token.calledBy}</span>
+                  </div>
+                )}
                 <div className="flex items-center gap-1 text-xs text-text-200">
                   <Clock className="w-3 h-3" />
                   <span>{formatTimestamp(token.updatedAt)}</span>

@@ -1,5 +1,5 @@
 import { format } from 'date-fns';
-import { Hash, Clock } from 'lucide-react';
+import { Hash, Clock, User } from 'lucide-react';
 
 const TokenArchiveGroup = ({ label, entries }) => {
   return (
@@ -28,12 +28,20 @@ const TokenArchiveGroup = ({ label, entries }) => {
               </span>
             </div>
 
-            <div
-              className="flex items-center gap-1.5 text-sm text-text-200"
-              title={format(new Date(entry.updatedAt), 'PPpp')}
-            >
-              <Clock className="w-3.5 h-3.5" />
-              <span>{format(new Date(entry.updatedAt), 'HH:mm')}</span>
+            <div className="flex items-center gap-3">
+              {entry.calledBy && (
+                <div className="flex items-center gap-1.5 text-sm text-text-200">
+                  <User className="w-3.5 h-3.5" />
+                  <span>{entry.calledBy}</span>
+                </div>
+              )}
+              <div
+                className="flex items-center gap-1.5 text-sm text-text-200"
+                title={format(new Date(entry.updatedAt), 'PPpp')}
+              >
+                <Clock className="w-3.5 h-3.5" />
+                <span>{format(new Date(entry.updatedAt), 'HH:mm')}</span>
+              </div>
             </div>
           </div>
         ))}
