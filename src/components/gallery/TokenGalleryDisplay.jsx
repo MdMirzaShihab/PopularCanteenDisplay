@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSocketTokens } from '../../hooks/useSocketTokens';
-import { speakTokenNumber } from '../../utils/speechUtils';
+import { speakTokenNumber, preloadBanglaAudio } from '../../utils/speechUtils';
 import { getCurrentTime, formatTimeDisplay, formatDateDisplay } from '../../utils/timeUtils';
 import { Hash, Clock, Calendar } from 'lucide-react';
+import { hospitalLogo } from '../../assets';
 
 const TokenGalleryDisplay = ({ screen }) => {
-  const { currentToken: servingToken, tokenHistory } = useSocketTokens();
+  const { currentToken: servingToken, tokenHistory, shouldAnnounce, reannounceNumber, clearReannounce } = useSocketTokens();
   const [currentTime, setCurrentTime] = useState(getCurrentTime());
   const [currentDate, setCurrentDate] = useState(formatDateDisplay());
   const prevTokenRef = useRef(null);
@@ -19,11 +20,14 @@ const TokenGalleryDisplay = ({ screen }) => {
     return () => clearInterval(interval);
   }, []);
 
-  // Voice announcement when token changes
+  // Preload Bangla audio clips on mount
+  useEffect(() => { preloadBanglaAudio(); }, []);
+
+  // Voice announcement when token changes (only if not silent)
   useEffect(() => {
     const announceToken = async () => {
       if (servingToken && servingToken.number !== prevTokenRef.current) {
-        if (prevTokenRef.current !== null) {
+        if (shouldAnnounce) {
           try {
             await speakTokenNumber(servingToken.number);
           } catch {
@@ -36,18 +40,47 @@ const TokenGalleryDisplay = ({ screen }) => {
       }
     };
     announceToken();
-  }, [servingToken]);
+  }, [servingToken, shouldAnnounce]);
 
-  const previousTokens = tokenHistory.slice(1);
+  // Re-announce: play voice without changing token
+  useEffect(() => {
+    if (reannounceNumber) {
+      speakTokenNumber(reannounceNumber).catch(() => {});
+      clearReannounce();
+    }
+  }, [reannounceNumber, clearReannounce]);
+
+  const previousTokens = tokenHistory;
 
   return (
     <div className="fixed inset-0 flex flex-col">
       {/* Background Layer */}
       {screen.backgroundType === 'image' && screen.backgroundMedia && (
-        <img src={screen.backgroundMedia} alt="" className="fixed inset-0 w-full h-full object-cover" />
+        <img
+          src={screen.backgroundMedia}
+          alt=""
+          className="fixed inset-0 w-full h-full object-cover"
+          style={{
+            objectPosition: `${screen.backgroundPositionX ?? 50}% ${screen.backgroundPositionY ?? 50}%`,
+            transform: `scale(${screen.backgroundScale ?? 1})`,
+            transformOrigin: `${screen.backgroundPositionX ?? 50}% ${screen.backgroundPositionY ?? 50}%`,
+          }}
+        />
       )}
       {screen.backgroundType === 'video' && screen.backgroundMedia && (
-        <video src={screen.backgroundMedia} autoPlay muted loop playsInline className="fixed inset-0 w-full h-full object-cover" />
+        <video
+          src={screen.backgroundMedia}
+          autoPlay
+          muted
+          loop
+          playsInline
+          className="fixed inset-0 w-full h-full object-cover"
+          style={{
+            objectPosition: `${screen.backgroundPositionX ?? 50}% ${screen.backgroundPositionY ?? 50}%`,
+            transform: `scale(${screen.backgroundScale ?? 1})`,
+            transformOrigin: `${screen.backgroundPositionX ?? 50}% ${screen.backgroundPositionY ?? 50}%`,
+          }}
+        />
       )}
       {screen.backgroundType === 'color' && (
         <div className="fixed inset-0" style={{ backgroundColor: screen.backgroundColor || '#1f2937' }} />
@@ -55,10 +88,7 @@ const TokenGalleryDisplay = ({ screen }) => {
       {!screen.backgroundType && (
         <div className="fixed inset-0" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)' }} />
       )}
-      {/* Overlay for image/video */}
-      {(screen.backgroundType === 'image' || screen.backgroundType === 'video') && (
-        <div className="fixed inset-0 bg-black/50" />
-      )}
+      {/* Overlay removed — client requires clear background (transparency layer 0) */}
 
       {/* Content */}
       <div className="relative z-10 flex flex-col h-full">
@@ -67,42 +97,57 @@ const TokenGalleryDisplay = ({ screen }) => {
         <div
           className="flex-shrink-0"
           style={{
-            background: 'rgba(0,0,0,0.35)',
-            backdropFilter: 'blur(16px)',
-            WebkitBackdropFilter: 'blur(16px)',
             boxShadow: '0 4px 30px rgba(0,0,0,0.3), inset 0 -1px 0 rgba(255,255,255,0.06)'
           }}
         >
-          <div className="px-8 py-5 flex items-center justify-between">
-            {/* Title */}
-            <div>
-              <h1
-                className={`text-3xl xl:text-4xl font-bold tracking-[0.12em] ${screen.titleFont || 'font-heading'}`}
-                style={{ color: screen.titleColor || '#ffffff' }}
-              >
-                {screen.title}
-              </h1>
+          <div className="px-10 py-5 flex items-center justify-between">
+            {/* Logo & Branding */}
+            <div className="flex items-center gap-5">
+              <img
+                src={hospitalLogo}
+                alt="PMCH Logo"
+                className="h-16 w-auto object-contain brightness-0 invert"
+              />
+              <div
+                className="h-12"
+                style={{ width: '1px', background: 'linear-gradient(to bottom, transparent, rgba(255,255,255,0.2), transparent)' }}
+              />
+              <div className="flex flex-col">
+                <span className="text-xl font-bold text-white tracking-wide font-body leading-tight">
+                  Popular Medical College and Hospital
+                </span>
+                <span className="text-sm text-white/40 font-body italic tracking-widest text-right mt-0.5">
+                  We Care for Life
+                </span>
+              </div>
             </div>
+
+            {/* Screen Title */}
+            <h1
+              className={`text-4xl font-bold tracking-[0.15em] ${screen.titleFont || 'font-heading'}`}
+              style={{ color: screen.titleColor || '#ffffff' }}
+            >
+              {screen.title}
+            </h1>
 
             {/* Date & Time */}
             <div
-              className="flex items-center gap-5 px-6 py-3 rounded-2xl"
+              className="flex items-center gap-6 px-7 py-4 rounded-2xl"
               style={{
                 background: 'rgba(255,255,255,0.06)',
                 border: '1px solid rgba(255,255,255,0.08)',
-                backdropFilter: 'blur(8px)'
               }}
             >
-              <div className="flex items-center gap-2.5">
-                <Calendar className="w-4.5 h-4.5 text-white/50" />
-                <span className="text-base xl:text-lg font-medium text-white/80 font-body tracking-wide">
+              <div className="flex items-center gap-3">
+                <Calendar className="w-5 h-5 text-white/40" />
+                <span className="text-lg font-medium text-white/70 font-body tracking-wide">
                   {currentDate}
                 </span>
               </div>
-              <div className="w-px h-7" style={{ background: 'rgba(255,255,255,0.12)' }} />
-              <div className="flex items-center gap-2.5">
-                <Clock className="w-4.5 h-4.5 text-white/50" />
-                <span className="text-lg xl:text-xl font-bold text-white/90 font-heading tracking-wider">
+              <div className="w-px h-8" style={{ background: 'rgba(255,255,255,0.12)' }} />
+              <div className="flex items-center gap-3">
+                <Clock className="w-5 h-5 text-white/40" />
+                <span className="text-2xl font-bold text-white/90 font-heading tracking-wider">
                   {formatTimeDisplay(currentTime)}
                 </span>
               </div>
@@ -111,48 +156,50 @@ const TokenGalleryDisplay = ({ screen }) => {
         </div>
 
         {/* Main Token Area */}
-        <div className="flex-1 flex flex-col items-center justify-center px-8">
+        <div className="flex-1 flex flex-col items-center justify-center px-8 -mt-4">
           {servingToken ? (
             <>
               {/* NOW SERVING Label */}
-              <div className="mb-6">
-                <div className="flex items-center gap-3">
-                  <div className="h-[1px] w-12 xl:w-20" style={{ background: 'linear-gradient(to right, transparent, rgba(250,204,21,0.4))' }} />
-                  <span className="text-xl xl:text-2xl font-bold text-white/60 uppercase tracking-[0.3em] font-heading">
+              <div className="mb-4">
+                <div className="flex items-center gap-5">
+                  <div className="h-[2px] w-20" style={{ background: 'linear-gradient(to right, transparent, rgba(250,204,21,0.5))' }} />
+                  <span
+                    className="text-4xl font-bold uppercase tracking-[0.35em] font-heading"
+                    style={{ color: 'rgba(250,204,21,0.7)' }}
+                  >
                     Now Serving
                   </span>
-                  <div className="h-[1px] w-12 xl:w-20" style={{ background: 'linear-gradient(to left, transparent, rgba(250,204,21,0.4))' }} />
+                  <div className="h-[2px] w-20" style={{ background: 'linear-gradient(to left, transparent, rgba(250,204,21,0.5))' }} />
                 </div>
               </div>
 
-              {/* Token Number Card */}
-              <div className="relative mb-8">
-                {/* Glow */}
+              {/* Token Number */}
+              <div className="relative mb-4">
+                {/* Ambient glow */}
                 <div
-                  className="absolute -inset-12 rounded-full animate-pulse"
+                  className="absolute -inset-16 animate-pulse"
                   style={{
-                    background: 'radial-gradient(ellipse, rgba(250,204,21,0.18) 0%, transparent 70%)',
-                    filter: 'blur(50px)'
+                    background: 'radial-gradient(ellipse, rgba(250,204,21,0.15) 0%, transparent 70%)',
                   }}
                 />
                 <div
-                  className="relative px-28 xl:px-40 py-14 xl:py-20"
+                  className="relative"
                   style={{
-                    background: 'linear-gradient(145deg, rgba(250,204,21,0.12) 0%, rgba(251,146,60,0.08) 100%)',
-                    borderRadius: '3rem',
+                    padding: '2rem 5rem',
+                    background: 'linear-gradient(145deg, rgba(250,204,21,0.1) 0%, rgba(251,146,60,0.06) 100%)',
+                    borderRadius: '2.5rem',
                     border: '2px solid rgba(250,204,21,0.2)',
-                    boxShadow: '0 0 80px rgba(250,204,21,0.1), inset 0 1px 0 rgba(255,255,255,0.06)',
-                    backdropFilter: 'blur(20px)',
-                    WebkitBackdropFilter: 'blur(20px)'
+                    boxShadow: '0 0 100px rgba(250,204,21,0.08), inset 0 1px 0 rgba(255,255,255,0.05)',
                   }}
                 >
                   <div
-                    className="text-[14rem] xl:text-[20rem] font-black leading-none text-center font-heading"
+                    className="font-black leading-none text-center font-heading"
                     style={{
+                      fontSize: 'clamp(12rem, 28vw, 22rem)',
                       background: 'linear-gradient(180deg, #fde68a 0%, #facc15 30%, #f59e0b 70%, #d97706 100%)',
                       WebkitBackgroundClip: 'text',
                       WebkitTextFillColor: 'transparent',
-                      filter: 'drop-shadow(0 4px 12px rgba(250,204,21,0.3))'
+                      filter: 'drop-shadow(0 6px 20px rgba(250,204,21,0.3))'
                     }}
                   >
                     {servingToken.number}
@@ -161,25 +208,28 @@ const TokenGalleryDisplay = ({ screen }) => {
               </div>
 
               {/* Collect message */}
-              <p className="text-xl xl:text-2xl text-white/40 font-body tracking-wide">
+              <p
+                className="text-3xl text-white/35 font-body tracking-widest uppercase"
+                style={{ letterSpacing: '0.2em' }}
+              >
                 Please collect your order
               </p>
             </>
           ) : (
             <div className="text-center">
               <div
-                className="w-28 h-28 xl:w-36 xl:h-36 rounded-3xl mx-auto mb-8 flex items-center justify-center"
+                className="w-36 h-36 rounded-3xl mx-auto mb-8 flex items-center justify-center"
                 style={{
                   background: 'rgba(255,255,255,0.03)',
                   border: '1px solid rgba(255,255,255,0.06)'
                 }}
               >
-                <Hash className="w-14 h-14 xl:w-18 xl:h-18 text-white/15" />
+                <Hash className="w-20 h-20 text-white/15" />
               </div>
-              <p className="text-3xl xl:text-4xl font-semibold text-white/30 font-heading tracking-wider">
+              <p className="text-5xl font-semibold text-white/30 font-heading tracking-wider">
                 No Active Token
               </p>
-              <p className="text-lg mt-3 text-white/15 font-body">
+              <p className="text-2xl mt-4 text-white/15 font-body">
                 Waiting for next customer
               </p>
             </div>
@@ -190,31 +240,28 @@ const TokenGalleryDisplay = ({ screen }) => {
         <div
           className="flex-shrink-0"
           style={{
-            background: 'rgba(0,0,0,0.4)',
-            backdropFilter: 'blur(16px)',
-            WebkitBackdropFilter: 'blur(16px)',
             boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)'
           }}
         >
           {/* Label */}
-          <div className="flex items-center gap-3 px-8 pt-4 pb-2">
-            <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-4 px-10 pt-4 pb-2">
+            <div className="flex items-center gap-3">
               <div
-                className="w-2 h-2 rounded-full animate-pulse"
-                style={{ backgroundColor: '#facc15', boxShadow: '0 0 8px rgba(250,204,21,0.4)' }}
+                className="w-2.5 h-2.5 rounded-full animate-pulse"
+                style={{ backgroundColor: '#facc15', boxShadow: '0 0 10px rgba(250,204,21,0.5)' }}
               />
-              <span className="text-xs font-bold uppercase tracking-[0.2em] font-heading" style={{ color: 'rgba(250,204,21,0.7)' }}>
+              <span className="text-sm font-bold uppercase tracking-[0.2em] font-heading" style={{ color: 'rgba(250,204,21,0.7)' }}>
                 Previous Tokens
               </span>
             </div>
             <div className="flex-1 h-px" style={{ background: 'linear-gradient(to right, rgba(250,204,21,0.15), transparent)' }} />
-            <span className="text-xs font-body" style={{ color: 'rgba(255,255,255,0.25)' }}>
+            <span className="text-sm font-body" style={{ color: 'rgba(255,255,255,0.25)' }}>
               {previousTokens.length > 0 ? `${previousTokens.length} called` : 'Waiting'}
             </span>
           </div>
 
           {/* Token Chips */}
-          <div className="px-6 pb-4 pt-1">
+          <div className="px-8 pb-5 pt-1">
             {previousTokens.length > 0 ? (
               <div className="flex items-center gap-3 overflow-x-auto scrollbar-hide">
                 {previousTokens.map((token, index) => {
@@ -223,9 +270,9 @@ const TokenGalleryDisplay = ({ screen }) => {
                   return (
                     <div
                       key={token.updatedAt}
-                      className="flex-shrink-0 flex items-center gap-2 rounded-xl transition-all duration-300"
+                      className="flex-shrink-0 flex items-center gap-2.5 rounded-xl"
                       style={{
-                        padding: isFirst ? '10px 20px' : '8px 16px',
+                        padding: isFirst ? '10px 22px' : '8px 18px',
                         background: isFirst
                           ? 'rgba(250,204,21,0.1)'
                           : isSecond
@@ -238,11 +285,10 @@ const TokenGalleryDisplay = ({ screen }) => {
                               ? 'rgba(255,255,255,0.1)'
                               : 'rgba(255,255,255,0.05)'
                         }`,
-                        backdropFilter: 'blur(8px)'
                       }}
                     >
                       <Hash
-                        className="w-3.5 h-3.5"
+                        className="w-4 h-4"
                         style={{
                           color: isFirst ? 'rgba(250,204,21,0.5)' : 'rgba(255,255,255,0.2)'
                         }}
@@ -250,7 +296,7 @@ const TokenGalleryDisplay = ({ screen }) => {
                       <span
                         className="font-bold font-heading tracking-wide"
                         style={{
-                          fontSize: isFirst ? '1.5rem' : isSecond ? '1.25rem' : '1.1rem',
+                          fontSize: isFirst ? '1.6rem' : isSecond ? '1.4rem' : '1.25rem',
                           color: isFirst
                             ? 'rgba(254,240,138,0.9)'
                             : isSecond
@@ -265,8 +311,8 @@ const TokenGalleryDisplay = ({ screen }) => {
                 })}
               </div>
             ) : (
-              <div className="flex items-center justify-center py-2">
-                <span className="text-sm italic font-body" style={{ color: 'rgba(255,255,255,0.15)' }}>
+              <div className="flex items-center justify-center py-3">
+                <span className="text-lg italic font-body" style={{ color: 'rgba(255,255,255,0.15)' }}>
                   No previous tokens yet
                 </span>
               </div>

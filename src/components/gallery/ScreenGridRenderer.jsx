@@ -2,6 +2,12 @@ import { memo } from 'react';
 import { getLayoutTheme } from './themes/layoutRegistry';
 import SectionRenderer from './SectionRenderer';
 
+const getCropStyle = (screen) => ({
+  objectPosition: `${screen.backgroundPositionX ?? 50}% ${screen.backgroundPositionY ?? 50}%`,
+  transform: `scale(${screen.backgroundScale ?? 1})`,
+  transformOrigin: `${screen.backgroundPositionX ?? 50}% ${screen.backgroundPositionY ?? 50}%`,
+});
+
 const ScreenGridRenderer = memo(({ screen }) => {
   const layout = getLayoutTheme(screen.layoutTheme);
 
@@ -18,12 +24,14 @@ const ScreenGridRenderer = memo(({ screen }) => {
           muted
           playsInline
           className="absolute inset-0 w-full h-full object-cover"
+          style={getCropStyle(screen)}
         />
       ) : (
         <img
           src={screen.backgroundMedia}
           className="absolute inset-0 w-full h-full object-cover"
           alt=""
+          style={getCropStyle(screen)}
         />
       )}
 
