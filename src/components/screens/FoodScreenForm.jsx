@@ -2,10 +2,11 @@ import { useState } from 'react';
 import { useMenus } from '../../hooks/useMenus';
 import { useNotification } from '../../context/NotificationContext';
 import { validateFoodScreen } from '../../utils/validators';
-import { buildEmptySections } from '../gallery/themes/layoutRegistry';
+import { buildEmptySections, LAYOUT_THEMES } from '../gallery/themes/layoutRegistry';
 import LayoutPicker from './LayoutPicker';
 import SectionConfigTab from './SectionConfigTab';
 import ImageUpload from '../common/ImageUpload';
+import BackgroundCropTool from '../common/BackgroundCropTool';
 import { Layout, Layers, Settings, FolderOpen, Upload } from 'lucide-react';
 import { getMediaByType } from '../../assets/media';
 
@@ -37,6 +38,9 @@ const FoodScreenForm = ({ screen, onSubmit, onCancel }) => {
     backgroundType: screen?.backgroundType || 'color',
     backgroundMedia: screen?.backgroundMedia || null,
     backgroundColor: screen?.backgroundColor || '#1a1a2e',
+    backgroundPositionX: screen?.backgroundPositionX ?? 50,
+    backgroundPositionY: screen?.backgroundPositionY ?? 50,
+    backgroundScale: screen?.backgroundScale ?? 1,
     sections: screen?.sections || buildEmptySections('layout-1'),
     gap: screen?.gap || 8
   });
@@ -54,10 +58,15 @@ const FoodScreenForm = ({ screen, onSubmit, onCancel }) => {
   };
 
   const handleLayoutChange = (newLayoutId) => {
+    const oldOrientation = LAYOUT_THEMES[formData.layoutTheme]?.orientation;
+    const newOrientation = LAYOUT_THEMES[newLayoutId]?.orientation;
+    const orientationChanged = oldOrientation !== newOrientation;
+
     setFormData(prev => ({
       ...prev,
       layoutTheme: newLayoutId,
-      sections: buildEmptySections(newLayoutId)
+      sections: buildEmptySections(newLayoutId),
+      ...(orientationChanged ? { backgroundPositionX: 50, backgroundPositionY: 50, backgroundScale: 1 } : {}),
     }));
     setActiveSectionIdx(0);
     setFormErrors(prev => ({ ...prev, layoutTheme: undefined, sections: undefined, sectionCount: undefined }));
@@ -85,7 +94,10 @@ const FoodScreenForm = ({ screen, onSubmit, onCancel }) => {
       ...prev,
       backgroundType: type,
       backgroundMedia: type === 'color' ? null : prev.backgroundMedia,
-      backgroundColor: type === 'color' ? prev.backgroundColor : prev.backgroundColor
+      backgroundColor: type === 'color' ? prev.backgroundColor : prev.backgroundColor,
+      backgroundPositionX: 50,
+      backgroundPositionY: 50,
+      backgroundScale: 1,
     }));
     setFormErrors(prev => ({ ...prev, backgroundMedia: undefined, backgroundColor: undefined }));
   };
@@ -227,7 +239,7 @@ const FoodScreenForm = ({ screen, onSubmit, onCancel }) => {
               <SectionConfigTab
                 section={formData.sections[activeSectionIdx]}
                 onChange={handleSectionChange}
-                menus={menus}
+                menus={menus.filter(m => m.isActive !== false)}
               />
             )}
           </div>
@@ -303,7 +315,13 @@ const FoodScreenForm = ({ screen, onSubmit, onCancel }) => {
                           <button
                             key={item.id}
                             type="button"
-                            onClick={() => setFormData(prev => ({ ...prev, backgroundMedia: item.src }))}
+                            onClick={() => setFormData(prev => ({
+                              ...prev,
+                              backgroundMedia: item.src,
+                              backgroundPositionX: 50,
+                              backgroundPositionY: 50,
+                              backgroundScale: 1,
+                            }))}
                             className={`relative rounded-lg overflow-hidden border-2 transition-all ${
                               isSelected
                                 ? 'border-primary-100 ring-2 ring-primary-100/30'
@@ -340,7 +358,13 @@ const FoodScreenForm = ({ screen, onSubmit, onCancel }) => {
                 {bgMediaSource === 'upload' && (
                   <ImageUpload
                     value={formData.backgroundMedia}
-                    onChange={(url) => setFormData(prev => ({ ...prev, backgroundMedia: url }))}
+                    onChange={(url) => setFormData(prev => ({
+                      ...prev,
+                      backgroundMedia: url,
+                      backgroundPositionX: 50,
+                      backgroundPositionY: 50,
+                      backgroundScale: 1,
+                    }))}
                     onError={showError}
                     accept={formData.backgroundType === 'image' ? 'image/*' : 'video/*'}
                     label={`Background ${formData.backgroundType === 'image' ? 'Image' : 'Video'}`}
@@ -348,18 +372,24 @@ const FoodScreenForm = ({ screen, onSubmit, onCancel }) => {
                   />
                 )}
 
-                {/* Preview */}
+                {/* Background Crop Tool */}
                 {formData.backgroundMedia && (
-                  <div>
-                    <label className="block text-sm font-medium text-text-200 mb-1">Preview</label>
-                    <div className="rounded-lg overflow-hidden border border-bg-300 max-h-40">
-                      {formData.backgroundType === 'image' ? (
-                        <img src={formData.backgroundMedia} alt="Background" className="w-full max-h-40 object-cover" />
-                      ) : (
-                        <video src={formData.backgroundMedia} muted autoPlay loop className="w-full max-h-40 object-cover" />
-                      )}
-                    </div>
-                  </div>
+                  <BackgroundCropTool
+                    mediaUrl={formData.backgroundMedia}
+                    mediaType={formData.backgroundType}
+                    orientation={LAYOUT_THEMES[formData.layoutTheme]?.orientation || 'landscape'}
+                    positionX={formData.backgroundPositionX}
+                    positionY={formData.backgroundPositionY}
+                    scale={formData.backgroundScale}
+                    onChange={({ positionX, positionY, scale }) =>
+                      setFormData(prev => ({
+                        ...prev,
+                        backgroundPositionX: positionX,
+                        backgroundPositionY: positionY,
+                        backgroundScale: scale,
+                      }))
+                    }
+                  />
                 )}
               </div>
             )}
