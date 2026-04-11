@@ -4,6 +4,7 @@ import { validateTokenScreen } from '../../utils/validators';
 import ImageUpload from '../common/ImageUpload';
 import { Image, Video, Palette, FolderOpen, Upload } from 'lucide-react';
 import { getMediaByType } from '../../assets/media';
+import BackgroundCropTool from '../common/BackgroundCropTool';
 
 const COLOR_PRESETS = ['#1f2937', '#0f172a', '#1a2e1a', '#2d1b1b', '#000000', '#1e3a5f'];
 
@@ -78,6 +79,9 @@ const TokenScreenForm = ({ screen, onSubmit, onCancel }) => {
     backgroundType: 'color',
     backgroundMedia: null,
     backgroundColor: '#1f2937',
+    backgroundPositionX: 50,
+    backgroundPositionY: 50,
+    backgroundScale: 1,
   });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -92,12 +96,16 @@ const TokenScreenForm = ({ screen, onSubmit, onCancel }) => {
         backgroundType: screen.backgroundType || 'color',
         backgroundMedia: screen.backgroundMedia || null,
         backgroundColor: screen.backgroundColor || '#1f2937',
+        backgroundPositionX: screen.backgroundPositionX ?? 50,
+        backgroundPositionY: screen.backgroundPositionY ?? 50,
+        backgroundScale: screen.backgroundScale ?? 1,
       });
     } else {
       setFormData({
         title: '', screenId: '',
         titleFont: 'font-heading', titleColor: '#ffffff',
-        backgroundType: 'color', backgroundMedia: null, backgroundColor: '#1f2937'
+        backgroundType: 'color', backgroundMedia: null, backgroundColor: '#1f2937',
+        backgroundPositionX: 50, backgroundPositionY: 50, backgroundScale: 1,
       });
       setErrors({});
     }
@@ -120,6 +128,9 @@ const TokenScreenForm = ({ screen, onSubmit, onCancel }) => {
       } else {
         updated.backgroundMedia = null;
       }
+      updated.backgroundPositionX = 50;
+      updated.backgroundPositionY = 50;
+      updated.backgroundScale = 1;
       return updated;
     });
     setMediaSource('gallery');
@@ -128,8 +139,14 @@ const TokenScreenForm = ({ screen, onSubmit, onCancel }) => {
     if (errors.backgroundColor) setErrors(prev => ({ ...prev, backgroundColor: null }));
   };
 
-  const handleBackgroundMediaChange = (base64) => {
-    setFormData(prev => ({ ...prev, backgroundMedia: base64 }));
+  const handleBackgroundMediaChange = (media) => {
+    setFormData(prev => ({
+      ...prev,
+      backgroundMedia: media,
+      backgroundPositionX: 50,
+      backgroundPositionY: 50,
+      backgroundScale: 1,
+    }));
     if (errors.backgroundMedia) setErrors(prev => ({ ...prev, backgroundMedia: null }));
   };
 
@@ -380,12 +397,22 @@ const TokenScreenForm = ({ screen, onSubmit, onCancel }) => {
               )}
 
               {formData.backgroundMedia && (
-                <div className="mt-2">
-                  <label className="block text-sm font-medium text-text-200 mb-1">Preview</label>
-                  <div className="rounded-lg overflow-hidden border border-bg-300 max-h-40">
-                    <img src={formData.backgroundMedia} alt="Background" className="w-full max-h-40 object-cover" />
-                  </div>
-                </div>
+                <BackgroundCropTool
+                  mediaUrl={formData.backgroundMedia}
+                  mediaType="image"
+                  orientation="landscape"
+                  positionX={formData.backgroundPositionX}
+                  positionY={formData.backgroundPositionY}
+                  scale={formData.backgroundScale}
+                  onChange={({ positionX, positionY, scale }) =>
+                    setFormData(prev => ({
+                      ...prev,
+                      backgroundPositionX: positionX,
+                      backgroundPositionY: positionY,
+                      backgroundScale: scale,
+                    }))
+                  }
+                />
               )}
 
               {errors.backgroundMedia && <p className="mt-1 text-sm text-accent-200">{errors.backgroundMedia}</p>}
@@ -450,12 +477,22 @@ const TokenScreenForm = ({ screen, onSubmit, onCancel }) => {
               )}
 
               {formData.backgroundMedia && (
-                <div className="mt-2">
-                  <label className="block text-sm font-medium text-text-200 mb-1">Preview</label>
-                  <div className="rounded-lg overflow-hidden border border-bg-300 max-h-40">
-                    <video src={formData.backgroundMedia} muted autoPlay loop className="w-full max-h-40 object-cover" />
-                  </div>
-                </div>
+                <BackgroundCropTool
+                  mediaUrl={formData.backgroundMedia}
+                  mediaType="video"
+                  orientation="landscape"
+                  positionX={formData.backgroundPositionX}
+                  positionY={formData.backgroundPositionY}
+                  scale={formData.backgroundScale}
+                  onChange={({ positionX, positionY, scale }) =>
+                    setFormData(prev => ({
+                      ...prev,
+                      backgroundPositionX: positionX,
+                      backgroundPositionY: positionY,
+                      backgroundScale: scale,
+                    }))
+                  }
+                />
               )}
 
               {errors.backgroundMedia && <p className="mt-1 text-sm text-accent-200">{errors.backgroundMedia}</p>}
