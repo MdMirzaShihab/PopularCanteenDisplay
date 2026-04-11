@@ -5,6 +5,12 @@ import { getCurrentTime, formatTimeDisplay, formatDateDisplay } from '../../util
 import { Hash, Clock, Calendar } from 'lucide-react';
 import { hospitalLogo } from '../../assets';
 
+const getCropStyle = (screen) => ({
+  objectPosition: `${screen.backgroundPositionX ?? 50}% ${screen.backgroundPositionY ?? 50}%`,
+  transform: `scale(${screen.backgroundScale ?? 1})`,
+  transformOrigin: `${screen.backgroundPositionX ?? 50}% ${screen.backgroundPositionY ?? 50}%`,
+});
+
 const TokenGalleryDisplay = ({ screen }) => {
   const { currentToken: servingToken, tokenHistory, shouldAnnounce, reannounceNumber, clearReannounce } = useSocketTokens();
   const [currentTime, setCurrentTime] = useState(getCurrentTime());
@@ -53,18 +59,14 @@ const TokenGalleryDisplay = ({ screen }) => {
   const previousTokens = tokenHistory;
 
   return (
-    <div className="fixed inset-0 flex flex-col">
+    <div className="fixed inset-0 flex flex-col overflow-hidden">
       {/* Background Layer */}
       {screen.backgroundType === 'image' && screen.backgroundMedia && (
         <img
           src={screen.backgroundMedia}
           alt=""
           className="fixed inset-0 w-full h-full object-cover"
-          style={{
-            objectPosition: `${screen.backgroundPositionX ?? 50}% ${screen.backgroundPositionY ?? 50}%`,
-            transform: `scale(${screen.backgroundScale ?? 1})`,
-            transformOrigin: `${screen.backgroundPositionX ?? 50}% ${screen.backgroundPositionY ?? 50}%`,
-          }}
+          style={getCropStyle(screen)}
         />
       )}
       {screen.backgroundType === 'video' && screen.backgroundMedia && (
@@ -75,11 +77,7 @@ const TokenGalleryDisplay = ({ screen }) => {
           loop
           playsInline
           className="fixed inset-0 w-full h-full object-cover"
-          style={{
-            objectPosition: `${screen.backgroundPositionX ?? 50}% ${screen.backgroundPositionY ?? 50}%`,
-            transform: `scale(${screen.backgroundScale ?? 1})`,
-            transformOrigin: `${screen.backgroundPositionX ?? 50}% ${screen.backgroundPositionY ?? 50}%`,
-          }}
+          style={getCropStyle(screen)}
         />
       )}
       {screen.backgroundType === 'color' && (
