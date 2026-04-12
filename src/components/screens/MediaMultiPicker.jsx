@@ -21,7 +21,7 @@ const MediaMultiPicker = ({ value = [], onChange, maxItems = MAX_MEDIA_ITEMS }) 
   useEffect(() => {
     const fetchGallery = async () => {
       try {
-        const result = await getMedia({ limit: 100 });
+        const result = await getMedia({ limit: 100, folder: 'sections' });
         setAllMedia(result.data);
       } catch (err) {
         console.error('Failed to load media gallery:', err);
@@ -250,7 +250,7 @@ const MediaMultiPicker = ({ value = [], onChange, maxItems = MAX_MEDIA_ITEMS }) 
               onError={handleUploadError}
               accept="image/*,video/*"
               label="Upload Image or Video"
-              folder="media"
+              folder="sections"
             />
           )}
         </div>

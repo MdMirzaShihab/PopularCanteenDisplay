@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Upload, X, Image as ImageIcon, Video, Loader2 } from 'lucide-react';
 import { validateMediaFile, isVideoUrl } from '../../utils/fileUtils';
-import { uploadFileAndCreateMedia } from '../../api/upload.api';
+import { uploadFile, uploadFileAndCreateMedia } from '../../api/upload.api';
 import { deleteMedia } from '../../api/media.api';
 
 const ImageUpload = ({ value, onChange, onError, accept = 'image/*,video/*', label = 'Upload Image/Video', folder = 'items' }) => {
@@ -75,9 +75,17 @@ const ImageUpload = ({ value, onChange, onError, accept = 'image/*,video/*', lab
         await tryDeleteSessionUpload(sessionUploadRef.current);
       }
 
-      const mediaDoc = await uploadFileAndCreateMedia(file, folder);
-      sessionUploadRef.current = mediaDoc._id;
-      onChange(mediaDoc);
+      if (folder === 'items') {
+        // Item images: upload only, no Media record
+        const fileUrl = await uploadFile(file, folder);
+        sessionUploadRef.current = null;
+        onChange(fileUrl);
+      } else {
+        // Screen media: create Media record for gallery management
+        const mediaDoc = await uploadFileAndCreateMedia(file, folder);
+        sessionUploadRef.current = mediaDoc._id;
+        onChange(mediaDoc);
+      }
     } catch (error) {
       console.error('Error uploading file:', error);
       setPreview(value?.url || value || null);

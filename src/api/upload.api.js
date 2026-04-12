@@ -44,6 +44,7 @@ export const uploadFileAndCreateMedia = async (file, folder = 'media') => {
   const mediaDoc = await createMedia({
     name: file.name.replace(/\.[^.]+$/, ''),
     type: file.type.startsWith('video/') ? 'video' : 'image',
+    folder,
     url: fileUrl,
     key,
     mimeType: file.type,

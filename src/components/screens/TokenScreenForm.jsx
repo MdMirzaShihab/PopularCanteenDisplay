@@ -94,7 +94,7 @@ const TokenScreenForm = ({ screen, onSubmit, onCancel }) => {
   useEffect(() => {
     const fetchGallery = async () => {
       try {
-        const result = await getMedia({ limit: 100 });
+        const result = await getMedia({ limit: 100, folder: 'backgrounds' });
         setGalleryMedia(result.data);
       } catch (err) {
         console.error('Failed to load media gallery:', err);
@@ -451,7 +451,7 @@ const TokenScreenForm = ({ screen, onSubmit, onCancel }) => {
                     onError={showError}
                     accept="image/*"
                     label="Upload Background Image"
-                    folder="media"
+                    folder="backgrounds"
                   />
                 </>
               )}
@@ -534,7 +534,7 @@ const TokenScreenForm = ({ screen, onSubmit, onCancel }) => {
                     onError={showError}
                     accept="video/*"
                     label="Upload Background Video"
-                    folder="media"
+                    folder="backgrounds"
                   />
                 </>
               )}

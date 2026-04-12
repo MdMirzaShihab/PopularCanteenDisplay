@@ -34,7 +34,7 @@ const FoodScreenForm = forwardRef(({ screen, activeTab, onTabChange, onSubmit, o
   useEffect(() => {
     const fetchGallery = async () => {
       try {
-        const result = await getMedia({ limit: 100 });
+        const result = await getMedia({ limit: 100, folder: 'backgrounds' });
         setGalleryMedia(result.data);
       } catch (err) {
         console.error('Failed to load media gallery:', err);
@@ -346,7 +346,7 @@ const FoodScreenForm = forwardRef(({ screen, activeTab, onTabChange, onSubmit, o
                   onError={showError}
                   accept={formData.backgroundType === 'image' ? 'image/*' : 'video/*'}
                   label={`Background ${formData.backgroundType === 'image' ? 'Image' : 'Video'}`}
-                  folder="media" />
+                  folder="backgrounds" />
               )}
 
               {formData.backgroundMedia && (
