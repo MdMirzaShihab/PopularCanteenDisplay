@@ -1,5 +1,5 @@
-// Text-to-Speech utility functions using Web Speech API
-// Professional airport-style voice announcements
+// Text-to-Speech utility functions using Web Speech API + pre-recorded Bangla audio
+// Bilingual announcements: English (Web Speech API) + Bangla (native audio clips)
 
 /**
  * Check if the browser supports the Web Speech API
@@ -9,72 +9,172 @@ export const isSpeechSupported = () => {
   return 'speechSynthesis' in window;
 };
 
-/**
- * Select the best female voice for professional announcements
- * Prioritizes clear, natural-sounding English female voices
- * @param {Array} voices - Array of available SpeechSynthesisVoice objects
- * @returns {SpeechSynthesisVoice|null} Selected voice or null
- */
-const selectBestFemaleVoice = (voices) => {
-  if (!voices || voices.length === 0) return null;
+// ---------------------------------------------------------------------------
+// English helpers
+// ---------------------------------------------------------------------------
 
-  // Priority list of preferred female voices (airport/professional quality)
-  const preferredVoices = [
-    // Google voices (best quality)
-    'Google UK English Female',
-    'Google US English Female',
+const digitToEnglish = {
+  '0': 'zero', '1': 'one', '2': 'two', '3': 'three', '4': 'four',
+  '5': 'five', '6': 'six', '7': 'seven', '8': 'eight', '9': 'nine',
+};
 
-    // Microsoft voices (Windows)
-    'Microsoft Zira Desktop',
-    'Microsoft Zira',
+/** Convert a token string to digit-by-digit English words */
+const tokenToEnglishWords = (token) =>
+  String(token).split('').map(ch => digitToEnglish[ch] || ch).join(', ');
 
-    // Apple voices (macOS/iOS)
-    'Samantha',
-    'Karen',
-    'Victoria',
+// ---------------------------------------------------------------------------
+// Bangla audio playback
+// ---------------------------------------------------------------------------
 
-    // Other quality voices
-    'Fiona',
-    'Moira',
-    'Tessa'
-  ];
+const BANGLA_AUDIO_BASE = '/audio/bangla';
 
-  // First, try to find exact match from preferred list
-  for (const preferredName of preferredVoices) {
-    const voice = voices.find(v => v.name === preferredName);
-    if (voice) {
-      return voice;
-    }
-  }
+/** AudioBuffer cache — decoded PCM data ready for instant playback */
+const bufferCache = new Map();
+let audioCtx = null;
 
-  // Second, find any English female voice
-  const femaleVoice = voices.find(v =>
-    v.lang.startsWith('en') &&
-    (v.name.toLowerCase().includes('female') ||
-     v.name.toLowerCase().includes('woman') ||
-     // Known female voice names
-     ['samantha', 'karen', 'victoria', 'fiona', 'moira', 'tessa', 'zira', 'hazel']
-       .some(name => v.name.toLowerCase().includes(name)))
-  );
+const getAudioContext = () => {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+};
 
-  if (femaleVoice) {
-    return femaleVoice;
-  }
+/** Fetch and decode an audio clip into an AudioBuffer */
+const loadBuffer = async (filename) => {
+  const url = `${BANGLA_AUDIO_BASE}/${filename}.mp3`;
+  if (bufferCache.has(url)) return bufferCache.get(url);
 
-  // Third, any English voice
-  const englishVoice = voices.find(v => v.lang.startsWith('en'));
-  if (englishVoice) {
-    return englishVoice;
-  }
-
-  // Fallback to first available voice
-  return voices[0] || null;
+  const response = await fetch(url);
+  const arrayBuffer = await response.arrayBuffer();
+  const audioBuffer = await getAudioContext().decodeAudioData(arrayBuffer);
+  bufferCache.set(url, audioBuffer);
+  return audioBuffer;
 };
 
 /**
- * Wait for voices to load (they load asynchronously)
- * @returns {Promise<Array>} Promise that resolves with available voices
+ * Break a number (0–99999) into audio clip filenames.
+ * e.g. 1005 → ['1', 'hazar', '5']
+ * e.g. 253  → ['2', 'sho', '53']
+ * e.g. 42   → ['42']
  */
+const numberToClipSequence = (n) => {
+  if (n <= 99) return [String(n)];
+
+  const clips = [];
+
+  if (n >= 1000) {
+    clips.push(String(Math.floor(n / 1000)), 'hazar');
+    n %= 1000;
+  }
+
+  if (n >= 100) {
+    clips.push(String(Math.floor(n / 100)), 'sho');
+    n %= 100;
+  }
+
+  if (n > 0) {
+    clips.push(String(n));
+  }
+
+  return clips;
+};
+
+/**
+ * Build the sequence of audio clip filenames for a token.
+ * Pure numbers → proper Bangla number composition.
+ * Alphanumeric → digit-by-digit clips.
+ */
+const tokenToClipSequence = (token) => {
+  const str = String(token);
+  const num = Number(str);
+
+  // Pure numeric token
+  if (/^\d+$/.test(str) && num >= 0 && num <= 99999) {
+    return numberToClipSequence(num);
+  }
+
+  // Alphanumeric — digit-by-digit for number chars, skip letters
+  return str.split('')
+    .filter(ch => /\d/.test(ch))
+    .map(ch => ch);
+};
+
+/**
+ * Concatenate multiple AudioBuffers into one continuous buffer.
+ * Plays as a single seamless sound — no gaps between words.
+ */
+const concatenateBuffers = (buffers) => {
+  const ctx = getAudioContext();
+  const sampleRate = buffers[0].sampleRate;
+  const totalLength = buffers.reduce((sum, b) => sum + b.length, 0);
+  const channels = buffers[0].numberOfChannels;
+  const merged = ctx.createBuffer(channels, totalLength, sampleRate);
+
+  for (let ch = 0; ch < channels; ch++) {
+    const output = merged.getChannelData(ch);
+    let offset = 0;
+    for (const buf of buffers) {
+      output.set(buf.getChannelData(ch), offset);
+      offset += buf.length;
+    }
+  }
+  return merged;
+};
+
+/** Load all clips, merge into one buffer, and play as a single continuous sound */
+const playBanglaSequence = async (tokenNumber) => {
+  const clips = tokenToClipSequence(tokenNumber);
+  if (clips.length === 0) return;
+
+  // Load all clips in parallel
+  const buffers = await Promise.all(clips.map(c => loadBuffer(c)));
+
+  // Merge into one seamless audio buffer
+  const merged = concatenateBuffers(buffers);
+
+  // Play the merged buffer
+  const ctx = getAudioContext();
+  const source = ctx.createBufferSource();
+  source.buffer = merged;
+  source.connect(ctx.destination);
+
+  return new Promise((resolve) => {
+    source.onended = resolve;
+    source.start(0);
+  });
+};
+
+// ---------------------------------------------------------------------------
+// English voice selection
+// ---------------------------------------------------------------------------
+
+const selectEnglishVoice = (voices) => {
+  if (!voices || voices.length === 0) return null;
+
+  const preferred = [
+    'Google UK English Female', 'Google US English Female',
+    'Microsoft Zira Desktop', 'Microsoft Zira',
+    'Samantha', 'Karen', 'Victoria', 'Fiona', 'Moira', 'Tessa',
+  ];
+
+  for (const name of preferred) {
+    const v = voices.find(v => v.name === name);
+    if (v) return v;
+  }
+
+  const female = voices.find(v =>
+    v.lang.startsWith('en') &&
+    (v.name.toLowerCase().includes('female') ||
+     ['samantha', 'karen', 'victoria', 'fiona', 'moira', 'tessa', 'zira', 'hazel']
+       .some(n => v.name.toLowerCase().includes(n)))
+  );
+  if (female) return female;
+
+  return voices.find(v => v.lang.startsWith('en')) || null;
+};
+
+// ---------------------------------------------------------------------------
+// Speech helpers
+// ---------------------------------------------------------------------------
+
 const waitForVoices = () => {
   return new Promise((resolve) => {
     const voices = window.speechSynthesis.getVoices();
@@ -83,7 +183,6 @@ const waitForVoices = () => {
       return;
     }
 
-    // Voices not loaded yet, wait for them
     const voicesChanged = () => {
       const loadedVoices = window.speechSynthesis.getVoices();
       if (loadedVoices.length > 0) {
@@ -91,10 +190,8 @@ const waitForVoices = () => {
         resolve(loadedVoices);
       }
     };
-
     window.speechSynthesis.addEventListener('voiceschanged', voicesChanged);
 
-    // Timeout fallback after 2 seconds
     setTimeout(() => {
       window.speechSynthesis.removeEventListener('voiceschanged', voicesChanged);
       resolve(window.speechSynthesis.getVoices());
@@ -102,76 +199,75 @@ const waitForVoices = () => {
   });
 };
 
+/** Speak English text via Web Speech API */
+const speakEnglish = (text, { voice, rate = 0.85, pitch = 1.1, volume = 1.0 } = {}) => {
+  return new Promise((resolve, reject) => {
+    const utterance = new SpeechSynthesisUtterance(text);
+    if (voice) {
+      utterance.voice = voice;
+      utterance.lang = voice.lang;
+    } else {
+      utterance.lang = 'en-US';
+    }
+    utterance.rate = rate;
+    utterance.pitch = pitch;
+    utterance.volume = volume;
+    utterance.onend = () => resolve();
+    utterance.onerror = (e) => reject(e.error);
+    window.speechSynthesis.speak(utterance);
+  });
+};
+
+// ---------------------------------------------------------------------------
+// Public API
+// ---------------------------------------------------------------------------
+
 /**
- * Speak the token number announcement with professional female voice
- * Airport-style announcement with natural pacing
- * @param {string|number} tokenNumber - The token number to announce
- * @param {object} options - Optional settings for the speech
+ * Speak the token number bilingually:
+ * 1. English via Web Speech API: "Token number is, one, zero, zero, five"
+ * 2. Bangla via pre-recorded audio: এক হাজার পাঁচ (native neural voice)
  */
 export const speakTokenNumber = async (tokenNumber, options = {}) => {
-  // Check if speech synthesis is supported
-  if (!isSpeechSupported()) {
-    return;
-  }
+  if (!isSpeechSupported()) return;
 
-  // Cancel any ongoing speech
   window.speechSynthesis.cancel();
-
-  // Small delay to ensure cancel completes
   await new Promise(resolve => setTimeout(resolve, 100));
 
   try {
-    // Wait for voices to be available
     const voices = await waitForVoices();
+    const englishVoice = selectEnglishVoice(voices);
 
-    // Select the best female voice
-    const selectedVoice = selectBestFemaleVoice(voices);
+    const rate = options.rate || 0.85;
+    const pitch = options.pitch || 1.1;
+    const volume = options.volume || 1.0;
 
-    // Create the announcement text with natural pauses
-    // The comma creates a natural pause in speech synthesis
-    const text = `Current token is, ${tokenNumber}`;
+    // --- English announcement (digit-by-digit via Web Speech API) ---
+    const englishText = `Token number is, ${tokenToEnglishWords(tokenNumber)}`;
 
-    // Create speech synthesis utterance
-    const utterance = new SpeechSynthesisUtterance(text);
+    if (options.onStart) options.onStart();
 
-    // Assign the selected voice
-    if (selectedVoice) {
-      utterance.voice = selectedVoice;
-      utterance.lang = selectedVoice.lang;
-    } else {
-      utterance.lang = options.lang || 'en-US';
-    }
+    await speakEnglish(englishText, { voice: englishVoice, rate, pitch, volume });
 
-    // Configure speech settings for professional airport-style announcement
-    utterance.rate = options.rate || 0.75;  // Slower for clarity (0.75 = 25% slower than normal)
-    utterance.pitch = options.pitch || 1.1; // Slightly higher pitch for female voice
-    utterance.volume = options.volume || 1.0; // Full volume
+    // Pause between languages
+    await new Promise(resolve => setTimeout(resolve, 500));
 
-    // Return a promise that resolves when speech ends
-    return new Promise((resolve, reject) => {
-      // Error handling
-      utterance.onerror = (event) => {
-        reject(event.error);
-      };
+    // --- Bangla announcement (pre-recorded native audio clips) ---
+    await playBanglaSequence(tokenNumber);
 
-      // When speech starts
-      utterance.onstart = () => {
-        if (options.onStart) options.onStart();
-      };
-
-      // When speech ends
-      utterance.onend = () => {
-        if (options.onEnd) options.onEnd();
-        resolve();
-      };
-
-      // Speak the text
-      window.speechSynthesis.speak(utterance);
-    });
-
-  } catch (error) {
-    throw error;
+    if (options.onEnd) options.onEnd();
+  } catch {
+    // Silently handle speech errors
   }
+};
+
+/**
+ * Preload Bangla audio clips for faster first playback.
+ * Call once on component mount.
+ */
+export const preloadBanglaAudio = async () => {
+  // Preload commonly used clips (0-9 + sho + hazar)
+  const clips = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'sho', 'hazar'];
+  await Promise.all(clips.map(c => loadBuffer(c).catch(() => {})));
 };
 
 /**
@@ -185,22 +281,18 @@ export const stopSpeaking = () => {
 
 /**
  * Get available voices
- * @returns {Promise<Array>} Promise that resolves with array of available voices
  */
 export const getAvailableVoices = async () => {
-  if (!isSpeechSupported()) {
-    return [];
-  }
+  if (!isSpeechSupported()) return [];
   return await waitForVoices();
 };
 
 /**
  * Test the voice announcement (for debugging)
- * @param {string|number} tokenNumber - Token number to test
  */
-export const testVoice = async (tokenNumber = '123') => {
-  console.log('Testing voice announcement...');
-  const voices = await getAvailableVoices();
-  console.log('Available voices:', voices.map(v => ({ name: v.name, lang: v.lang })));
+export const testVoice = async (tokenNumber = '1005') => {
+  console.log('Testing bilingual voice announcement...');
+  console.log('English:', `Token number is, ${tokenToEnglishWords(tokenNumber)}`);
+  console.log('Bangla clips:', tokenToClipSequence(tokenNumber));
   await speakTokenNumber(tokenNumber);
 };

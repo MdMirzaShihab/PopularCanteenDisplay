@@ -7,7 +7,8 @@ const MenuForm = ({ menu, onSubmit, onCancel }) => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    items: []
+    items: [],
+    isActive: true
   });
 
   const { error: showError } = useNotification();
@@ -19,14 +20,18 @@ const MenuForm = ({ menu, onSubmit, onCancel }) => {
       setFormData({
         title: menu.title || '',
         description: menu.description || '',
-        items: (menu.items || []).map(item => typeof item === 'string' ? item : item._id)
+        items: (menu.items || []).map(item => typeof item === 'string' ? item : item._id),
+        isActive: menu.isActive !== undefined ? menu.isActive : true
       });
     }
   }, [menu]);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
     // Clear error for this field
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: null }));
@@ -105,6 +110,21 @@ const MenuForm = ({ menu, onSubmit, onCancel }) => {
           onChange={handleItemsChange}
         />
         {errors.items && <p className="mt-1 text-sm text-accent-200">{errors.items}</p>}
+      </div>
+
+      {/* Active Status */}
+      <div className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          id="isActive"
+          name="isActive"
+          checked={formData.isActive}
+          onChange={handleChange}
+          className="w-4 h-4 text-primary-100 border-bg-300 rounded focus:ring-primary-100"
+        />
+        <label htmlFor="isActive" className="text-sm font-medium text-text-100">
+          Menu is active
+        </label>
       </div>
 
       {/* Actions */}

@@ -1,13 +1,16 @@
 import { useState, useEffect } from 'react';
 import ImageUpload from '../common/ImageUpload';
+import SearchableSelect from '../common/SearchableSelect';
 import { validateItem } from '../../utils/validators';
 import { useNotification } from '../../context/NotificationContext';
+import { ITEM_CATEGORIES } from '../../utils/constants';
 
 const ItemForm = ({ item, onSubmit, onCancel }) => {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
     price: '',
+    category: '',
     image: null,
     isActive: true
   });
@@ -22,6 +25,7 @@ const ItemForm = ({ item, onSubmit, onCancel }) => {
         name: item.name || '',
         description: item.description || '',
         price: item.price != null ? item.price : '',
+        category: item.category || '',
         image: item.image || null,
         isActive: item.isActive !== undefined ? item.isActive : true
       });
@@ -131,6 +135,21 @@ const ItemForm = ({ item, onSubmit, onCancel }) => {
           placeholder="9.99"
         />
         {errors.price && <p className="mt-1 text-sm text-accent-200">{errors.price}</p>}
+      </div>
+
+      {/* Category */}
+      <div>
+        <label className="input-label">
+          Category
+        </label>
+        <SearchableSelect
+          value={formData.category}
+          onChange={(val) => {
+            setFormData(prev => ({ ...prev, category: val }));
+          }}
+          options={ITEM_CATEGORIES}
+          placeholder="Select a category"
+        />
       </div>
 
       {/* Image Upload */}

@@ -26,6 +26,8 @@ export const validateItem = (itemData) => {
     errors.price = 'Price is required';
   } else if (isNaN(itemData.price) || parseFloat(itemData.price) < 0) {
     errors.price = 'Price must be a valid positive number';
+  } else if (parseFloat(itemData.price) > 10000) {
+    errors.price = 'Price must be between 0 and 10000';
   }
 
   if (!itemData.image) {

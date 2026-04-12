@@ -17,10 +17,11 @@ src/
 │   ├── users.api.js
 │   ├── logs.api.js
 │   ├── upload.api.js        # Presigned URLs for R2 cloud storage
+│   ├── media.api.js         # Media gallery CRUD (images/videos)
 │   └── screens.api.js       # Public unified screen lookup
 ├── assets/          # Images, index.js barrel export
 ├── components/      # Presentational components (by domain)
-│   ├── common/      # Reusable (ConfirmDialog, ImageUpload, Modal, Layout, Pagination, etc.)
+│   ├── common/      # Reusable (ConfirmDialog, ImageUpload, Modal, Layout, Pagination, BackgroundCropTool, SearchableSelect, etc.)
 │   ├── gallery/     # Gallery display system
 │   │   ├── styles/  # Layout renderers (CardGrid, Catalog, Compact, Elegant, MenuBoard, MinimalRows)
 │   │   └── themes/  # layoutRegistry.js, visualStyleRegistry.js
@@ -45,7 +46,7 @@ src/
 │   ├── usePagination.js    # Reusable pagination state
 │   ├── useSocketTokens.js  # Socket.io real-time token listener
 ├── pages/           # Container components (state + business logic)
-└── utils/           # Utilities (validators, timeUtils, fileUtils, mediaUtils, speechUtils)
+└── utils/           # Utilities (validators, timeUtils, fileUtils, mediaUtils, speechUtils, tokenArchiveUtils, constants)
 ```
 
 ## Architecture
@@ -72,6 +73,9 @@ src/api/*.api.js
   → Pure functions returning promises (no React logic)
   → Each file covers one domain entity
   → Pagination via { page, limit } params
+
+Notable: upload.api.js includes helpers (uploadToR2, uploadFile, uploadFileAndCreateMedia)
+         media.api.js provides getMedia, getMediaById, createMedia, deleteMedia (with optional force param)
 ```
 
 ## Domain Hook Pattern

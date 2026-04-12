@@ -19,6 +19,7 @@
 3. Export pure functions (no React logic) that return promises
 4. Follow existing pattern: `.then((r) => r.data)` to unwrap axios response
 5. Support pagination params `{ page, limit }` for list endpoints
+6. For file uploads, use `upload.api.js` helpers (`uploadFile`, `uploadFileAndCreateMedia`)
 
 ## Adding a New Domain Hook
 

@@ -1,10 +1,13 @@
 import { useState, useMemo } from 'react';
 import { Search } from 'lucide-react';
 import ItemCard from './ItemCard';
+import SearchableSelect from '../common/SearchableSelect';
+import { ITEM_CATEGORIES } from '../../utils/constants';
 
 const ItemList = ({ items, onEdit, onDelete }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterActive, setFilterActive] = useState('all');
+  const [filterCategory, setFilterCategory] = useState('');
 
   const filteredItems = useMemo(() => {
     return items.filter(item => {
@@ -17,9 +20,12 @@ const ItemList = ({ items, onEdit, onDelete }) => {
                            (filterActive === 'active' && item.isActive) ||
                            (filterActive === 'inactive' && !item.isActive);
 
-      return matchesSearch && matchesActive;
+      // Category filter
+      const matchesCategory = !filterCategory || item.category === filterCategory;
+
+      return matchesSearch && matchesActive && matchesCategory;
     });
-  }, [items, searchTerm, filterActive]);
+  }, [items, searchTerm, filterActive, filterCategory]);
 
   return (
     <div className="space-y-6">
@@ -34,6 +40,16 @@ const ItemList = ({ items, onEdit, onDelete }) => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="input-field pl-10"
+          />
+        </div>
+
+        {/* Category Filter */}
+        <div className="w-48">
+          <SearchableSelect
+            value={filterCategory}
+            onChange={setFilterCategory}
+            options={ITEM_CATEGORIES}
+            placeholder="All Categories"
           />
         </div>
 

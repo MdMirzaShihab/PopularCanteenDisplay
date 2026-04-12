@@ -10,6 +10,7 @@
 - **TimeSlot**: A rule mapping a time range + days-of-week filter to a menu. Used inside screen sections
 - **Token**: A serving number called out to customers (voice announcement via Web Speech API)
 - **Token Archive**: Historical record of called tokens
+- **Media**: An uploaded image or video stored in Cloudflare R2. Has name, type (image/video), URL, R2 key, mimeType, fileSize, isGallery flag. Used in screen backgrounds and gallery slideshows
 - **User**: A managed account with role assignment (admin, restaurant_user, token_operator)
 
 ## Food Screen Fields
@@ -75,7 +76,9 @@ Backend base URL: `VITE_API_URL/api/v1`
 | `/tokens` | GET, POST | Current token, history, archive |
 | `/users` | GET, POST, PUT, DELETE | Admin only |
 | `/logs` | GET | Activity logs |
-| `/upload/presigned-url` | POST | R2 cloud storage upload |
+| `/upload/presign` | POST | R2 cloud storage presigned URL |
+| `/upload/*key` | DELETE | Delete file from R2 |
+| `/media` | GET, POST, DELETE | Media gallery management |
 | `/screens/:screenId` | GET | Public unified lookup (food or token) |
 
 ## Common Gotchas
@@ -87,6 +90,6 @@ Backend base URL: `VITE_API_URL/api/v1`
 5. **No separate gallery admin page** — Gallery listing was merged into the Screens page
 6. **Overnight time slots** — `isTimeInRange()` handles the case where end < start
 7. **Boolean role checks** — `isAdmin` is a boolean, not a function. Don't call `isAdmin()`
-8. **Context nesting order** — NotificationProvider → AuthProvider → DataProvider. Changing this breaks the app
+8. **Context nesting order** — NotificationProvider → AuthProvider → App. Changing this breaks the app
 9. **Asset imports** — Always through `src/assets/index.js`, never direct paths
 10. **Cookie auth** — API client uses `withCredentials: true`. Backend sets httpOnly cookie. No manual token management needed

@@ -1,28 +1,59 @@
-import { Edit2, Trash2 } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { Edit2, Trash2, UtensilsCrossed } from 'lucide-react';
 import { isVideoUrl } from '../../utils/fileUtils';
 
 const ItemCard = ({ item, onEdit, onDelete }) => {
+  const [imgError, setImgError] = useState(false);
+  const videoRef = useRef(null);
+  const isVideo = item.image && isVideoUrl(item.image);
+
+  // IntersectionObserver: only play video when card is visible
+  useEffect(() => {
+    if (!isVideo || !videoRef.current) return;
+
+    const video = videoRef.current;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          video.play().catch(() => {});
+        } else {
+          video.pause();
+        }
+      },
+      { threshold: 0.25 }
+    );
+
+    observer.observe(video);
+    return () => observer.disconnect();
+  }, [isVideo]);
+
   return (
     <div className="group bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-bg-300 hover:border-accent-100">
       {/* Image */}
       <div className="relative h-48 bg-gradient-to-br from-bg-100 to-bg-200 overflow-hidden">
-        {item.image && (
-          isVideoUrl(item.image) ? (
+        {item.image && !imgError ? (
+          isVideo ? (
             <video
+              ref={videoRef}
               src={item.image}
               className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-              autoPlay
               muted
               loop
               playsInline
+              onError={() => setImgError(true)}
             />
           ) : (
             <img
               src={item.image}
               alt={item.name}
               className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+              onError={() => setImgError(true)}
             />
           )
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <UtensilsCrossed className="w-12 h-12 text-text-300" />
+          </div>
         )}
 
         {/* Overlay gradient */}
@@ -45,7 +76,12 @@ const ItemCard = ({ item, onEdit, onDelete }) => {
 
       {/* Content */}
       <div className="p-4">
-        <h3 className="text-xl font-bold text-text-100 mb-2 group-hover:text-primary-100 transition-colors line-clamp-1">{item.name}</h3>
+        <h3 className="text-xl font-bold text-text-100 mb-1 group-hover:text-primary-100 transition-colors line-clamp-1">{item.name}</h3>
+        {item.category && (
+          <span className="inline-block px-2 py-0.5 text-xs font-medium text-primary-200 bg-primary-100/15 rounded-full mb-2">
+            {item.category}
+          </span>
+        )}
         <p className="text-sm text-text-100 mb-3 line-clamp-2 leading-relaxed">{item.description}</p>
 
         {/* Actions */}

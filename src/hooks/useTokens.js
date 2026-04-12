@@ -31,19 +31,6 @@ export const useTokens = () => {
 
   useEffect(() => { fetchCurrent(); }, [fetchCurrent]);
 
-  const updateToken = useCallback(async (number) => {
-    const data = await tokensApi.updateToken(number);
-    setCurrentToken(data.currentToken);
-    setTokenHistory(data.history || []);
-    return data;
-  }, []);
-
-  const clearToken = useCallback(async () => {
-    const data = await tokensApi.clearToken();
-    setCurrentToken(data.currentToken);
-    setTokenHistory(data.history || []);
-  }, []);
-
   const fetchArchive = useCallback(async (filters = {}) => {
     setArchiveLoading(true);
     try {
@@ -64,12 +51,32 @@ export const useTokens = () => {
 
   useEffect(() => { fetchArchive(); }, [fetchArchive]);
 
+  const updateToken = useCallback(async (number) => {
+    const data = await tokensApi.updateToken(number);
+    setCurrentToken(data.currentToken);
+    setTokenHistory(data.history || []);
+    fetchArchive();
+    return data;
+  }, [fetchArchive]);
+
+  const clearToken = useCallback(async () => {
+    const data = await tokensApi.clearToken();
+    setCurrentToken(data.currentToken);
+    setTokenHistory(data.history || []);
+    fetchArchive();
+  }, [fetchArchive]);
+
+  const reannounceToken = useCallback(async () => {
+    await tokensApi.reannounceToken();
+  }, []);
+
   return {
     currentToken,
     tokenHistory,
     loading,
     updateToken,
     clearToken,
+    reannounceToken,
     refreshCurrent: fetchCurrent,
     archiveEntries,
     archiveLoading,

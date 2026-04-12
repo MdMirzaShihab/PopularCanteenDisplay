@@ -30,6 +30,13 @@ const MenuCard = ({ menu, onEdit, onDelete }) => {
         {/* Overlay gradient */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
 
+        {/* Status Badge */}
+        {!menu.isActive && (
+          <div className="absolute top-2 right-2 px-3 py-1.5 bg-accent-200 text-white text-xs font-semibold rounded-lg shadow-lg backdrop-blur-sm">
+            Inactive
+          </div>
+        )}
+
         {/* Item Count Badge */}
         <div className="absolute bottom-2 right-2">
           <div className="bg-gradient-to-br from-accent-100 to-accent-200 text-white px-3 py-1.5 rounded-lg shadow-lg backdrop-blur-sm">

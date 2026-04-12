@@ -9,5 +9,8 @@ export const updateToken = (number) =>
 export const clearToken = () =>
   apiClient.delete('/tokens/clear').then((r) => r.data);
 
+export const reannounceToken = () =>
+  apiClient.post('/tokens/reannounce').then((r) => r.data);
+
 export const getArchive = (params) =>
   apiClient.get('/tokens/archive', { params }).then((r) => r.data);

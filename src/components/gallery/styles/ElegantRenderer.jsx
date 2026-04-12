@@ -68,9 +68,6 @@ const ElegantRenderer = React.memo(({ items, showPrices = true }) => {
             )}
             <div className="flex-1 min-w-0">
               <p className="text-white font-body text-sm font-bold truncate drop-shadow-sm">{item.name}</p>
-              {item.ingredients && (
-                <p className="text-white/60 text-xs font-body truncate mt-0.5">{item.ingredients}</p>
-              )}
             </div>
             {showPrices && (
               <span

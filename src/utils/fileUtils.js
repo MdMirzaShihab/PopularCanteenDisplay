@@ -101,8 +101,8 @@ export const validateMediaFile = (file) => {
     return { success: false, error: 'Invalid file type. Please upload an image (JPEG, PNG, GIF, WebP) or video (MP4, WebM)' };
   }
 
-  if (!validateFileSize(file, 10)) {
-    return { success: false, error: 'File size too large. Maximum size is 10MB' };
+  if (!validateFileSize(file, 2)) {
+    return { success: false, error: 'File size too large. Maximum size is 2MB' };
   }
 
   return { success: true };

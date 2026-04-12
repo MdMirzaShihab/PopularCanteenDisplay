@@ -66,9 +66,6 @@ const CardGridRenderer = React.memo(({ items, showPrices = true }) => {
             )}
             <div className="flex-1 min-w-0 flex flex-col justify-center">
               <p className="font-semibold text-white/90 text-sm font-body leading-snug line-clamp-2">{item.name}</p>
-              {item.ingredients && (
-                <p className="text-white/30 text-[10px] font-body truncate mt-0.5 italic">{item.ingredients}</p>
-              )}
               {showPrices && (
                 <p className="font-heading font-bold text-base mt-1 tracking-wide" style={{ color: '#6ee7b7' }}>
                   ৳{item.price.toFixed(0)}

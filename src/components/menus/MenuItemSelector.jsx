@@ -3,7 +3,7 @@ import { Search, X, Check } from 'lucide-react';
 import { useItems } from '../../hooks/useItems';
 
 const MenuItemSelector = ({ selectedItemIds, onChange }) => {
-  const { items } = useItems();
+  const { items } = useItems({ limit: 500 });
   const [searchTerm, setSearchTerm] = useState('');
 
   const activeItems = items.filter(item => item.isActive);
