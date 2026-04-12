@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef, useCallback, useImperativeHandle, forwardRef } from 'react';
 import { useMenus } from '../../hooks/useMenus';
 import { useNotification } from '../../context/NotificationContext';
 import { validateFoodScreen } from '../../utils/validators';
@@ -7,14 +7,8 @@ import LayoutPicker from './LayoutPicker';
 import SectionConfigTab from './SectionConfigTab';
 import ImageUpload from '../common/ImageUpload';
 import BackgroundCropTool from '../common/BackgroundCropTool';
-import { Layout, Layers, Settings, FolderOpen, Upload } from 'lucide-react';
+import { FolderOpen, Upload } from 'lucide-react';
 import { getMediaByType } from '../../assets/media';
-
-const TABS = [
-  { id: 'layout', label: 'Layout & Info', icon: Layout },
-  { id: 'sections', label: 'Sections', icon: Layers },
-  { id: 'settings', label: 'Settings', icon: Settings }
-];
 
 const GAP_OPTIONS = [
   { value: 4, label: 'Small' },
@@ -22,11 +16,10 @@ const GAP_OPTIONS = [
   { value: 12, label: 'Large' }
 ];
 
-const FoodScreenForm = ({ screen, onSubmit, onCancel }) => {
+const FoodScreenForm = forwardRef(({ screen, activeTab, onTabChange, onSubmit, onFormDataChange }, ref) => {
   const { menus } = useMenus();
   const { error: showError } = useNotification();
 
-  const [activeTab, setActiveTab] = useState('layout');
   const [activeSectionIdx, setActiveSectionIdx] = useState(0);
   const [bgMediaSource, setBgMediaSource] = useState('gallery');
   const [formErrors, setFormErrors] = useState({});
@@ -44,6 +37,57 @@ const FoodScreenForm = ({ screen, onSubmit, onCancel }) => {
     sections: screen?.sections || buildEmptySections('layout-1'),
     gap: screen?.gap || 8
   });
+
+  const initialFormData = useRef(JSON.stringify(formData));
+
+  // Report formData changes to parent (for preview)
+  useEffect(() => {
+    onFormDataChange?.(formData);
+  }, [formData, onFormDataChange]);
+
+  // Unsaved changes warning
+  useEffect(() => {
+    const isDirty = JSON.stringify(formData) !== initialFormData.current;
+    const handleBeforeUnload = (e) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [formData]);
+
+  // Expose submit to parent via ref
+  const handleSubmit = useCallback(() => {
+    const { isValid, errors, tabErrors, firstErrorSectionIdx } = validateFoodScreen(formData);
+    if (!isValid) {
+      if (tabErrors.layout) {
+        onTabChange('layout');
+        showError(tabErrors.layout);
+      } else if (tabErrors.sections) {
+        onTabChange('sections');
+        setActiveSectionIdx(firstErrorSectionIdx);
+        showError(tabErrors.sections);
+      } else if (tabErrors.settings) {
+        onTabChange('background');
+        showError(tabErrors.settings);
+      } else {
+        showError('Please fix validation errors');
+      }
+      setFormErrors(errors);
+      return false;
+    }
+    setFormErrors({});
+    onSubmit(formData);
+    return true;
+  }, [formData, onSubmit, onTabChange, showError]);
+
+  useImperativeHandle(ref, () => ({
+    submit: handleSubmit,
+    isDirty: () => JSON.stringify(formData) !== initialFormData.current,
+    getFormErrors: () => formErrors,
+  }), [handleSubmit, formData, formErrors]);
 
   const clearFieldError = (field) => {
     if (formErrors[field]) {
@@ -102,362 +146,183 @@ const FoodScreenForm = ({ screen, onSubmit, onCancel }) => {
     setFormErrors(prev => ({ ...prev, backgroundMedia: undefined, backgroundColor: undefined }));
   };
 
-  const handleSubmit = () => {
-    const { isValid, errors, tabErrors, firstErrorSectionIdx } = validateFoodScreen(formData);
-    if (!isValid) {
-      // Auto-navigate to the first tab with errors
-      if (tabErrors.layout) {
-        setActiveTab('layout');
-        showError(tabErrors.layout);
-      } else if (tabErrors.sections) {
-        setActiveTab('sections');
-        setActiveSectionIdx(firstErrorSectionIdx);
-        showError(tabErrors.sections);
-      } else if (tabErrors.settings) {
-        setActiveTab('settings');
-        showError(tabErrors.settings);
-      } else {
-        showError('Please fix validation errors');
-      }
-      setFormErrors(errors);
-      return;
-    }
-    setFormErrors({});
-    onSubmit(formData);
-  };
-
   return (
-    <div className="flex flex-col max-h-[80vh]">
-      {/* Tab navigation */}
-      <div className="border-b border-bg-300 flex-shrink-0">
-        <div className="flex gap-1">
-          {TABS.map(tab => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
-            const hasError = (tab.id === 'layout' && (formErrors.title || formErrors.screenId || formErrors.layoutTheme || formErrors.sectionCount))
-              || (tab.id === 'sections' && formErrors.sections)
-              || (tab.id === 'settings' && (formErrors.backgroundMedia || formErrors.backgroundColor));
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-all duration-200 ${
-                  isActive
-                    ? 'border-primary-100 text-primary-100'
-                    : hasError
-                      ? 'border-accent-200 text-accent-200'
-                      : 'border-transparent text-text-200 hover:text-text-100'
-                }`}
-              >
-                <Icon className="w-4 h-4" />
-                {tab.label}
-                {hasError && !isActive && (
-                  <span className="w-2 h-2 rounded-full bg-accent-200" />
-                )}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Tab content — scrollable */}
-      <div className="flex-1 overflow-y-auto p-1">
-        {/* Tab 1: Layout & Info */}
-        {activeTab === 'layout' && (
-          <div className="space-y-6 py-4">
-            <div>
-              <label htmlFor="title" className="block text-sm font-medium text-text-100 mb-2">
-                Screen Title *
-              </label>
-              <input
-                type="text"
-                id="title"
-                name="title"
-                value={formData.title}
-                onChange={handleChange}
-                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-100 bg-bg-100 text-text-100 ${formErrors.title ? 'border-accent-200' : 'border-bg-300'}`}
-                placeholder="e.g., Main Dining Hall Display"
-              />
-              {formErrors.title && <p className="mt-1 text-sm text-accent-200">{formErrors.title}</p>}
-            </div>
-
-            <div>
-              <label htmlFor="screenId" className="block text-sm font-medium text-text-100 mb-2">
-                Screen ID *
-              </label>
-              <input
-                type="text"
-                id="screenId"
-                name="screenId"
-                value={formData.screenId}
-                onChange={handleChange}
-                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-100 bg-bg-100 text-text-100 ${formErrors.screenId ? 'border-accent-200' : 'border-bg-300'}`}
-                placeholder="e.g., HALL-A-01"
-              />
-              <p className="mt-1 text-xs text-text-200">
-                Unique identifier for tracking and management
-              </p>
-              {formErrors.screenId && <p className="mt-1 text-sm text-accent-200">{formErrors.screenId}</p>}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-text-100 mb-3">
-                Layout *
-              </label>
-              <LayoutPicker
-                value={formData.layoutTheme}
-                onChange={handleLayoutChange}
-              />
-            </div>
+    <div className="space-y-6 py-4">
+      {/* Tab: Layout & Info */}
+      {activeTab === 'layout' && (
+        <div className="space-y-6">
+          <div>
+            <label htmlFor="title" className="block text-sm font-medium text-text-100 mb-2">Screen Title *</label>
+            <input type="text" id="title" name="title" value={formData.title} onChange={handleChange}
+              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-100 bg-bg-100 text-text-100 ${formErrors.title ? 'border-accent-200' : 'border-bg-300'}`}
+              placeholder="e.g., Main Dining Hall Display" />
+            {formErrors.title && <p className="mt-1 text-sm text-accent-200">{formErrors.title}</p>}
           </div>
-        )}
 
-        {/* Tab 2: Sections */}
-        {activeTab === 'sections' && (
-          <div className="space-y-4 py-4">
-            {/* Section sub-tabs */}
-            <div className="flex flex-wrap gap-2">
-              {formData.sections.map((section, idx) => (
-                <button
-                  key={section._id || section.id}
-                  type="button"
-                  onClick={() => setActiveSectionIdx(idx)}
-                  className={`px-3 py-1.5 text-sm font-medium rounded-lg border transition-all duration-200 ${
-                    activeSectionIdx === idx
+          <div>
+            <label htmlFor="screenId" className="block text-sm font-medium text-text-100 mb-2">Screen ID *</label>
+            <input type="text" id="screenId" name="screenId" value={formData.screenId} onChange={handleChange}
+              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-100 bg-bg-100 text-text-100 ${formErrors.screenId ? 'border-accent-200' : 'border-bg-300'}`}
+              placeholder="e.g., HALL-A-01" />
+            <p className="mt-1 text-xs text-text-200">Unique identifier for tracking and management</p>
+            {formErrors.screenId && <p className="mt-1 text-sm text-accent-200">{formErrors.screenId}</p>}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-text-100 mb-3">Layout *</label>
+            <LayoutPicker value={formData.layoutTheme} onChange={handleLayoutChange} />
+          </div>
+        </div>
+      )}
+
+      {/* Tab: Sections */}
+      {activeTab === 'sections' && (
+        <div className="space-y-4">
+          <div className="flex flex-wrap gap-2">
+            {formData.sections.map((section, idx) => (
+              <button key={section._id || section.id} type="button" onClick={() => setActiveSectionIdx(idx)}
+                className={`px-3 py-1.5 text-sm font-medium rounded-lg border transition-all duration-200 ${
+                  activeSectionIdx === idx
+                    ? 'bg-primary-100 text-white border-primary-100'
+                    : 'bg-bg-100 text-text-200 border-bg-300 hover:border-primary-100 hover:text-text-100'
+                }`}>
+                {section.label}
+              </button>
+            ))}
+          </div>
+          {formData.sections[activeSectionIdx] && (
+            <SectionConfigTab section={formData.sections[activeSectionIdx]} onChange={handleSectionChange}
+              menus={menus.filter(m => m.isActive !== false)} />
+          )}
+        </div>
+      )}
+
+      {/* Tab: Background */}
+      {activeTab === 'background' && (
+        <div className="space-y-6">
+          <div>
+            <label className="block text-sm font-medium text-text-100 mb-3">Background Type</label>
+            <div className="flex gap-2">
+              {['image', 'video', 'color'].map(type => (
+                <button key={type} type="button" onClick={() => handleBackgroundTypeChange(type)}
+                  className={`px-4 py-2 text-sm font-medium rounded-lg border transition-all duration-200 capitalize ${
+                    formData.backgroundType === type
                       ? 'bg-primary-100 text-white border-primary-100'
-                      : 'bg-bg-100 text-text-200 border-bg-300 hover:border-primary-100 hover:text-text-100'
-                  }`}
-                >
-                  {section.label}
+                      : 'bg-bg-100 text-text-200 border-bg-300 hover:border-primary-100'
+                  }`}>
+                  {type}
                 </button>
               ))}
             </div>
-
-            {/* Active section config */}
-            {formData.sections[activeSectionIdx] && (
-              <SectionConfigTab
-                section={formData.sections[activeSectionIdx]}
-                onChange={handleSectionChange}
-                menus={menus.filter(m => m.isActive !== false)}
-              />
-            )}
           </div>
-        )}
 
-        {/* Tab 3: Settings */}
-        {activeTab === 'settings' && (
-          <div className="space-y-6 py-4">
-            {/* Background type */}
-            <div>
-              <label className="block text-sm font-medium text-text-100 mb-3">
-                Background Type
-              </label>
+          {(formData.backgroundType === 'image' || formData.backgroundType === 'video') && (
+            <div className="space-y-3">
               <div className="flex gap-2">
-                {['image', 'video', 'color'].map(type => (
-                  <button
-                    key={type}
-                    type="button"
-                    onClick={() => handleBackgroundTypeChange(type)}
-                    className={`px-4 py-2 text-sm font-medium rounded-lg border transition-all duration-200 capitalize ${
-                      formData.backgroundType === type
-                        ? 'bg-primary-100 text-white border-primary-100'
-                        : 'bg-bg-100 text-text-200 border-bg-300 hover:border-primary-100'
-                    }`}
-                  >
-                    {type}
-                  </button>
-                ))}
+                <button type="button" onClick={() => setBgMediaSource('gallery')}
+                  className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border transition-colors ${
+                    bgMediaSource === 'gallery' ? 'border-primary-100 bg-primary-100/10 text-primary-100' : 'border-bg-300 bg-white text-text-200 hover:border-primary-100/50'
+                  }`}>
+                  <FolderOpen className="w-4 h-4" /> Gallery
+                </button>
+                <button type="button" onClick={() => setBgMediaSource('upload')}
+                  className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border transition-colors ${
+                    bgMediaSource === 'upload' ? 'border-primary-100 bg-primary-100/10 text-primary-100' : 'border-bg-300 bg-white text-text-200 hover:border-primary-100/50'
+                  }`}>
+                  <Upload className="w-4 h-4" /> Upload
+                </button>
               </div>
-            </div>
 
-            {/* Image or Video: Gallery + Upload */}
-            {(formData.backgroundType === 'image' || formData.backgroundType === 'video') && (
-              <div className="space-y-3">
-                {/* Source toggle */}
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setBgMediaSource('gallery')}
-                    className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border transition-colors ${
-                      bgMediaSource === 'gallery'
-                        ? 'border-primary-100 bg-primary-100/10 text-primary-100'
-                        : 'border-bg-300 bg-white text-text-200 hover:border-primary-100/50'
-                    }`}
-                  >
-                    <FolderOpen className="w-4 h-4" />
-                    Gallery
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setBgMediaSource('upload')}
-                    className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border transition-colors ${
-                      bgMediaSource === 'upload'
-                        ? 'border-primary-100 bg-primary-100/10 text-primary-100'
-                        : 'border-bg-300 bg-white text-text-200 hover:border-primary-100/50'
-                    }`}
-                  >
-                    <Upload className="w-4 h-4" />
-                    Upload
-                  </button>
-                </div>
-
-                {/* Gallery picker */}
-                {bgMediaSource === 'gallery' && (
-                  <div>
-                    <label className="block text-sm font-medium text-text-200 mb-2">
-                      Select from Gallery
-                    </label>
-                    <div className={`grid ${formData.backgroundType === 'image' ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-2 sm:grid-cols-3'} gap-2`}>
-                      {getMediaByType(formData.backgroundType).map((item) => {
-                        const isSelected = formData.backgroundMedia === item.src;
-                        return (
-                          <button
-                            key={item.id}
-                            type="button"
-                            onClick={() => setFormData(prev => ({
-                              ...prev,
-                              backgroundMedia: item.src,
-                              backgroundPositionX: 50,
-                              backgroundPositionY: 50,
-                              backgroundScale: 1,
-                            }))}
-                            className={`relative rounded-lg overflow-hidden border-2 transition-all ${
-                              isSelected
-                                ? 'border-primary-100 ring-2 ring-primary-100/30'
-                                : 'border-bg-300 hover:border-primary-100/50'
-                            }`}
-                          >
-                            {formData.backgroundType === 'image' ? (
-                              <img src={item.src} alt={item.name} className="w-full aspect-video object-cover" />
-                            ) : (
-                              <video
-                                src={item.src}
-                                muted
-                                className="w-full aspect-video object-cover"
-                                onMouseEnter={(e) => e.target.play()}
-                                onMouseLeave={(e) => { e.target.pause(); e.target.currentTime = 0; }}
-                              />
-                            )}
-                            <div className="absolute bottom-0 inset-x-0 bg-black/60 px-1.5 py-1">
-                              <span className="text-[10px] text-white font-medium truncate block">{item.name}</span>
+              {bgMediaSource === 'gallery' && (
+                <div>
+                  <label className="block text-sm font-medium text-text-200 mb-2">Select from Gallery</label>
+                  <div className={`grid ${formData.backgroundType === 'image' ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-2 sm:grid-cols-3'} gap-2`}>
+                    {getMediaByType(formData.backgroundType).map((item) => {
+                      const isSelected = formData.backgroundMedia === item.src;
+                      return (
+                        <button key={item.id} type="button"
+                          onClick={() => setFormData(prev => ({
+                            ...prev, backgroundMedia: item.src,
+                            backgroundPositionX: 50, backgroundPositionY: 50, backgroundScale: 1,
+                          }))}
+                          className={`relative rounded-lg overflow-hidden border-2 transition-all ${
+                            isSelected ? 'border-primary-100 ring-2 ring-primary-100/30' : 'border-bg-300 hover:border-primary-100/50'
+                          }`}>
+                          {formData.backgroundType === 'image' ? (
+                            <img src={item.src} alt={item.name} className="w-full aspect-video object-cover" />
+                          ) : (
+                            <video src={item.src} muted className="w-full aspect-video object-cover"
+                              onMouseEnter={(e) => e.target.play()} onMouseLeave={(e) => { e.target.pause(); e.target.currentTime = 0; }} />
+                          )}
+                          <div className="absolute bottom-0 inset-x-0 bg-black/60 px-1.5 py-1">
+                            <span className="text-[10px] text-white font-medium truncate block">{item.name}</span>
+                          </div>
+                          {isSelected && (
+                            <div className="absolute top-1 right-1 w-5 h-5 bg-primary-100 rounded-full flex items-center justify-center">
+                              <span className="text-white text-xs font-bold">&#10003;</span>
                             </div>
-                            {isSelected && (
-                              <div className="absolute top-1 right-1 w-5 h-5 bg-primary-100 rounded-full flex items-center justify-center">
-                                <span className="text-white text-xs font-bold">&#10003;</span>
-                              </div>
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>
+                          )}
+                        </button>
+                      );
+                    })}
                   </div>
-                )}
-
-                {/* Upload */}
-                {bgMediaSource === 'upload' && (
-                  <ImageUpload
-                    value={formData.backgroundMedia}
-                    onChange={(url) => setFormData(prev => ({
-                      ...prev,
-                      backgroundMedia: url,
-                      backgroundPositionX: 50,
-                      backgroundPositionY: 50,
-                      backgroundScale: 1,
-                    }))}
-                    onError={showError}
-                    accept={formData.backgroundType === 'image' ? 'image/*' : 'video/*'}
-                    label={`Background ${formData.backgroundType === 'image' ? 'Image' : 'Video'}`}
-                    folder="backgrounds"
-                  />
-                )}
-
-                {/* Background Crop Tool */}
-                {formData.backgroundMedia && (
-                  <BackgroundCropTool
-                    mediaUrl={formData.backgroundMedia}
-                    mediaType={formData.backgroundType}
-                    orientation={LAYOUT_THEMES[formData.layoutTheme]?.orientation || 'landscape'}
-                    positionX={formData.backgroundPositionX}
-                    positionY={formData.backgroundPositionY}
-                    scale={formData.backgroundScale}
-                    onChange={({ positionX, positionY, scale }) =>
-                      setFormData(prev => ({
-                        ...prev,
-                        backgroundPositionX: positionX,
-                        backgroundPositionY: positionY,
-                        backgroundScale: scale,
-                      }))
-                    }
-                  />
-                )}
-              </div>
-            )}
-
-            {/* Color picker */}
-            {formData.backgroundType === 'color' && (
-              <div>
-                <label htmlFor="backgroundColor" className="block text-sm font-medium text-text-100 mb-2">
-                  Background Color
-                </label>
-                <div className="flex items-center gap-3">
-                  <input
-                    type="color"
-                    id="backgroundColor"
-                    name="backgroundColor"
-                    value={formData.backgroundColor}
-                    onChange={handleChange}
-                    className="w-12 h-10 rounded border border-bg-300 cursor-pointer"
-                  />
-                  <span className="text-sm text-text-200 font-mono">
-                    {formData.backgroundColor}
-                  </span>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* Gap size */}
-            <div>
-              <label htmlFor="gap" className="block text-sm font-medium text-text-100 mb-2">
-                Section Gap
-              </label>
-              <select
-                id="gap"
-                name="gap"
-                value={formData.gap}
-                onChange={(e) => setFormData(prev => ({ ...prev, gap: Number(e.target.value) }))}
-                className="w-full px-4 py-2 border border-bg-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-100 bg-bg-100 text-text-100"
-              >
-                {GAP_OPTIONS.map(opt => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label} ({opt.value}px)
-                  </option>
-                ))}
-              </select>
+              {bgMediaSource === 'upload' && (
+                <ImageUpload value={formData.backgroundMedia}
+                  onChange={(url) => setFormData(prev => ({
+                    ...prev, backgroundMedia: url,
+                    backgroundPositionX: 50, backgroundPositionY: 50, backgroundScale: 1,
+                  }))}
+                  onError={showError}
+                  accept={formData.backgroundType === 'image' ? 'image/*' : 'video/*'}
+                  label={`Background ${formData.backgroundType === 'image' ? 'Image' : 'Video'}`}
+                  folder="backgrounds" />
+              )}
+
+              {formData.backgroundMedia && (
+                <BackgroundCropTool mediaUrl={formData.backgroundMedia} mediaType={formData.backgroundType}
+                  orientation={LAYOUT_THEMES[formData.layoutTheme]?.orientation || 'landscape'}
+                  positionX={formData.backgroundPositionX} positionY={formData.backgroundPositionY} scale={formData.backgroundScale}
+                  onChange={({ positionX, positionY, scale }) =>
+                    setFormData(prev => ({ ...prev, backgroundPositionX: positionX, backgroundPositionY: positionY, backgroundScale: scale }))} />
+              )}
             </div>
-          </div>
-        )}
-      </div>
+          )}
 
-      {/* Footer actions */}
-      <div className="flex gap-3 pt-4 border-t border-bg-300 flex-shrink-0">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="flex-1 px-4 py-2 text-sm font-medium text-text-100 bg-bg-100 border border-bg-300 rounded-lg hover:bg-bg-200 transition-all duration-200 hover:border-primary-100"
-        >
-          Cancel
-        </button>
-        <button
-          type="button"
-          onClick={handleSubmit}
-          className="flex-1 px-4 py-2 text-sm font-medium text-white bg-primary-100 rounded-lg hover:bg-primary-200 transition-all duration-200 shadow-md hover:shadow-lg"
-        >
-          {screen ? 'Update Screen' : 'Create Screen'}
-        </button>
-      </div>
+          {formData.backgroundType === 'color' && (
+            <div>
+              <label htmlFor="backgroundColor" className="block text-sm font-medium text-text-100 mb-2">Background Color</label>
+              <div className="flex items-center gap-3">
+                <input type="color" id="backgroundColor" name="backgroundColor" value={formData.backgroundColor}
+                  onChange={handleChange} className="w-12 h-10 rounded border border-bg-300 cursor-pointer" />
+                <span className="text-sm text-text-200 font-mono">{formData.backgroundColor}</span>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Tab: Settings */}
+      {activeTab === 'settings' && (
+        <div className="space-y-6">
+          <div>
+            <label htmlFor="gap" className="block text-sm font-medium text-text-100 mb-2">Section Gap</label>
+            <select id="gap" name="gap" value={formData.gap}
+              onChange={(e) => setFormData(prev => ({ ...prev, gap: Number(e.target.value) }))}
+              className="w-full px-4 py-2 border border-bg-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-100 bg-bg-100 text-text-100">
+              {GAP_OPTIONS.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label} ({opt.value}px)</option>
+              ))}
+            </select>
+          </div>
+        </div>
+      )}
     </div>
   );
-};
+});
+
+FoodScreenForm.displayName = 'FoodScreenForm';
 
 export default FoodScreenForm;
