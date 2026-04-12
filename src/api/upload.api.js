@@ -1,4 +1,5 @@
 import apiClient from './client.js';
+import { createMedia } from './media.api.js';
 
 export const getPresignedUrl = ({ fileName, fileType, fileSize, folder }) =>
   apiClient
@@ -29,4 +30,25 @@ export const uploadFile = async (file, folder = 'items') => {
   });
   await uploadToR2(uploadUrl, file);
   return fileUrl;
+};
+
+export const uploadFileAndCreateMedia = async (file, folder = 'media') => {
+  const { uploadUrl, fileUrl, key } = await getPresignedUrl({
+    fileName: file.name,
+    fileType: file.type,
+    fileSize: file.size,
+    folder,
+  });
+  await uploadToR2(uploadUrl, file);
+
+  const mediaDoc = await createMedia({
+    name: file.name.replace(/\.[^.]+$/, ''),
+    type: file.type.startsWith('video/') ? 'video' : 'image',
+    url: fileUrl,
+    key,
+    mimeType: file.type,
+    fileSize: file.size,
+  });
+
+  return mediaDoc;
 };
