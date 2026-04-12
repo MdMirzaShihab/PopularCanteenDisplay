@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { Upload, X, Image as ImageIcon, Video, Loader2 } from 'lucide-react';
 import { validateMediaFile, isVideoUrl } from '../../utils/fileUtils';
-import { uploadFile } from '../../api/upload.api';
+import { uploadFileAndCreateMedia } from '../../api/upload.api';
+import { deleteMedia } from '../../api/media.api';
 
 const ImageUpload = ({ value, onChange, onError, accept = 'image/*,video/*', label = 'Upload Image/Video', folder = 'items' }) => {
   const [dragActive, setDragActive] = useState(false);
@@ -10,11 +11,25 @@ const ImageUpload = ({ value, onChange, onError, accept = 'image/*,video/*', lab
   const [isUploading, setIsUploading] = useState(false);
   const inputRef = useRef(null);
   const blobUrlRef = useRef(null);
+  // Track URLs uploaded during this session (not the original value)
+  const sessionUploadRef = useRef(null);
+  const initialValueRef = useRef(value);
 
   useEffect(() => {
-    setPreview(value || null);
-    if (value && typeof value === 'string') {
-      setIsVideo(isVideoUrl(value));
+    const url = value?.url || value;
+    setPreview(url || null);
+    if (url && typeof url === 'string') {
+      setIsVideo(isVideoUrl(url));
+    }
+  }, [value]);
+
+  // Reset tracking only when a genuinely new initial value is loaded
+  // (not when value updates to the session upload we just provided)
+  useEffect(() => {
+    const valueId = value?._id || value;
+    if (valueId !== sessionUploadRef.current) {
+      initialValueRef.current = value;
+      sessionUploadRef.current = null;
     }
   }, [value]);
 
@@ -25,6 +40,15 @@ const ImageUpload = ({ value, onChange, onError, accept = 'image/*,video/*', lab
       }
     };
   }, []);
+
+  const tryDeleteSessionUpload = async (mediaId) => {
+    if (!mediaId) return;
+    try {
+      await deleteMedia(mediaId, true);
+    } catch (err) {
+      console.error('Failed to clean up uploaded media:', err);
+    }
+  };
 
   const handleFile = async (file) => {
     if (!file) return;
@@ -46,11 +70,17 @@ const ImageUpload = ({ value, onChange, onError, accept = 'image/*,video/*', lab
       setIsVideo(file.type.startsWith('video/'));
       setIsUploading(true);
 
-      const fileUrl = await uploadFile(file, folder);
-      onChange(fileUrl);
+      // Clean up previous session upload if user is replacing it
+      if (sessionUploadRef.current) {
+        await tryDeleteSessionUpload(sessionUploadRef.current);
+      }
+
+      const mediaDoc = await uploadFileAndCreateMedia(file, folder);
+      sessionUploadRef.current = mediaDoc._id;
+      onChange(mediaDoc);
     } catch (error) {
       console.error('Error uploading file:', error);
-      setPreview(value || null);
+      setPreview(value?.url || value || null);
       if (blobUrlRef.current) {
         URL.revokeObjectURL(blobUrlRef.current);
         blobUrlRef.current = null;
@@ -90,11 +120,16 @@ const ImageUpload = ({ value, onChange, onError, accept = 'image/*,video/*', lab
     }
   };
 
-  const handleRemove = () => {
+  const handleRemove = async () => {
     if (isUploading) return;
     if (blobUrlRef.current) {
       URL.revokeObjectURL(blobUrlRef.current);
       blobUrlRef.current = null;
+    }
+    // Delete from R2 if it was uploaded during this session (not the original)
+    if (sessionUploadRef.current) {
+      await tryDeleteSessionUpload(sessionUploadRef.current);
+      sessionUploadRef.current = null;
     }
     setPreview(null);
     setIsVideo(false);
@@ -179,7 +214,7 @@ const ImageUpload = ({ value, onChange, onError, accept = 'image/*,video/*', lab
                 <span className="text-primary-100 font-semibold">Click to upload</span> or drag and drop
               </p>
               <p className="text-xs text-text-200 mt-1">
-                PNG, JPG, GIF, WebP, MP4, WebM (max 10MB)
+                PNG, JPG, GIF, WebP, MP4, WebM (max 2MB)
               </p>
             </div>
             <Upload className="w-6 h-6 text-text-300 mt-2" />
