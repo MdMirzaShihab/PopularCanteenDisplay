@@ -46,8 +46,8 @@ const ItemForm = ({ item, onSubmit, onCancel }) => {
     }
   };
 
-  const handleImageChange = (url) => {
-    setFormData(prev => ({ ...prev, image: url }));
+  const handleImageChange = (mediaOrUrl) => {
+    setFormData(prev => ({ ...prev, image: mediaOrUrl?.url || mediaOrUrl }));
     if (errors.image) {
       setErrors(prev => ({ ...prev, image: null }));
     }
