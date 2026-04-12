@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react';
 import { useNotification } from '../../context/NotificationContext';
 import { validateTokenScreen } from '../../utils/validators';
 import ImageUpload from '../common/ImageUpload';
-import { Image, Video, Palette, FolderOpen, Upload } from 'lucide-react';
-import { getMediaByType } from '../../assets/media';
+import { Image, Video, Palette, FolderOpen, Upload, Trash2 } from 'lucide-react';
+import { getMedia, deleteMedia } from '../../api/media.api';
 import BackgroundCropTool from '../common/BackgroundCropTool';
+import ConfirmDialog from '../common/ConfirmDialog';
 
 const COLOR_PRESETS = ['#1f2937', '#0f172a', '#1a2e1a', '#2d1b1b', '#000000', '#1e3a5f'];
 
@@ -19,37 +20,27 @@ const TITLE_FONTS = [
 
 const TITLE_COLOR_PRESETS = ['#ffffff', '#facc15', '#4ade80', '#60a5fa', '#f472b6', '#c084fc'];
 
-const MediaGalleryPicker = ({ type, value, onSelect }) => {
-  const items = getMediaByType(type);
-  if (items.length === 0) return null;
+const MediaGalleryPicker = ({ items, loading, type, value, onSelect, onDelete }) => {
+  if (loading) return <div className="p-4 text-center text-sm text-text-200">Loading gallery...</div>;
+  const filteredItems = items.filter(m => m.type === type);
+  if (filteredItems.length === 0) return null;
 
   return (
     <div>
       <label className="block text-sm font-medium text-text-200 mb-2">Select from Gallery</label>
       <div className={`grid ${type === 'image' ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-2 sm:grid-cols-3'} gap-2`}>
-        {items.map((item) => {
-          const isSelected = value === item.src;
+        {filteredItems.map((item) => {
+          const isSelected = value?._id === item._id;
           return (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => onSelect(item.src)}
-              className={`relative rounded-lg overflow-hidden border-2 transition-all ${
-                isSelected
-                  ? 'border-primary-100 ring-2 ring-primary-100/30'
-                  : 'border-bg-300 hover:border-primary-100/50'
-              }`}
-            >
-              {type === 'image' ? (
-                <img src={item.src} alt={item.name} className="w-full aspect-video object-cover" />
+            <button key={item._id} type="button" onClick={() => onSelect(item)}
+              className={`group relative rounded-lg overflow-hidden border-2 transition-all ${
+                isSelected ? 'border-primary-100 ring-2 ring-primary-100/30' : 'border-bg-300 hover:border-primary-100/50'
+              }`}>
+              {item.type === 'image' ? (
+                <img src={item.url} alt={item.name} className="w-full aspect-video object-cover" />
               ) : (
-                <video
-                  src={item.src}
-                  muted
-                  className="w-full aspect-video object-cover"
-                  onMouseEnter={(e) => e.target.play()}
-                  onMouseLeave={(e) => { e.target.pause(); e.target.currentTime = 0; }}
-                />
+                <video src={item.url} muted className="w-full aspect-video object-cover"
+                  onMouseEnter={(e) => e.target.play()} onMouseLeave={(e) => { e.target.pause(); e.target.currentTime = 0; }} />
               )}
               <div className="absolute bottom-0 inset-x-0 bg-black/60 px-1.5 py-1">
                 <span className="text-[10px] text-white font-medium truncate block">{item.name}</span>
@@ -59,6 +50,15 @@ const MediaGalleryPicker = ({ type, value, onSelect }) => {
                   <span className="text-white text-xs font-bold">&#10003;</span>
                 </div>
               )}
+              <div className="absolute top-1 left-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); onDelete(item); }}
+                  className="p-1 bg-accent-200/90 text-white rounded hover:bg-accent-200 transition-colors"
+                >
+                  <Trash2 className="w-3 h-3" />
+                </button>
+              </div>
             </button>
           );
         })}
@@ -85,6 +85,25 @@ const TokenScreenForm = ({ screen, onSubmit, onCancel }) => {
   });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [galleryMedia, setGalleryMedia] = useState([]);
+  const [galleryLoading, setGalleryLoading] = useState(true);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [deleteWarning, setDeleteWarning] = useState('');
+
+  useEffect(() => {
+    const fetchGallery = async () => {
+      try {
+        const result = await getMedia({ limit: 100 });
+        setGalleryMedia(result.data);
+      } catch (err) {
+        console.error('Failed to load media gallery:', err);
+      } finally {
+        setGalleryLoading(false);
+      }
+    };
+    fetchGallery();
+  }, []);
 
   useEffect(() => {
     if (screen) {
@@ -110,6 +129,40 @@ const TokenScreenForm = ({ screen, onSubmit, onCancel }) => {
       setErrors({});
     }
   }, [screen]);
+
+  const handleDeleteMedia = async (mediaItem) => {
+    try {
+      await deleteMedia(mediaItem._id);
+      setGalleryMedia(prev => prev.filter(m => m._id !== mediaItem._id));
+      if (formData.backgroundMedia?._id === mediaItem._id) {
+        setFormData(prev => ({ ...prev, backgroundMedia: null }));
+      }
+    } catch (err) {
+      if (err.message && err.message.includes('used by')) {
+        setDeleteTarget(mediaItem);
+        setDeleteWarning(err.message + ' Deleting it will remove it from those screens.');
+        setDeleteConfirmOpen(true);
+      } else {
+        showError('Failed to delete media');
+      }
+    }
+  };
+
+  const handleForceDelete = async () => {
+    if (!deleteTarget) return;
+    try {
+      await deleteMedia(deleteTarget._id, true);
+      setGalleryMedia(prev => prev.filter(m => m._id !== deleteTarget._id));
+      if (formData.backgroundMedia?._id === deleteTarget._id) {
+        setFormData(prev => ({ ...prev, backgroundMedia: null }));
+      }
+    } catch (err) {
+      showError('Failed to delete media');
+    } finally {
+      setDeleteConfirmOpen(false);
+      setDeleteTarget(null);
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -172,7 +225,11 @@ const TokenScreenForm = ({ screen, onSubmit, onCancel }) => {
     }
 
     try {
-      await onSubmit(formData);
+      const payload = {
+        ...formData,
+        backgroundMedia: formData.backgroundMedia?._id || formData.backgroundMedia || null,
+      };
+      await onSubmit(payload);
     } catch {
       showError('Failed to save token screen. Please try again.');
     } finally {
@@ -372,9 +429,12 @@ const TokenScreenForm = ({ screen, onSubmit, onCancel }) => {
 
               {mediaSource === 'gallery' && (
                 <MediaGalleryPicker
+                  items={galleryMedia}
+                  loading={galleryLoading}
                   type="image"
                   value={formData.backgroundMedia}
                   onSelect={handleBackgroundMediaChange}
+                  onDelete={handleDeleteMedia}
                 />
               )}
 
@@ -391,14 +451,14 @@ const TokenScreenForm = ({ screen, onSubmit, onCancel }) => {
                     onError={showError}
                     accept="image/*"
                     label="Upload Background Image"
-                    folder="backgrounds"
+                    folder="media"
                   />
                 </>
               )}
 
               {formData.backgroundMedia && (
                 <BackgroundCropTool
-                  mediaUrl={formData.backgroundMedia}
+                  mediaUrl={formData.backgroundMedia?.url || formData.backgroundMedia}
                   mediaType="image"
                   orientation="landscape"
                   positionX={formData.backgroundPositionX}
@@ -452,9 +512,12 @@ const TokenScreenForm = ({ screen, onSubmit, onCancel }) => {
 
               {mediaSource === 'gallery' && (
                 <MediaGalleryPicker
+                  items={galleryMedia}
+                  loading={galleryLoading}
                   type="video"
                   value={formData.backgroundMedia}
                   onSelect={handleBackgroundMediaChange}
+                  onDelete={handleDeleteMedia}
                 />
               )}
 
@@ -471,14 +534,14 @@ const TokenScreenForm = ({ screen, onSubmit, onCancel }) => {
                     onError={showError}
                     accept="video/*"
                     label="Upload Background Video"
-                    folder="backgrounds"
+                    folder="media"
                   />
                 </>
               )}
 
               {formData.backgroundMedia && (
                 <BackgroundCropTool
-                  mediaUrl={formData.backgroundMedia}
+                  mediaUrl={formData.backgroundMedia?.url || formData.backgroundMedia}
                   mediaType="video"
                   orientation="landscape"
                   positionX={formData.backgroundPositionX}
@@ -558,6 +621,16 @@ const TokenScreenForm = ({ screen, onSubmit, onCancel }) => {
           {isSubmitting ? 'Saving...' : screen ? 'Update Screen' : 'Create Screen'}
         </button>
       </div>
+
+      <ConfirmDialog
+        isOpen={deleteConfirmOpen}
+        onClose={() => { setDeleteConfirmOpen(false); setDeleteTarget(null); }}
+        onConfirm={handleForceDelete}
+        title="Delete Media"
+        message={deleteWarning}
+        confirmText="Delete"
+        type="danger"
+      />
     </form>
   );
 };

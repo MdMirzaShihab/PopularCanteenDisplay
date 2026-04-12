@@ -4,6 +4,7 @@ import { speakTokenNumber, preloadBanglaAudio } from '../../utils/speechUtils';
 import { getCurrentTime, formatTimeDisplay, formatDateDisplay } from '../../utils/timeUtils';
 import { Hash, Clock, Calendar } from 'lucide-react';
 import { hospitalLogo } from '../../assets';
+import { resolveMediaUrl } from '../../utils/mediaUtils';
 
 const getCropStyle = (screen) => ({
   objectPosition: `${screen.backgroundPositionX ?? 50}% ${screen.backgroundPositionY ?? 50}%`,
@@ -61,17 +62,17 @@ const TokenGalleryDisplay = ({ screen }) => {
   return (
     <div className="fixed inset-0 flex flex-col overflow-hidden">
       {/* Background Layer */}
-      {screen.backgroundType === 'image' && screen.backgroundMedia && (
+      {screen.backgroundType === 'image' && resolveMediaUrl(screen.backgroundMedia) && (
         <img
-          src={screen.backgroundMedia}
+          src={resolveMediaUrl(screen.backgroundMedia)}
           alt=""
           className="fixed inset-0 w-full h-full object-cover"
           style={getCropStyle(screen)}
         />
       )}
-      {screen.backgroundType === 'video' && screen.backgroundMedia && (
+      {screen.backgroundType === 'video' && resolveMediaUrl(screen.backgroundMedia) && (
         <video
-          src={screen.backgroundMedia}
+          src={resolveMediaUrl(screen.backgroundMedia)}
           autoPlay
           muted
           loop

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, memo } from 'react';
 import { getCurrentTime, getCurrentDayOfWeek, isTimeInRange } from '../../utils/timeUtils';
 import { getStyleRenderer } from './styles/index.js';
-import { normalizeContent } from '../../utils/mediaUtils';
+import { normalizeContent, resolveMediaUrls } from '../../utils/mediaUtils';
 import MediaSlideshow from './MediaSlideshow';
 
 const SectionRenderer = memo(function SectionRenderer({ section, gridArea }) {
@@ -70,10 +70,11 @@ const SectionRenderer = memo(function SectionRenderer({ section, gridArea }) {
     }
 
     if (normalized.type === 'media') {
-      if (!normalized.media || normalized.media.length === 0) return null;
+      const urls = resolveMediaUrls(normalized.media);
+      if (urls.length === 0) return null;
       return (
         <MediaSlideshow
-          mediaItems={normalized.media}
+          mediaItems={urls}
           slideDuration={normalized.slideDuration}
           transition={normalized.transition}
         />
@@ -88,10 +89,6 @@ const SectionRenderer = memo(function SectionRenderer({ section, gridArea }) {
       className="relative overflow-hidden rounded-xl p-4"
       style={{
         gridArea,
-        backgroundColor: 'rgba(0,0,0,0.35)',
-        backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)',
-        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.06), 0 4px 24px rgba(0,0,0,0.3)'
       }}
     >
       {renderContent()}

@@ -1,4 +1,5 @@
 import { getLayoutTheme } from '../gallery/themes/layoutRegistry';
+import { resolveMediaUrl } from '../../utils/mediaUtils';
 
 const FoodScreenPreview = ({ formData }) => {
   if (!formData) return null;
@@ -33,17 +34,17 @@ const FoodScreenPreview = ({ formData }) => {
         }}
       >
         {/* Background */}
-        {formData.backgroundType === 'image' && formData.backgroundMedia && (
+        {formData.backgroundType === 'image' && resolveMediaUrl(formData.backgroundMedia) && (
           <img
-            src={formData.backgroundMedia}
+            src={resolveMediaUrl(formData.backgroundMedia)}
             alt=""
             className="absolute inset-0 w-full h-full"
             style={cropStyle}
           />
         )}
-        {formData.backgroundType === 'video' && formData.backgroundMedia && (
+        {formData.backgroundType === 'video' && resolveMediaUrl(formData.backgroundMedia) && (
           <video
-            src={formData.backgroundMedia}
+            src={resolveMediaUrl(formData.backgroundMedia)}
             autoPlay
             muted
             loop

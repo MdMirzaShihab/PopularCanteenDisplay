@@ -1,6 +1,7 @@
 import { memo } from 'react';
 import { getLayoutTheme } from './themes/layoutRegistry';
 import SectionRenderer from './SectionRenderer';
+import { resolveMediaUrl } from '../../utils/mediaUtils';
 
 const getCropStyle = (screen) => ({
   objectPosition: `${screen.backgroundPositionX ?? 50}% ${screen.backgroundPositionY ?? 50}%`,
@@ -18,7 +19,7 @@ const ScreenGridRenderer = memo(({ screen }) => {
         <div className="absolute inset-0" style={{ backgroundColor: screen.backgroundColor || '#1a1a2e' }} />
       ) : screen.backgroundType === 'video' ? (
         <video
-          src={screen.backgroundMedia}
+          src={resolveMediaUrl(screen.backgroundMedia)}
           autoPlay
           loop
           muted
@@ -28,7 +29,7 @@ const ScreenGridRenderer = memo(({ screen }) => {
         />
       ) : (
         <img
-          src={screen.backgroundMedia}
+          src={resolveMediaUrl(screen.backgroundMedia)}
           className="absolute inset-0 w-full h-full object-cover"
           alt=""
           style={getCropStyle(screen)}

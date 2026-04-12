@@ -8,6 +8,45 @@ import LoadingSpinner from '../components/common/LoadingSpinner';
 import ConfirmDialog from '../components/common/ConfirmDialog';
 import { ArrowLeft, Layout, Layers, Image, Settings, Save } from 'lucide-react';
 
+const extractMediaIds = (data) => {
+  const result = { ...data };
+
+  // Extract backgroundMedia _id
+  if (result.backgroundMedia && typeof result.backgroundMedia === 'object') {
+    result.backgroundMedia = result.backgroundMedia._id;
+  }
+
+  // Extract section media _ids and menuId _ids
+  if (result.sections) {
+    result.sections = result.sections.map(section => ({
+      ...section,
+      defaultContent: section.defaultContent ? {
+        ...section.defaultContent,
+        media: section.defaultContent.media?.map(m =>
+          typeof m === 'object' && m._id ? m._id : m
+        ),
+        menuId: typeof section.defaultContent.menuId === 'object'
+          ? section.defaultContent.menuId._id
+          : section.defaultContent.menuId,
+      } : section.defaultContent,
+      timeSlots: section.timeSlots?.map(ts => ({
+        ...ts,
+        content: ts.content ? {
+          ...ts.content,
+          media: ts.content.media?.map(m =>
+            typeof m === 'object' && m._id ? m._id : m
+          ),
+          menuId: typeof ts.content.menuId === 'object'
+            ? ts.content.menuId._id
+            : ts.content.menuId,
+        } : ts.content,
+      })),
+    }));
+  }
+
+  return result;
+};
+
 const TABS = [
   { id: 'layout', label: 'Layout', icon: Layout },
   { id: 'sections', label: 'Sections', icon: Layers },
@@ -60,11 +99,12 @@ const FoodScreenEditorPage = () => {
   const handleSubmit = async (data) => {
     setSaving(true);
     try {
+      const payload = extractMediaIds(data);
       if (isEditMode) {
-        await foodScreensApi.updateFoodScreen(id, data);
+        await foodScreensApi.updateFoodScreen(id, payload);
         success('Food screen updated successfully!');
       } else {
-        await foodScreensApi.createFoodScreen(data);
+        await foodScreensApi.createFoodScreen(payload);
         success('Food screen created successfully!');
       }
       navigate('/screens');

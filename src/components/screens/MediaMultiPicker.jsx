@@ -1,10 +1,10 @@
-import { useState, useRef } from 'react';
-import { FolderOpen, Upload, X, GripVertical } from 'lucide-react';
-import { getAllMedia } from '../../assets/media';
+import { useState, useRef, useEffect } from 'react';
+import { FolderOpen, Upload, X, GripVertical, Trash2 } from 'lucide-react';
+import { getMedia, deleteMedia } from '../../api/media.api';
 import ImageUpload from '../common/ImageUpload';
 import { useNotification } from '../../context/NotificationContext';
-import { isVideoUrl } from '../../utils/fileUtils';
 import { MAX_MEDIA_ITEMS } from '../../utils/mediaUtils';
+import ConfirmDialog from '../common/ConfirmDialog';
 
 const MediaMultiPicker = ({ value = [], onChange, maxItems = MAX_MEDIA_ITEMS }) => {
   const { error: showError } = useNotification();
@@ -12,31 +12,84 @@ const MediaMultiPicker = ({ value = [], onChange, maxItems = MAX_MEDIA_ITEMS }) 
   const dragIndexRef = useRef(null);
   const dragListRef = useRef(value);
   dragListRef.current = value;
-  const allMedia = getAllMedia();
+  const [allMedia, setAllMedia] = useState([]);
+  const [galleryLoading, setGalleryLoading] = useState(true);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [deleteWarning, setDeleteWarning] = useState('');
+
+  useEffect(() => {
+    const fetchGallery = async () => {
+      try {
+        const result = await getMedia({ limit: 100 });
+        setAllMedia(result.data);
+      } catch (err) {
+        console.error('Failed to load media gallery:', err);
+      } finally {
+        setGalleryLoading(false);
+      }
+    };
+    fetchGallery();
+  }, []);
+
+  const handleDeleteMedia = async (mediaItem) => {
+    try {
+      await deleteMedia(mediaItem._id);
+      setAllMedia(prev => prev.filter(m => m._id !== mediaItem._id));
+      const filteredValue = value.filter(v => (v._id || v) !== mediaItem._id);
+      if (filteredValue.length !== value.length) {
+        onChange(filteredValue);
+      }
+    } catch (err) {
+      if (err.message && err.message.includes('used by')) {
+        setDeleteTarget(mediaItem);
+        setDeleteWarning(err.message + ' Deleting it will remove it from those screens.');
+        setDeleteConfirmOpen(true);
+      } else {
+        showError('Failed to delete media');
+      }
+    }
+  };
+
+  const handleForceDelete = async () => {
+    if (!deleteTarget) return;
+    try {
+      await deleteMedia(deleteTarget._id, true);
+      setAllMedia(prev => prev.filter(m => m._id !== deleteTarget._id));
+      const filteredValue = value.filter(v => (v._id || v) !== deleteTarget._id);
+      if (filteredValue.length !== value.length) {
+        onChange(filteredValue);
+      }
+    } catch (err) {
+      showError('Failed to delete media');
+    } finally {
+      setDeleteConfirmOpen(false);
+      setDeleteTarget(null);
+    }
+  };
 
   const isAtLimit = value.length >= maxItems;
 
-  const handleGalleryToggle = (src) => {
-    const idx = value.indexOf(src);
+  const handleGalleryToggle = (mediaItem) => {
+    const idx = value.findIndex(v => (v._id || v) === mediaItem._id);
     if (idx !== -1) {
-      // Remove
       onChange(value.filter((_, i) => i !== idx));
     } else {
       if (isAtLimit) {
         showError(`Maximum ${maxItems} media items allowed`);
         return;
       }
-      onChange([...value, src]);
+      onChange([...value, mediaItem]);
     }
   };
 
-  const handleUpload = (base64) => {
-    if (!base64) return;
+  const handleUpload = (mediaObj) => {
+    if (!mediaObj) return;
     if (isAtLimit) {
       showError(`Maximum ${maxItems} media items allowed`);
       return;
     }
-    onChange([...value, base64]);
+    onChange([...value, mediaObj]);
   };
 
   const handleUploadError = (errorMsg) => {
@@ -68,8 +121,8 @@ const MediaMultiPicker = ({ value = [], onChange, maxItems = MAX_MEDIA_ITEMS }) 
     dragIndexRef.current = null;
   };
 
-  const getSelectionOrder = (src) => {
-    const idx = value.indexOf(src);
+  const getSelectionOrder = (mediaItem) => {
+    const idx = value.findIndex(v => (v._id || v) === mediaItem._id);
     return idx !== -1 ? idx + 1 : null;
   };
 
@@ -116,56 +169,70 @@ const MediaMultiPicker = ({ value = [], onChange, maxItems = MAX_MEDIA_ITEMS }) 
           <label className="block text-sm font-medium text-text-200 mb-2">
             Select from Gallery
           </label>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            {allMedia.map((item) => {
-              const order = getSelectionOrder(item.src);
-              const isSelected = order !== null;
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => handleGalleryToggle(item.src)}
-                  className={`relative rounded-lg overflow-hidden border-2 transition-all ${
-                    isSelected
-                      ? 'border-primary-100 ring-2 ring-primary-100/30'
-                      : isAtLimit
-                        ? 'border-bg-300 opacity-50 cursor-not-allowed'
-                        : 'border-bg-300 hover:border-primary-100/50'
-                  }`}
-                >
-                  {item.type === 'image' ? (
-                    <img
-                      src={item.src}
-                      alt={item.name}
-                      className="w-full aspect-video object-cover"
-                    />
-                  ) : (
-                    <video
-                      src={item.src}
-                      muted
-                      className="w-full aspect-video object-cover"
-                      onMouseEnter={(e) => e.target.play()}
-                      onMouseLeave={(e) => { e.target.pause(); e.target.currentTime = 0; }}
-                    />
-                  )}
-                  {/* Type badge */}
-                  <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-black/60 text-white">
-                    {item.type === 'video' ? 'VID' : 'IMG'}
-                  </div>
-                  {/* Name */}
-                  <div className="absolute bottom-0 inset-x-0 bg-black/60 px-1.5 py-1">
-                    <span className="text-[10px] text-white font-medium truncate block">{item.name}</span>
-                  </div>
-                  {/* Selection order badge */}
-                  {isSelected && (
-                    <div className="absolute top-1 right-1 w-6 h-6 bg-primary-100 rounded-full flex items-center justify-center">
-                      <span className="text-white text-xs font-bold">{order}</span>
+          {galleryLoading ? (
+            <div className="py-8 text-center text-sm text-text-200">Loading gallery...</div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {allMedia.map((item) => {
+                const order = getSelectionOrder(item);
+                const isSelected = order !== null;
+                return (
+                  <button
+                    key={item._id}
+                    type="button"
+                    onClick={() => handleGalleryToggle(item)}
+                    className={`group relative rounded-lg overflow-hidden border-2 transition-all ${
+                      isSelected
+                        ? 'border-primary-100 ring-2 ring-primary-100/30'
+                        : isAtLimit
+                          ? 'border-bg-300 opacity-50 cursor-not-allowed'
+                          : 'border-bg-300 hover:border-primary-100/50'
+                    }`}
+                  >
+                    {item.type === 'image' ? (
+                      <img
+                        src={item.url}
+                        alt={item.name}
+                        className="w-full aspect-video object-cover"
+                      />
+                    ) : (
+                      <video
+                        src={item.url}
+                        muted
+                        className="w-full aspect-video object-cover"
+                        onMouseEnter={(e) => e.target.play()}
+                        onMouseLeave={(e) => { e.target.pause(); e.target.currentTime = 0; }}
+                      />
+                    )}
+                    {/* Type badge */}
+                    <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-black/60 text-white">
+                      {item.type === 'video' ? 'VID' : 'IMG'}
                     </div>
-                  )}
-                </button>
-              );
-            })}
-          </div>
+                    {/* Name */}
+                    <div className="absolute bottom-0 inset-x-0 bg-black/60 px-1.5 py-1">
+                      <span className="text-[10px] text-white font-medium truncate block">{item.name}</span>
+                    </div>
+                    {/* Selection order badge */}
+                    {isSelected && (
+                      <div className="absolute top-1 right-1 w-6 h-6 bg-primary-100 rounded-full flex items-center justify-center">
+                        <span className="text-white text-xs font-bold">{order}</span>
+                      </div>
+                    )}
+                    {/* Delete button */}
+                    <div className="absolute top-1 left-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); handleDeleteMedia(item); }}
+                        className="p-1 bg-accent-200/90 text-white rounded hover:bg-accent-200 transition-colors"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 
@@ -183,11 +250,21 @@ const MediaMultiPicker = ({ value = [], onChange, maxItems = MAX_MEDIA_ITEMS }) 
               onError={handleUploadError}
               accept="image/*,video/*"
               label="Upload Image or Video"
-              folder="sections"
+              folder="media"
             />
           )}
         </div>
       )}
+
+      <ConfirmDialog
+        isOpen={deleteConfirmOpen}
+        onClose={() => { setDeleteConfirmOpen(false); setDeleteTarget(null); }}
+        onConfirm={handleForceDelete}
+        title="Delete Media"
+        message={deleteWarning}
+        confirmText="Delete"
+        type="danger"
+      />
 
       {/* Selected items strip */}
       {value.length > 0 && (
@@ -196,19 +273,19 @@ const MediaMultiPicker = ({ value = [], onChange, maxItems = MAX_MEDIA_ITEMS }) 
             Playback Order (drag to reorder)
           </label>
           <div className="flex gap-2 overflow-x-auto pb-2">
-            {value.map((src, idx) => (
+            {value.map((item, idx) => (
               <div
-                key={`${src.substring(0, 40)}-${idx}`}
+                key={item?._id || idx}
                 draggable
                 onDragStart={() => handleDragStart(idx)}
                 onDragOver={(e) => handleDragOver(e, idx)}
                 onDragEnd={handleDragEnd}
                 className="relative flex-shrink-0 w-20 h-14 rounded-lg overflow-hidden border-2 border-bg-300 group cursor-grab active:cursor-grabbing"
               >
-                {isVideoUrl(src) ? (
-                  <video src={src} muted className="w-full h-full object-cover" />
+                {item?.type === 'video' ? (
+                  <video src={item?.url || item} muted className="w-full h-full object-cover" />
                 ) : (
-                  <img src={src} alt="" className="w-full h-full object-cover" />
+                  <img src={item?.url || item} alt="" className="w-full h-full object-cover" />
                 )}
                 {/* Order number */}
                 <div className="absolute bottom-0 left-0 px-1.5 py-0.5 bg-black/70 rounded-tr text-[10px] font-bold text-white">
@@ -216,7 +293,7 @@ const MediaMultiPicker = ({ value = [], onChange, maxItems = MAX_MEDIA_ITEMS }) 
                 </div>
                 {/* Type badge */}
                 <div className="absolute top-0 left-0 px-1 py-0.5 bg-black/60 rounded-br text-[8px] font-bold uppercase text-white">
-                  {isVideoUrl(src) ? 'VID' : 'IMG'}
+                  {item?.type === 'video' ? 'VID' : 'IMG'}
                 </div>
                 {/* Grip icon */}
                 <div className="absolute top-0 right-5 p-0.5 opacity-0 group-hover:opacity-100 transition-opacity">

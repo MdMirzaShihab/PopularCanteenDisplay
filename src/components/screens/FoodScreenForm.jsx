@@ -7,8 +7,9 @@ import LayoutPicker from './LayoutPicker';
 import SectionConfigTab from './SectionConfigTab';
 import ImageUpload from '../common/ImageUpload';
 import BackgroundCropTool from '../common/BackgroundCropTool';
-import { FolderOpen, Upload } from 'lucide-react';
-import { getMediaByType } from '../../assets/media';
+import { FolderOpen, Upload, Trash2 } from 'lucide-react';
+import { getMedia, deleteMedia } from '../../api/media.api';
+import ConfirmDialog from '../common/ConfirmDialog';
 
 const GAP_OPTIONS = [
   { value: 4, label: 'Small' },
@@ -23,6 +24,26 @@ const FoodScreenForm = forwardRef(({ screen, activeTab, onTabChange, onSubmit, o
   const [activeSectionIdx, setActiveSectionIdx] = useState(0);
   const [bgMediaSource, setBgMediaSource] = useState('gallery');
   const [formErrors, setFormErrors] = useState({});
+
+  const [galleryMedia, setGalleryMedia] = useState([]);
+  const [galleryLoading, setGalleryLoading] = useState(true);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [deleteWarning, setDeleteWarning] = useState('');
+
+  useEffect(() => {
+    const fetchGallery = async () => {
+      try {
+        const result = await getMedia({ limit: 100 });
+        setGalleryMedia(result.data);
+      } catch (err) {
+        console.error('Failed to load media gallery:', err);
+      } finally {
+        setGalleryLoading(false);
+      }
+    };
+    fetchGallery();
+  }, []);
 
   const [formData, setFormData] = useState({
     title: screen?.title || '',
@@ -88,6 +109,40 @@ const FoodScreenForm = forwardRef(({ screen, activeTab, onTabChange, onSubmit, o
     isDirty: () => JSON.stringify(formData) !== initialFormData.current,
     getFormErrors: () => formErrors,
   }), [handleSubmit, formData, formErrors]);
+
+  const handleDeleteMedia = async (mediaItem) => {
+    try {
+      await deleteMedia(mediaItem._id);
+      setGalleryMedia(prev => prev.filter(m => m._id !== mediaItem._id));
+      if (formData.backgroundMedia?._id === mediaItem._id) {
+        setFormData(prev => ({ ...prev, backgroundMedia: null }));
+      }
+    } catch (err) {
+      if (err.message && err.message.includes('used by')) {
+        setDeleteTarget(mediaItem);
+        setDeleteWarning(err.message + ' Deleting it will remove it from those screens.');
+        setDeleteConfirmOpen(true);
+      } else {
+        showError('Failed to delete media');
+      }
+    }
+  };
+
+  const handleForceDelete = async () => {
+    if (!deleteTarget) return;
+    try {
+      await deleteMedia(deleteTarget._id, true);
+      setGalleryMedia(prev => prev.filter(m => m._id !== deleteTarget._id));
+      if (formData.backgroundMedia?._id === deleteTarget._id) {
+        setFormData(prev => ({ ...prev, backgroundMedia: null }));
+      }
+    } catch (err) {
+      showError('Failed to delete media');
+    } finally {
+      setDeleteConfirmOpen(false);
+      setDeleteTarget(null);
+    }
+  };
 
   const clearFieldError = (field) => {
     if (formErrors[field]) {
@@ -236,53 +291,66 @@ const FoodScreenForm = forwardRef(({ screen, activeTab, onTabChange, onSubmit, o
               {bgMediaSource === 'gallery' && (
                 <div>
                   <label className="block text-sm font-medium text-text-200 mb-2">Select from Gallery</label>
-                  <div className={`grid ${formData.backgroundType === 'image' ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-2 sm:grid-cols-3'} gap-2`}>
-                    {getMediaByType(formData.backgroundType).map((item) => {
-                      const isSelected = formData.backgroundMedia === item.src;
-                      return (
-                        <button key={item.id} type="button"
-                          onClick={() => setFormData(prev => ({
-                            ...prev, backgroundMedia: item.src,
-                            backgroundPositionX: 50, backgroundPositionY: 50, backgroundScale: 1,
-                          }))}
-                          className={`relative rounded-lg overflow-hidden border-2 transition-all ${
-                            isSelected ? 'border-primary-100 ring-2 ring-primary-100/30' : 'border-bg-300 hover:border-primary-100/50'
-                          }`}>
-                          {formData.backgroundType === 'image' ? (
-                            <img src={item.src} alt={item.name} className="w-full aspect-video object-cover" />
-                          ) : (
-                            <video src={item.src} muted className="w-full aspect-video object-cover"
-                              onMouseEnter={(e) => e.target.play()} onMouseLeave={(e) => { e.target.pause(); e.target.currentTime = 0; }} />
-                          )}
-                          <div className="absolute bottom-0 inset-x-0 bg-black/60 px-1.5 py-1">
-                            <span className="text-[10px] text-white font-medium truncate block">{item.name}</span>
-                          </div>
-                          {isSelected && (
-                            <div className="absolute top-1 right-1 w-5 h-5 bg-primary-100 rounded-full flex items-center justify-center">
-                              <span className="text-white text-xs font-bold">&#10003;</span>
+                  {galleryLoading ? (
+                    <p className="text-sm text-text-200">Loading gallery...</p>
+                  ) : (
+                    <div className={`grid ${formData.backgroundType === 'image' ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-2 sm:grid-cols-3'} gap-2`}>
+                      {galleryMedia.filter(m => m.type === formData.backgroundType).map((item) => {
+                        const isSelected = formData.backgroundMedia?._id === item._id;
+                        return (
+                          <button key={item._id} type="button"
+                            onClick={() => setFormData(prev => ({
+                              ...prev, backgroundMedia: item,
+                              backgroundPositionX: 50, backgroundPositionY: 50, backgroundScale: 1,
+                            }))}
+                            className={`group relative rounded-lg overflow-hidden border-2 transition-all ${
+                              isSelected ? 'border-primary-100 ring-2 ring-primary-100/30' : 'border-bg-300 hover:border-primary-100/50'
+                            }`}>
+                            {formData.backgroundType === 'image' ? (
+                              <img src={item.url} alt={item.name} className="w-full aspect-video object-cover" />
+                            ) : (
+                              <video src={item.url} muted className="w-full aspect-video object-cover"
+                                onMouseEnter={(e) => e.target.play()} onMouseLeave={(e) => { e.target.pause(); e.target.currentTime = 0; }} />
+                            )}
+                            <div className="absolute bottom-0 inset-x-0 bg-black/60 px-1.5 py-1">
+                              <span className="text-[10px] text-white font-medium truncate block">{item.name}</span>
                             </div>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
+                            {isSelected && (
+                              <div className="absolute top-1 right-1 w-5 h-5 bg-primary-100 rounded-full flex items-center justify-center">
+                                <span className="text-white text-xs font-bold">&#10003;</span>
+                              </div>
+                            )}
+                            <div className="absolute top-1 left-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button
+                                type="button"
+                                onClick={(e) => { e.stopPropagation(); handleDeleteMedia(item); }}
+                                className="p-1 bg-accent-200/90 text-white rounded hover:bg-accent-200 transition-colors"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </button>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               )}
 
               {bgMediaSource === 'upload' && (
                 <ImageUpload value={formData.backgroundMedia}
-                  onChange={(url) => setFormData(prev => ({
-                    ...prev, backgroundMedia: url,
+                  onChange={(mediaObj) => setFormData(prev => ({
+                    ...prev, backgroundMedia: mediaObj,
                     backgroundPositionX: 50, backgroundPositionY: 50, backgroundScale: 1,
                   }))}
                   onError={showError}
                   accept={formData.backgroundType === 'image' ? 'image/*' : 'video/*'}
                   label={`Background ${formData.backgroundType === 'image' ? 'Image' : 'Video'}`}
-                  folder="backgrounds" />
+                  folder="media" />
               )}
 
               {formData.backgroundMedia && (
-                <BackgroundCropTool mediaUrl={formData.backgroundMedia} mediaType={formData.backgroundType}
+                <BackgroundCropTool mediaUrl={formData.backgroundMedia?.url || formData.backgroundMedia} mediaType={formData.backgroundType}
                   orientation={LAYOUT_THEMES[formData.layoutTheme]?.orientation || 'landscape'}
                   positionX={formData.backgroundPositionX} positionY={formData.backgroundPositionY} scale={formData.backgroundScale}
                   onChange={({ positionX, positionY, scale }) =>
@@ -319,6 +387,16 @@ const FoodScreenForm = forwardRef(({ screen, activeTab, onTabChange, onSubmit, o
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        isOpen={deleteConfirmOpen}
+        onClose={() => { setDeleteConfirmOpen(false); setDeleteTarget(null); }}
+        onConfirm={handleForceDelete}
+        title="Delete Media"
+        message={deleteWarning}
+        confirmText="Delete"
+        type="danger"
+      />
     </div>
   );
 });

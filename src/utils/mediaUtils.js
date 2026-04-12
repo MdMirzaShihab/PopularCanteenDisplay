@@ -60,3 +60,24 @@ export const normalizeContent = (content) => {
 
   return content;
 };
+
+/**
+ * Resolve a media URL from either a Media object or a raw URL string.
+ * @param {Object|string} media - Media object or URL string
+ * @returns {string|null} - The URL string
+ */
+export const resolveMediaUrl = (media) => {
+  if (!media) return null;
+  if (typeof media === 'string') return media;
+  return media.url || null;
+};
+
+/**
+ * Resolve an array of media items to URL strings.
+ * @param {Array} mediaItems - Array of Media objects or URL strings
+ * @returns {string[]} - Array of URL strings
+ */
+export const resolveMediaUrls = (mediaItems) => {
+  if (!Array.isArray(mediaItems)) return [];
+  return mediaItems.map(resolveMediaUrl).filter(Boolean);
+};
