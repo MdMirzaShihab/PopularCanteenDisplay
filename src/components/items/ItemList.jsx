@@ -1,32 +1,20 @@
-import { useState, useMemo } from 'react';
 import { Search } from 'lucide-react';
 import ItemCard from './ItemCard';
 import SearchableSelect from '../common/SearchableSelect';
 import { ITEM_CATEGORIES } from '../../utils/constants';
 
-const ItemList = ({ items, onEdit, onDelete }) => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterActive, setFilterActive] = useState('all');
-  const [filterCategory, setFilterCategory] = useState('');
-
-  const filteredItems = useMemo(() => {
-    return items.filter(item => {
-      // Search filter
-      const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           item.description.toLowerCase().includes(searchTerm.toLowerCase());
-
-      // Active filter
-      const matchesActive = filterActive === 'all' ||
-                           (filterActive === 'active' && item.isActive) ||
-                           (filterActive === 'inactive' && !item.isActive);
-
-      // Category filter
-      const matchesCategory = !filterCategory || item.category === filterCategory;
-
-      return matchesSearch && matchesActive && matchesCategory;
-    });
-  }, [items, searchTerm, filterActive, filterCategory]);
-
+const ItemList = ({
+  items,
+  totalCount,
+  search,
+  category,
+  isActive,
+  onSearchChange,
+  onCategoryChange,
+  onIsActiveChange,
+  onEdit,
+  onDelete,
+}) => {
   return (
     <div className="space-y-6">
       {/* Filters */}
@@ -37,8 +25,8 @@ const ItemList = ({ items, onEdit, onDelete }) => {
           <input
             type="text"
             placeholder="Search items..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            value={search}
+            onChange={(e) => onSearchChange(e.target.value)}
             className="input-field pl-10"
           />
         </div>
@@ -46,8 +34,8 @@ const ItemList = ({ items, onEdit, onDelete }) => {
         {/* Category Filter */}
         <div className="w-48">
           <SearchableSelect
-            value={filterCategory}
-            onChange={setFilterCategory}
+            value={category}
+            onChange={onCategoryChange}
             options={ITEM_CATEGORIES}
             placeholder="All Categories"
           />
@@ -56,9 +44,9 @@ const ItemList = ({ items, onEdit, onDelete }) => {
         {/* Active Filter */}
         <div className="flex gap-2">
           <button
-            onClick={() => setFilterActive('all')}
+            onClick={() => onIsActiveChange('all')}
             className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-              filterActive === 'all'
+              isActive === 'all'
                 ? 'bg-primary-100 text-white'
                 : 'bg-bg-100 text-text-100 hover:bg-bg-200'
             }`}
@@ -66,9 +54,9 @@ const ItemList = ({ items, onEdit, onDelete }) => {
             All
           </button>
           <button
-            onClick={() => setFilterActive('active')}
+            onClick={() => onIsActiveChange('active')}
             className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-              filterActive === 'active'
+              isActive === 'active'
                 ? 'bg-primary-100 text-white'
                 : 'bg-bg-100 text-text-100 hover:bg-bg-200'
             }`}
@@ -76,9 +64,9 @@ const ItemList = ({ items, onEdit, onDelete }) => {
             Active
           </button>
           <button
-            onClick={() => setFilterActive('inactive')}
+            onClick={() => onIsActiveChange('inactive')}
             className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-              filterActive === 'inactive'
+              isActive === 'inactive'
                 ? 'bg-primary-100 text-white'
                 : 'bg-bg-100 text-text-100 hover:bg-bg-200'
             }`}
@@ -90,17 +78,17 @@ const ItemList = ({ items, onEdit, onDelete }) => {
 
       {/* Results Count */}
       <div className="text-sm text-text-200">
-        Showing {filteredItems.length} of {items.length} items
+        Showing {items.length} of {totalCount} items
       </div>
 
       {/* Items Grid */}
-      {filteredItems.length === 0 ? (
+      {items.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-text-200">No items found</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredItems.map(item => (
+          {items.map(item => (
             <ItemCard
               key={item._id}
               item={item}

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus } from 'lucide-react';
 import { useItems } from '../hooks/useItems';
 import { useNotification } from '../context/NotificationContext';
@@ -6,9 +6,27 @@ import ItemList from '../components/items/ItemList';
 import ItemForm from '../components/items/ItemForm';
 import Modal from '../components/common/Modal';
 import ConfirmDialog from '../components/common/ConfirmDialog';
+import Pagination from '../components/common/Pagination';
 
 const ItemsPage = () => {
-  const { items, loading, createItem, updateItem, deleteItem } = useItems();
+  // Filter state
+  const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [category, setCategory] = useState('');
+  const [isActive, setIsActive] = useState('all');
+
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  const { items, loading, pagination, createItem, updateItem, deleteItem } = useItems({
+    search: debouncedSearch,
+    category,
+    isActive,
+  });
+
   const { success, error } = useNotification();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -78,11 +96,27 @@ const ItemsPage = () => {
           <p className="text-text-200">Loading items...</p>
         </div>
       ) : (
-        <ItemList
-          items={items}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-        />
+        <>
+          <ItemList
+            items={items}
+            totalCount={pagination.total}
+            search={search}
+            category={category}
+            isActive={isActive}
+            onSearchChange={setSearch}
+            onCategoryChange={setCategory}
+            onIsActiveChange={setIsActive}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+          />
+          <Pagination
+            page={pagination.page}
+            totalPages={pagination.totalPages}
+            total={pagination.total}
+            limit={pagination.limit}
+            onPageChange={pagination.goToPage}
+          />
+        </>
       )}
 
       {/* Create/Edit Modal */}
