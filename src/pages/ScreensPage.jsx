@@ -12,8 +12,8 @@ import ConfirmDialog from '../components/common/ConfirmDialog';
 
 const ScreensPage = () => {
   const navigate = useNavigate();
-  const { foodScreens, loading: foodLoading, deleteFoodScreen, duplicateFoodScreen } = useFoodScreens();
-  const { tokenScreens, loading: tokenLoading, createTokenScreen, updateTokenScreen, deleteTokenScreen } = useTokenScreens();
+  const { foodScreens, deleteFoodScreen, duplicateFoodScreen } = useFoodScreens();
+  const { tokenScreens, createTokenScreen, updateTokenScreen, deleteTokenScreen } = useTokenScreens();
   const { success, error } = useNotification();
 
   const [activeTab, setActiveTab] = useState('food');

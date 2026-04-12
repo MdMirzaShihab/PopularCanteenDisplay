@@ -76,7 +76,7 @@ const FoodScreenPreview = ({ formData }) => {
             padding: `${formData.gap || 8}px`,
           }}
         >
-          {layout.areas.map((area, idx) => (
+          {layout.areas.map((area) => (
             <div
               key={area.id}
               className="rounded-lg flex items-center justify-center"
