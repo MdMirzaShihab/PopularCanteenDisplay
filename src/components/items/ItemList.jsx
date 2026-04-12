@@ -5,6 +5,7 @@ import { ITEM_CATEGORIES } from '../../utils/constants';
 
 const ItemList = ({
   items,
+  loading,
   totalCount,
   search,
   category,
@@ -76,13 +77,12 @@ const ItemList = ({
         </div>
       </div>
 
-      {/* Results Count */}
-      <div className="text-sm text-text-200">
-        Showing {items.length} of {totalCount} items
-      </div>
-
       {/* Items Grid */}
-      {items.length === 0 ? (
+      {loading ? (
+        <div className="text-center py-12">
+          <p className="text-text-200">Loading items...</p>
+        </div>
+      ) : items.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-text-200">No items found</p>
         </div>

@@ -91,33 +91,28 @@ const ItemsPage = () => {
       </div>
 
       {/* Items List */}
-      {loading ? (
-        <div className="text-center py-12">
-          <p className="text-text-200">Loading items...</p>
-        </div>
-      ) : (
-        <>
-          <ItemList
-            items={items}
-            totalCount={pagination.total}
-            search={search}
-            category={category}
-            isActive={isActive}
-            onSearchChange={setSearch}
-            onCategoryChange={setCategory}
-            onIsActiveChange={setIsActive}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-          />
-          <Pagination
-            page={pagination.page}
-            totalPages={pagination.totalPages}
-            total={pagination.total}
-            limit={pagination.limit}
-            onPageChange={pagination.goToPage}
-          />
-        </>
-      )}
+      <>
+        <ItemList
+          items={items}
+          loading={loading}
+          totalCount={pagination.total}
+          search={search}
+          category={category}
+          isActive={isActive}
+          onSearchChange={setSearch}
+          onCategoryChange={setCategory}
+          onIsActiveChange={setIsActive}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+        />
+        <Pagination
+          page={pagination.page}
+          totalPages={pagination.totalPages}
+          total={pagination.total}
+          limit={pagination.limit}
+          onPageChange={pagination.goToPage}
+        />
+      </>
 
       {/* Create/Edit Modal */}
       <Modal
