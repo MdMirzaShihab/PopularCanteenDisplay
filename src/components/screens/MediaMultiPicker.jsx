@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
-import { FolderOpen, Upload, X, GripVertical } from 'lucide-react';
-import { getMedia } from '../../api/media.api';
+import { FolderOpen, Upload, X, GripVertical, Trash2 } from 'lucide-react';
+import { getMedia, deleteMedia } from '../../api/media.api';
 import ImageUpload from '../common/ImageUpload';
 import { useNotification } from '../../context/NotificationContext';
 import { MAX_MEDIA_ITEMS } from '../../utils/mediaUtils';
+import ConfirmDialog from '../common/ConfirmDialog';
 
 const MediaMultiPicker = ({ value = [], onChange, maxItems = MAX_MEDIA_ITEMS }) => {
   const { error: showError } = useNotification();
@@ -13,6 +14,9 @@ const MediaMultiPicker = ({ value = [], onChange, maxItems = MAX_MEDIA_ITEMS }) 
   dragListRef.current = value;
   const [allMedia, setAllMedia] = useState([]);
   const [galleryLoading, setGalleryLoading] = useState(true);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [deleteWarning, setDeleteWarning] = useState('');
 
   useEffect(() => {
     const fetchGallery = async () => {
@@ -27,6 +31,43 @@ const MediaMultiPicker = ({ value = [], onChange, maxItems = MAX_MEDIA_ITEMS }) 
     };
     fetchGallery();
   }, []);
+
+  const handleDeleteMedia = async (mediaItem) => {
+    try {
+      await deleteMedia(mediaItem._id);
+      setAllMedia(prev => prev.filter(m => m._id !== mediaItem._id));
+      const filteredValue = value.filter(v => (v._id || v) !== mediaItem._id);
+      if (filteredValue.length !== value.length) {
+        onChange(filteredValue);
+      }
+    } catch (err) {
+      if (err.response?.status === 409) {
+        const data = err.response.data;
+        setDeleteTarget(mediaItem);
+        setDeleteWarning(`This media is used by ${data.screenCount} screen(s): ${data.screenNames.join(', ')}. Deleting it will remove it from those screens.`);
+        setDeleteConfirmOpen(true);
+      } else {
+        showError('Failed to delete media');
+      }
+    }
+  };
+
+  const handleForceDelete = async () => {
+    if (!deleteTarget) return;
+    try {
+      await deleteMedia(deleteTarget._id, true);
+      setAllMedia(prev => prev.filter(m => m._id !== deleteTarget._id));
+      const filteredValue = value.filter(v => (v._id || v) !== deleteTarget._id);
+      if (filteredValue.length !== value.length) {
+        onChange(filteredValue);
+      }
+    } catch (err) {
+      showError('Failed to delete media');
+    } finally {
+      setDeleteConfirmOpen(false);
+      setDeleteTarget(null);
+    }
+  };
 
   const isAtLimit = value.length >= maxItems;
 
@@ -141,7 +182,7 @@ const MediaMultiPicker = ({ value = [], onChange, maxItems = MAX_MEDIA_ITEMS }) 
                     key={item._id}
                     type="button"
                     onClick={() => handleGalleryToggle(item)}
-                    className={`relative rounded-lg overflow-hidden border-2 transition-all ${
+                    className={`group relative rounded-lg overflow-hidden border-2 transition-all ${
                       isSelected
                         ? 'border-primary-100 ring-2 ring-primary-100/30'
                         : isAtLimit
@@ -178,6 +219,16 @@ const MediaMultiPicker = ({ value = [], onChange, maxItems = MAX_MEDIA_ITEMS }) 
                         <span className="text-white text-xs font-bold">{order}</span>
                       </div>
                     )}
+                    {/* Delete button */}
+                    <div className="absolute top-1 left-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); handleDeleteMedia(item); }}
+                        className="p-1 bg-accent-200/90 text-white rounded hover:bg-accent-200 transition-colors"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </div>
                   </button>
                 );
               })}
@@ -205,6 +256,16 @@ const MediaMultiPicker = ({ value = [], onChange, maxItems = MAX_MEDIA_ITEMS }) 
           )}
         </div>
       )}
+
+      <ConfirmDialog
+        isOpen={deleteConfirmOpen}
+        onClose={() => { setDeleteConfirmOpen(false); setDeleteTarget(null); }}
+        onConfirm={handleForceDelete}
+        title="Delete Media"
+        message={deleteWarning}
+        confirmText="Delete"
+        type="danger"
+      />
 
       {/* Selected items strip */}
       {value.length > 0 && (
