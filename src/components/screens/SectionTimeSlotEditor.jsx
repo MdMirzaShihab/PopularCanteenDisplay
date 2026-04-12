@@ -112,20 +112,26 @@ const SectionTimeSlotEditor = ({ timeSlots, onChange, menus }) => {
 
           {/* Time markers header */}
           <div className="relative h-6 mb-1 ml-20">
-            {Array.from({ length: 25 }, (_, i) => i).map(hour => (
-              <div
-                key={hour}
-                className="absolute top-0"
-                style={{ left: `${(hour / 24) * 100}%` }}
-              >
-                <span className="absolute -left-3 text-xs text-text-200 font-medium">
-                  {hour % 6 === 0 ? `${hour}:00` : ''}
-                </span>
-                <span className="absolute top-3 -left-px text-[9px] text-text-300">
-                  {hour % 6 !== 0 ? '|' : ''}
-                </span>
-              </div>
-            ))}
+            {Array.from({ length: 25 }, (_, i) => i).map(hour => {
+              const isMajor = hour % 6 === 0;
+              return (
+                <div
+                  key={hour}
+                  className="absolute top-0"
+                  style={{ left: `${(hour / 24) * 100}%` }}
+                >
+                  {isMajor ? (
+                    <span className="absolute -translate-x-1/2 text-[11px] text-text-100 font-semibold">
+                      {hour}:00
+                    </span>
+                  ) : (
+                    <span className="absolute -translate-x-1/2 text-[9px] text-text-300">
+                      {hour}
+                    </span>
+                  )}
+                </div>
+              );
+            })}
           </div>
 
           {/* Timeline for each day */}
@@ -144,7 +150,7 @@ const SectionTimeSlotEditor = ({ timeSlots, onChange, menus }) => {
                     {Array.from({ length: 25 }, (_, i) => i).map(hour => (
                       <div
                         key={hour}
-                        className={`absolute top-0 bottom-0 border-l ${hour % 6 === 0 ? 'border-bg-300' : 'border-bg-300/40'}`}
+                        className={`absolute top-0 bottom-0 border-l ${hour % 6 === 0 ? 'border-bg-300' : 'border-bg-300/30'}`}
                         style={{ left: `${(hour / 24) * 100}%` }}
                       />
                     ))}
