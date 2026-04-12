@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus } from 'lucide-react';
 import { useMenus } from '../hooks/useMenus';
 import { useNotification } from '../context/NotificationContext';
@@ -6,9 +6,25 @@ import MenuList from '../components/menus/MenuList';
 import MenuForm from '../components/menus/MenuForm';
 import Modal from '../components/common/Modal';
 import ConfirmDialog from '../components/common/ConfirmDialog';
+import Pagination from '../components/common/Pagination';
 
 const MenusPage = () => {
-  const { menus, loading, createMenu, updateMenu, deleteMenu } = useMenus();
+  // Filter state
+  const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [isActive, setIsActive] = useState('all');
+
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  const { menus, loading, pagination, createMenu, updateMenu, deleteMenu } = useMenus({
+    search: debouncedSearch,
+    isActive,
+  });
+
   const { success, error } = useNotification();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -73,11 +89,25 @@ const MenusPage = () => {
       </div>
 
       {/* Menus List */}
-      {loading ? (
-        <div className="text-center py-12"><p className="text-text-200">Loading menus...</p></div>
-      ) : (
-        <MenuList menus={menus} onEdit={handleEdit} onDelete={handleDelete} />
-      )}
+      <>
+        <MenuList
+          menus={menus}
+          loading={loading}
+          search={search}
+          isActive={isActive}
+          onSearchChange={setSearch}
+          onIsActiveChange={setIsActive}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+        />
+        <Pagination
+          page={pagination.page}
+          totalPages={pagination.totalPages}
+          total={pagination.total}
+          limit={pagination.limit}
+          onPageChange={pagination.goToPage}
+        />
+      </>
 
       {/* Create/Edit Modal */}
       <Modal

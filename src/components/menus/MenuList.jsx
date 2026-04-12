@@ -1,24 +1,16 @@
-import { useState, useMemo } from 'react';
 import { Search } from 'lucide-react';
 import MenuCard from './MenuCard';
 
-const MenuList = ({ menus, onEdit, onDelete }) => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterActive, setFilterActive] = useState('all');
-
-  const filteredMenus = useMemo(() => {
-    return menus.filter(menu => {
-      const matchesSearch = menu.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           menu.description.toLowerCase().includes(searchTerm.toLowerCase());
-
-      const matchesActive = filterActive === 'all' ||
-                           (filterActive === 'active' && menu.isActive !== false) ||
-                           (filterActive === 'inactive' && menu.isActive === false);
-
-      return matchesSearch && matchesActive;
-    });
-  }, [menus, searchTerm, filterActive]);
-
+const MenuList = ({
+  menus,
+  loading,
+  search,
+  isActive,
+  onSearchChange,
+  onIsActiveChange,
+  onEdit,
+  onDelete,
+}) => {
   return (
     <div className="space-y-6">
       {/* Filters */}
@@ -29,8 +21,8 @@ const MenuList = ({ menus, onEdit, onDelete }) => {
           <input
             type="text"
             placeholder="Search menus..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            value={search}
+            onChange={(e) => onSearchChange(e.target.value)}
             className="input-field pl-10"
           />
         </div>
@@ -38,9 +30,9 @@ const MenuList = ({ menus, onEdit, onDelete }) => {
         {/* Active Filter */}
         <div className="flex gap-2">
           <button
-            onClick={() => setFilterActive('all')}
+            onClick={() => onIsActiveChange('all')}
             className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-              filterActive === 'all'
+              isActive === 'all'
                 ? 'bg-primary-100 text-white'
                 : 'bg-bg-100 text-text-100 hover:bg-bg-200'
             }`}
@@ -48,9 +40,9 @@ const MenuList = ({ menus, onEdit, onDelete }) => {
             All
           </button>
           <button
-            onClick={() => setFilterActive('active')}
+            onClick={() => onIsActiveChange('active')}
             className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-              filterActive === 'active'
+              isActive === 'active'
                 ? 'bg-primary-100 text-white'
                 : 'bg-bg-100 text-text-100 hover:bg-bg-200'
             }`}
@@ -58,9 +50,9 @@ const MenuList = ({ menus, onEdit, onDelete }) => {
             Active
           </button>
           <button
-            onClick={() => setFilterActive('inactive')}
+            onClick={() => onIsActiveChange('inactive')}
             className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-              filterActive === 'inactive'
+              isActive === 'inactive'
                 ? 'bg-primary-100 text-white'
                 : 'bg-bg-100 text-text-100 hover:bg-bg-200'
             }`}
@@ -70,19 +62,18 @@ const MenuList = ({ menus, onEdit, onDelete }) => {
         </div>
       </div>
 
-      {/* Results Count */}
-      <div className="text-sm text-text-200">
-        Showing {filteredMenus.length} of {menus.length} menus
-      </div>
-
       {/* Menus Grid */}
-      {filteredMenus.length === 0 ? (
+      {loading ? (
+        <div className="text-center py-12">
+          <p className="text-text-200">Loading menus...</p>
+        </div>
+      ) : menus.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-text-200">No menus found</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredMenus.map(menu => (
+          {menus.map(menu => (
             <MenuCard
               key={menu._id}
               menu={menu}
