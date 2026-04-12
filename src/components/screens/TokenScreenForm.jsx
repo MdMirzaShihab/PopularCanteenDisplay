@@ -19,7 +19,8 @@ const TITLE_FONTS = [
 
 const TITLE_COLOR_PRESETS = ['#ffffff', '#facc15', '#4ade80', '#60a5fa', '#f472b6', '#c084fc'];
 
-const MediaGalleryPicker = ({ items, type, value, onSelect }) => {
+const MediaGalleryPicker = ({ items, loading, type, value, onSelect }) => {
+  if (loading) return <div className="p-4 text-center text-sm text-text-200">Loading gallery...</div>;
   const filteredItems = items.filter(m => m.type === type);
   if (filteredItems.length === 0) return null;
 
@@ -75,6 +76,7 @@ const TokenScreenForm = ({ screen, onSubmit, onCancel }) => {
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [galleryMedia, setGalleryMedia] = useState([]);
+  const [galleryLoading, setGalleryLoading] = useState(true);
 
   useEffect(() => {
     const fetchGallery = async () => {
@@ -83,6 +85,8 @@ const TokenScreenForm = ({ screen, onSubmit, onCancel }) => {
         setGalleryMedia(result.data);
       } catch (err) {
         console.error('Failed to load media gallery:', err);
+      } finally {
+        setGalleryLoading(false);
       }
     };
     fetchGallery();
@@ -379,6 +383,7 @@ const TokenScreenForm = ({ screen, onSubmit, onCancel }) => {
               {mediaSource === 'gallery' && (
                 <MediaGalleryPicker
                   items={galleryMedia}
+                  loading={galleryLoading}
                   type="image"
                   value={formData.backgroundMedia}
                   onSelect={handleBackgroundMediaChange}
@@ -460,6 +465,7 @@ const TokenScreenForm = ({ screen, onSubmit, onCancel }) => {
               {mediaSource === 'gallery' && (
                 <MediaGalleryPicker
                   items={galleryMedia}
+                  loading={galleryLoading}
                   type="video"
                   value={formData.backgroundMedia}
                   onSelect={handleBackgroundMediaChange}
