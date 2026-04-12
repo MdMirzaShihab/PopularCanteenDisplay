@@ -1,33 +1,69 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Search, X, Check } from 'lucide-react';
 import { useItems } from '../../hooks/useItems';
+import SearchableSelect from '../common/SearchableSelect';
+import { ITEM_CATEGORIES } from '../../utils/constants';
 
-const MenuItemSelector = ({ selectedItemIds, onChange }) => {
-  const { items } = useItems({ limit: 500 });
+const MenuItemSelector = ({ selectedItemIds, initialItems = [], onChange }) => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [category, setCategory] = useState('');
 
-  const activeItems = items.filter(item => item.isActive);
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchTerm), 300);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
-  const filteredItems = useMemo(() => {
-    return activeItems.filter(item =>
-      item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.description.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [activeItems, searchTerm]);
+  // Server-side filtered items for browsing (active items only)
+  const { items, loading } = useItems({
+    search: debouncedSearch,
+    category,
+    isActive: 'active',
+    limit: 50,
+  });
 
-  const toggleItem = (itemId) => {
-    if (selectedItemIds.includes(itemId)) {
-      onChange(selectedItemIds.filter(id => id !== itemId));
+  // Cache selected item objects for chip display (survives filter changes)
+  const selectedCacheRef = useRef({});
+
+  // Initialize cache from initialItems (when editing an existing menu)
+  useEffect(() => {
+    const cache = {};
+    initialItems.forEach(item => {
+      if (item && typeof item === 'object' && item._id) {
+        cache[item._id] = item;
+      }
+    });
+    selectedCacheRef.current = cache;
+  }, [initialItems]);
+
+  // Update cache when new items load that are in the selected list
+  useEffect(() => {
+    items.forEach(item => {
+      if (selectedItemIds.includes(item._id)) {
+        selectedCacheRef.current[item._id] = item;
+      }
+    });
+  }, [items, selectedItemIds]);
+
+  const toggleItem = (item) => {
+    if (selectedItemIds.includes(item._id)) {
+      onChange(selectedItemIds.filter(id => id !== item._id));
+      delete selectedCacheRef.current[item._id];
     } else {
-      onChange([...selectedItemIds, itemId]);
+      onChange([...selectedItemIds, item._id]);
+      selectedCacheRef.current[item._id] = item;
     }
   };
 
   const removeItem = (itemId) => {
     onChange(selectedItemIds.filter(id => id !== itemId));
+    delete selectedCacheRef.current[itemId];
   };
 
-  const selectedItems = items.filter(item => selectedItemIds.includes(item._id));
+  const selectedItems = selectedItemIds
+    .map(id => selectedCacheRef.current[id])
+    .filter(Boolean);
 
   return (
     <div className="space-y-4">
@@ -56,32 +92,46 @@ const MenuItemSelector = ({ selectedItemIds, onChange }) => {
         </div>
       )}
 
-      {/* Search */}
+      {/* Search + Category Filter */}
       <div>
         <label className="block text-sm font-medium text-text-100 mb-2">
           Add Items
         </label>
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-text-300" />
-          <input
-            type="text"
-            placeholder="Search items..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="input-field pl-10"
-          />
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-text-300" />
+            <input
+              type="text"
+              placeholder="Search items..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="input-field pl-10"
+            />
+          </div>
+          <div className="w-48">
+            <SearchableSelect
+              value={category}
+              onChange={setCategory}
+              options={ITEM_CATEGORIES}
+              placeholder="All Categories"
+            />
+          </div>
         </div>
       </div>
 
       {/* Available Items */}
       <div className="border border-bg-300 rounded-lg max-h-96 overflow-y-auto">
-        {filteredItems.length === 0 ? (
+        {loading ? (
           <div className="p-8 text-center text-text-200">
-            {searchTerm ? 'No items found' : 'No active items available'}
+            Loading items...
+          </div>
+        ) : items.length === 0 ? (
+          <div className="p-8 text-center text-text-200">
+            {searchTerm || category ? 'No items found' : 'No active items available'}
           </div>
         ) : (
           <div className="divide-y divide-bg-300">
-            {filteredItems.map(item => {
+            {items.map(item => {
               const isSelected = selectedItemIds.includes(item._id);
               return (
                 <label
@@ -93,7 +143,7 @@ const MenuItemSelector = ({ selectedItemIds, onChange }) => {
                   <input
                     type="checkbox"
                     checked={isSelected}
-                    onChange={() => toggleItem(item._id)}
+                    onChange={() => toggleItem(item)}
                     className="w-5 h-5 text-primary-100 border-bg-300 rounded focus:ring-primary-100"
                   />
 
@@ -111,6 +161,11 @@ const MenuItemSelector = ({ selectedItemIds, onChange }) => {
                   </div>
 
                   <div className="flex items-center gap-2">
+                    {item.category && (
+                      <span className="text-xs text-primary-200 bg-primary-100/15 px-2 py-0.5 rounded-full">
+                        {item.category}
+                      </span>
+                    )}
                     <span className="text-sm font-semibold text-primary-100">
                       ৳ {item.price.toFixed(0)}
                     </span>

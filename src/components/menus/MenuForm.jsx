@@ -107,6 +107,7 @@ const MenuForm = ({ menu, onSubmit, onCancel }) => {
       <div>
         <MenuItemSelector
           selectedItemIds={formData.items}
+          initialItems={menu?.items || []}
           onChange={handleItemsChange}
         />
         {errors.items && <p className="mt-1 text-sm text-accent-200">{errors.items}</p>}
