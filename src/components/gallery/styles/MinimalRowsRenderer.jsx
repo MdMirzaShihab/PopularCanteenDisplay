@@ -44,8 +44,11 @@ const MinimalRowsRenderer = React.memo(({ items, showPrices = true }) => {
             className="flex items-center gap-3 px-4 rounded-xl"
             style={{
               height: `${ITEM_HEIGHT}px`,
-              background: idx % 2 === 0 ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.15)',
-              borderLeft: '3px solid rgba(143,151,121,0.6)'
+              background: idx % 2 === 0 ? 'rgba(0,0,0,0.22)' : 'rgba(0,0,0,0.1)',
+              backdropFilter: 'blur(14px) saturate(1.3)',
+              WebkitBackdropFilter: 'blur(14px) saturate(1.3)',
+              borderLeft: '3px solid rgba(143,151,121,0.65)',
+              boxShadow: 'inset 0 1px 0 rgba(143,151,121,0.06), 0 2px 10px rgba(0,0,0,0.1)'
             }}
           >
             {item.image && (

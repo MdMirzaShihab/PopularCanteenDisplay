@@ -48,8 +48,10 @@ const CatalogRenderer = React.memo(({ items, showPrices = true }) => {
             className="relative overflow-hidden rounded-xl"
             style={{
               height: `${CARD_HEIGHT}px`,
-              border: '1px solid rgba(255,255,255,0.08)',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.25)'
+              border: '1px solid rgba(255,255,255,0.12)',
+              boxShadow: '0 4px 24px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.06)',
+              backdropFilter: 'blur(12px) saturate(1.2)',
+              WebkitBackdropFilter: 'blur(12px) saturate(1.2)',
             }}
           >
             {item.image ? (

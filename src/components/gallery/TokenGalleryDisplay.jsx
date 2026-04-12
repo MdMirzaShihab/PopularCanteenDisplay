@@ -96,7 +96,10 @@ const TokenGalleryDisplay = ({ screen }) => {
         <div
           className="flex-shrink-0"
           style={{
-            boxShadow: '0 4px 30px rgba(0,0,0,0.3), inset 0 -1px 0 rgba(255,255,255,0.06)'
+            backdropFilter: 'blur(16px) saturate(1.4)',
+            WebkitBackdropFilter: 'blur(16px) saturate(1.4)',
+            background: 'rgba(0,0,0,0.15)',
+            boxShadow: '0 4px 30px rgba(0,0,0,0.3), inset 0 -1px 0 rgba(255,255,255,0.08)'
           }}
         >
           <div className="px-10 py-5 flex items-center justify-between">
@@ -134,7 +137,10 @@ const TokenGalleryDisplay = ({ screen }) => {
               className="flex items-center gap-6 px-7 py-4 rounded-2xl"
               style={{
                 background: 'rgba(255,255,255,0.06)',
-                border: '1px solid rgba(255,255,255,0.08)',
+                backdropFilter: 'blur(16px) saturate(1.4)',
+                WebkitBackdropFilter: 'blur(16px) saturate(1.4)',
+                border: '1px solid rgba(255,255,255,0.12)',
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.06), 0 4px 20px rgba(0,0,0,0.15)',
               }}
             >
               <div className="flex items-center gap-3">
@@ -185,10 +191,12 @@ const TokenGalleryDisplay = ({ screen }) => {
                   className="relative"
                   style={{
                     padding: '2rem 5rem',
-                    background: 'linear-gradient(145deg, rgba(250,204,21,0.1) 0%, rgba(251,146,60,0.06) 100%)',
+                    background: 'linear-gradient(145deg, rgba(250,204,21,0.08) 0%, rgba(251,146,60,0.04) 100%)',
+                    backdropFilter: 'blur(20px) saturate(1.5)',
+                    WebkitBackdropFilter: 'blur(20px) saturate(1.5)',
                     borderRadius: '2.5rem',
                     border: '2px solid rgba(250,204,21,0.2)',
-                    boxShadow: '0 0 100px rgba(250,204,21,0.08), inset 0 1px 0 rgba(255,255,255,0.05)',
+                    boxShadow: '0 0 100px rgba(250,204,21,0.08), inset 0 1px 0 rgba(255,255,255,0.08), 0 8px 40px rgba(0,0,0,0.15)',
                   }}
                 >
                   <div
@@ -220,7 +228,10 @@ const TokenGalleryDisplay = ({ screen }) => {
                 className="w-36 h-36 rounded-3xl mx-auto mb-8 flex items-center justify-center"
                 style={{
                   background: 'rgba(255,255,255,0.03)',
-                  border: '1px solid rgba(255,255,255,0.06)'
+                  backdropFilter: 'blur(16px) saturate(1.3)',
+                  WebkitBackdropFilter: 'blur(16px) saturate(1.3)',
+                  border: '1px solid rgba(255,255,255,0.08)',
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04), 0 4px 20px rgba(0,0,0,0.1)'
                 }}
               >
                 <Hash className="w-20 h-20 text-white/15" />
@@ -239,7 +250,8 @@ const TokenGalleryDisplay = ({ screen }) => {
         <div
           className="flex-shrink-0"
           style={{
-            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)'
+            background: 'rgba(0,0,0,0.12)',
+            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.06)'
           }}
         >
           {/* Label */}
@@ -273,17 +285,22 @@ const TokenGalleryDisplay = ({ screen }) => {
                       style={{
                         padding: isFirst ? '10px 22px' : '8px 18px',
                         background: isFirst
-                          ? 'rgba(250,204,21,0.1)'
+                          ? 'rgba(250,204,21,0.08)'
                           : isSecond
-                            ? 'rgba(255,255,255,0.05)'
+                            ? 'rgba(255,255,255,0.04)'
                             : 'rgba(255,255,255,0.02)',
+                        backdropFilter: 'blur(14px) saturate(1.3)',
+                        WebkitBackdropFilter: 'blur(14px) saturate(1.3)',
                         border: `1px solid ${
                           isFirst
                             ? 'rgba(250,204,21,0.25)'
                             : isSecond
-                              ? 'rgba(255,255,255,0.1)'
-                              : 'rgba(255,255,255,0.05)'
+                              ? 'rgba(255,255,255,0.12)'
+                              : 'rgba(255,255,255,0.06)'
                         }`,
+                        boxShadow: isFirst
+                          ? 'inset 0 1px 0 rgba(250,204,21,0.06), 0 2px 12px rgba(0,0,0,0.1)'
+                          : 'inset 0 1px 0 rgba(255,255,255,0.04), 0 2px 8px rgba(0,0,0,0.08)',
                       }}
                     >
                       <Hash

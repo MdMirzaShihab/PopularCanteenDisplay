@@ -44,8 +44,11 @@ const CompactRenderer = React.memo(({ items, showPrices = true }) => {
             className="flex items-center px-4 rounded-xl"
             style={{
               height: `${ITEM_HEIGHT}px`,
-              background: index % 2 === 0 ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.15)',
-              borderLeft: '3px solid rgba(255,255,255,0.2)'
+              background: index % 2 === 0 ? 'rgba(0,0,0,0.22)' : 'rgba(0,0,0,0.1)',
+              backdropFilter: 'blur(14px) saturate(1.3)',
+              WebkitBackdropFilter: 'blur(14px) saturate(1.3)',
+              borderLeft: '3px solid rgba(255,255,255,0.25)',
+              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05), 0 2px 8px rgba(0,0,0,0.1)'
             }}
           >
             <span

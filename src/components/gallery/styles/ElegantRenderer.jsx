@@ -47,8 +47,11 @@ const ElegantRenderer = React.memo(({ items, showPrices = true }) => {
             className="flex items-center gap-4 px-4 rounded-xl"
             style={{
               height: `${ITEM_HEIGHT}px`,
-              background: 'rgba(0,0,0,0.3)',
-              border: '1px solid rgba(212,175,55,0.1)'
+              background: 'rgba(0,0,0,0.2)',
+              backdropFilter: 'blur(16px) saturate(1.3)',
+              WebkitBackdropFilter: 'blur(16px) saturate(1.3)',
+              border: '1px solid rgba(212,175,55,0.15)',
+              boxShadow: 'inset 0 1px 0 rgba(212,175,55,0.05), 0 2px 12px rgba(0,0,0,0.12)'
             }}
           >
             {item.image && (
