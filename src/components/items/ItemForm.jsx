@@ -102,7 +102,7 @@ const ItemForm = ({ item, onSubmit, onCancel }) => {
       {/* Description */}
       <div>
         <label htmlFor="description" className="input-label">
-          Description *
+          Description
         </label>
         <textarea
           id="description"
@@ -110,12 +110,9 @@ const ItemForm = ({ item, onSubmit, onCancel }) => {
           value={formData.description}
           onChange={handleChange}
           rows={3}
-          className={`input-field ${
-            errors.description ? 'border-accent-200' : ''
-          }`}
+          className="input-field"
           placeholder="Describe the item..."
         />
-        {errors.description && <p className="mt-1 text-sm text-accent-200">{errors.description}</p>}
       </div>
 
       {/* Ingredients */}

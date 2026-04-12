@@ -18,10 +18,6 @@ export const validateItem = (itemData) => {
     errors.name = 'Item name must be at least 2 characters';
   }
 
-  if (!itemData.description || itemData.description.trim().length === 0) {
-    errors.description = 'Description is required';
-  }
-
   if (itemData.price === undefined || itemData.price === null || itemData.price === '') {
     errors.price = 'Price is required';
   } else if (isNaN(itemData.price) || parseFloat(itemData.price) < 0) {
@@ -50,10 +46,6 @@ export const validateMenu = (menuData) => {
 
   if (!menuData.title || menuData.title.trim().length === 0) {
     errors.title = 'Menu title is required';
-  }
-
-  if (!menuData.description || menuData.description.trim().length === 0) {
-    errors.description = 'Description is required';
   }
 
   if (!menuData.items || menuData.items.length === 0) {

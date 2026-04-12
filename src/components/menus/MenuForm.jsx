@@ -89,7 +89,7 @@ const MenuForm = ({ menu, onSubmit, onCancel }) => {
       {/* Description */}
       <div>
         <label htmlFor="description" className="block text-sm font-medium text-text-100 mb-2">
-          Description *
+          Description
         </label>
         <textarea
           id="description"
@@ -97,10 +97,9 @@ const MenuForm = ({ menu, onSubmit, onCancel }) => {
           value={formData.description}
           onChange={handleChange}
           rows={3}
-          className={`input-field ${errors.description ? 'border-accent-200' : ''}`}
+          className="input-field"
           placeholder="Describe the menu..."
         />
-        {errors.description && <p className="mt-1 text-sm text-accent-200">{errors.description}</p>}
       </div>
 
       {/* Item Selector */}
