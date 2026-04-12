@@ -3,7 +3,7 @@ import { useNotification } from '../../context/NotificationContext';
 import { validateTokenScreen } from '../../utils/validators';
 import ImageUpload from '../common/ImageUpload';
 import { Image, Video, Palette, FolderOpen, Upload } from 'lucide-react';
-import { getMediaByType } from '../../assets/media';
+import { getMedia } from '../../api/media.api';
 import BackgroundCropTool from '../common/BackgroundCropTool';
 
 const COLOR_PRESETS = ['#1f2937', '#0f172a', '#1a2e1a', '#2d1b1b', '#000000', '#1e3a5f'];
@@ -19,37 +19,26 @@ const TITLE_FONTS = [
 
 const TITLE_COLOR_PRESETS = ['#ffffff', '#facc15', '#4ade80', '#60a5fa', '#f472b6', '#c084fc'];
 
-const MediaGalleryPicker = ({ type, value, onSelect }) => {
-  const items = getMediaByType(type);
-  if (items.length === 0) return null;
+const MediaGalleryPicker = ({ items, type, value, onSelect }) => {
+  const filteredItems = items.filter(m => m.type === type);
+  if (filteredItems.length === 0) return null;
 
   return (
     <div>
       <label className="block text-sm font-medium text-text-200 mb-2">Select from Gallery</label>
       <div className={`grid ${type === 'image' ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-2 sm:grid-cols-3'} gap-2`}>
-        {items.map((item) => {
-          const isSelected = value === item.src;
+        {filteredItems.map((item) => {
+          const isSelected = value?._id === item._id;
           return (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => onSelect(item.src)}
+            <button key={item._id} type="button" onClick={() => onSelect(item)}
               className={`relative rounded-lg overflow-hidden border-2 transition-all ${
-                isSelected
-                  ? 'border-primary-100 ring-2 ring-primary-100/30'
-                  : 'border-bg-300 hover:border-primary-100/50'
-              }`}
-            >
-              {type === 'image' ? (
-                <img src={item.src} alt={item.name} className="w-full aspect-video object-cover" />
+                isSelected ? 'border-primary-100 ring-2 ring-primary-100/30' : 'border-bg-300 hover:border-primary-100/50'
+              }`}>
+              {item.type === 'image' ? (
+                <img src={item.url} alt={item.name} className="w-full aspect-video object-cover" />
               ) : (
-                <video
-                  src={item.src}
-                  muted
-                  className="w-full aspect-video object-cover"
-                  onMouseEnter={(e) => e.target.play()}
-                  onMouseLeave={(e) => { e.target.pause(); e.target.currentTime = 0; }}
-                />
+                <video src={item.url} muted className="w-full aspect-video object-cover"
+                  onMouseEnter={(e) => e.target.play()} onMouseLeave={(e) => { e.target.pause(); e.target.currentTime = 0; }} />
               )}
               <div className="absolute bottom-0 inset-x-0 bg-black/60 px-1.5 py-1">
                 <span className="text-[10px] text-white font-medium truncate block">{item.name}</span>
@@ -85,6 +74,19 @@ const TokenScreenForm = ({ screen, onSubmit, onCancel }) => {
   });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [galleryMedia, setGalleryMedia] = useState([]);
+
+  useEffect(() => {
+    const fetchGallery = async () => {
+      try {
+        const result = await getMedia({ limit: 100 });
+        setGalleryMedia(result.data);
+      } catch (err) {
+        console.error('Failed to load media gallery:', err);
+      }
+    };
+    fetchGallery();
+  }, []);
 
   useEffect(() => {
     if (screen) {
@@ -172,7 +174,11 @@ const TokenScreenForm = ({ screen, onSubmit, onCancel }) => {
     }
 
     try {
-      await onSubmit(formData);
+      const payload = {
+        ...formData,
+        backgroundMedia: formData.backgroundMedia?._id || formData.backgroundMedia || null,
+      };
+      await onSubmit(payload);
     } catch {
       showError('Failed to save token screen. Please try again.');
     } finally {
@@ -372,6 +378,7 @@ const TokenScreenForm = ({ screen, onSubmit, onCancel }) => {
 
               {mediaSource === 'gallery' && (
                 <MediaGalleryPicker
+                  items={galleryMedia}
                   type="image"
                   value={formData.backgroundMedia}
                   onSelect={handleBackgroundMediaChange}
@@ -391,14 +398,14 @@ const TokenScreenForm = ({ screen, onSubmit, onCancel }) => {
                     onError={showError}
                     accept="image/*"
                     label="Upload Background Image"
-                    folder="backgrounds"
+                    folder="media"
                   />
                 </>
               )}
 
               {formData.backgroundMedia && (
                 <BackgroundCropTool
-                  mediaUrl={formData.backgroundMedia}
+                  mediaUrl={formData.backgroundMedia?.url || formData.backgroundMedia}
                   mediaType="image"
                   orientation="landscape"
                   positionX={formData.backgroundPositionX}
@@ -452,6 +459,7 @@ const TokenScreenForm = ({ screen, onSubmit, onCancel }) => {
 
               {mediaSource === 'gallery' && (
                 <MediaGalleryPicker
+                  items={galleryMedia}
                   type="video"
                   value={formData.backgroundMedia}
                   onSelect={handleBackgroundMediaChange}
@@ -471,14 +479,14 @@ const TokenScreenForm = ({ screen, onSubmit, onCancel }) => {
                     onError={showError}
                     accept="video/*"
                     label="Upload Background Video"
-                    folder="backgrounds"
+                    folder="media"
                   />
                 </>
               )}
 
               {formData.backgroundMedia && (
                 <BackgroundCropTool
-                  mediaUrl={formData.backgroundMedia}
+                  mediaUrl={formData.backgroundMedia?.url || formData.backgroundMedia}
                   mediaType="video"
                   orientation="landscape"
                   positionX={formData.backgroundPositionX}
