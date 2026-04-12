@@ -1,35 +1,44 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import { useFoodScreens } from '../hooks/useFoodScreens';
 import { useTokenScreens } from '../hooks/useTokenScreens';
 import { useNotification } from '../context/NotificationContext';
 import ScreenList from '../components/screens/ScreenList';
 import TokenScreenCard from '../components/screens/TokenScreenCard';
-import FoodScreenForm from '../components/screens/FoodScreenForm';
 import TokenScreenForm from '../components/screens/TokenScreenForm';
 import Modal from '../components/common/Modal';
 import ConfirmDialog from '../components/common/ConfirmDialog';
 
 const ScreensPage = () => {
-  const { foodScreens, loading: foodLoading, createFoodScreen, updateFoodScreen, deleteFoodScreen, duplicateFoodScreen } = useFoodScreens();
+  const navigate = useNavigate();
+  const { foodScreens, loading: foodLoading, deleteFoodScreen, duplicateFoodScreen } = useFoodScreens();
   const { tokenScreens, loading: tokenLoading, createTokenScreen, updateTokenScreen, deleteTokenScreen } = useTokenScreens();
   const { success, error } = useNotification();
 
   const [activeTab, setActiveTab] = useState('food');
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingScreen, setEditingScreen] = useState(null);
+  const [isTokenModalOpen, setIsTokenModalOpen] = useState(false);
+  const [editingTokenScreen, setEditingTokenScreen] = useState(null);
   const [deletingScreen, setDeletingScreen] = useState(null);
 
   const isFoodTab = activeTab === 'food';
 
   const handleCreate = () => {
-    setEditingScreen(null);
-    setIsModalOpen(true);
+    if (isFoodTab) {
+      navigate('/screens/food/new');
+    } else {
+      setEditingTokenScreen(null);
+      setIsTokenModalOpen(true);
+    }
   };
 
   const handleEdit = (screen) => {
-    setEditingScreen(screen);
-    setIsModalOpen(true);
+    if (screen.type === 'token') {
+      setEditingTokenScreen(screen);
+      setIsTokenModalOpen(true);
+    } else {
+      navigate(`/screens/food/${screen._id}/edit`);
+    }
   };
 
   const handleDelete = (screen) => {
@@ -45,33 +54,17 @@ const ScreensPage = () => {
     }
   };
 
-  const handleFoodSubmit = async (formData) => {
-    try {
-      if (editingScreen) {
-        await updateFoodScreen(editingScreen._id, formData);
-        success('Food screen updated successfully!');
-      } else {
-        await createFoodScreen(formData);
-        success('Food screen created successfully!');
-      }
-      setIsModalOpen(false);
-      setEditingScreen(null);
-    } catch (err) {
-      error(err.message || 'Failed to save screen. Please try again.');
-    }
-  };
-
   const handleTokenSubmit = async (formData) => {
     try {
-      if (editingScreen) {
-        await updateTokenScreen(editingScreen._id, formData);
+      if (editingTokenScreen) {
+        await updateTokenScreen(editingTokenScreen._id, formData);
         success('Token screen updated successfully!');
       } else {
         await createTokenScreen(formData);
         success('Token screen created successfully!');
       }
-      setIsModalOpen(false);
-      setEditingScreen(null);
+      setIsTokenModalOpen(false);
+      setEditingTokenScreen(null);
     } catch (err) {
       error(err.message || 'Failed to save screen. Please try again.');
     }
@@ -105,24 +98,16 @@ const ScreensPage = () => {
       {/* Tabs */}
       <div className="border-b border-bg-300">
         <div className="flex gap-6">
-          <button
-            onClick={() => setActiveTab('food')}
+          <button onClick={() => setActiveTab('food')}
             className={`px-1 py-3 text-sm font-semibold border-b-2 transition-all duration-200 ${
-              isFoodTab
-                ? 'border-primary-100 text-primary-100'
-                : 'border-transparent text-text-200 hover:text-text-100'
-            }`}
-          >
+              isFoodTab ? 'border-primary-100 text-primary-100' : 'border-transparent text-text-200 hover:text-text-100'
+            }`}>
             Food Screens ({foodScreens.length})
           </button>
-          <button
-            onClick={() => setActiveTab('token')}
+          <button onClick={() => setActiveTab('token')}
             className={`px-1 py-3 text-sm font-semibold border-b-2 transition-all duration-200 ${
-              !isFoodTab
-                ? 'border-primary-100 text-primary-100'
-                : 'border-transparent text-text-200 hover:text-text-100'
-            }`}
-          >
+              !isFoodTab ? 'border-primary-100 text-primary-100' : 'border-transparent text-text-200 hover:text-text-100'
+            }`}>
             Token Screens ({tokenScreens.length})
           </button>
         </div>
@@ -145,22 +130,15 @@ const ScreensPage = () => {
         )
       )}
 
-      {/* Create/Edit Modal */}
+      {/* Token Screen Modal (kept as modal) */}
       <Modal
-        isOpen={isModalOpen}
-        onClose={() => { setIsModalOpen(false); setEditingScreen(null); }}
-        title={editingScreen
-          ? `Edit ${isFoodTab ? 'Food' : 'Token'} Screen`
-          : `Create New ${isFoodTab ? 'Food' : 'Token'} Screen`}
+        isOpen={isTokenModalOpen}
+        onClose={() => { setIsTokenModalOpen(false); setEditingTokenScreen(null); }}
+        title={editingTokenScreen ? 'Edit Token Screen' : 'Create New Token Screen'}
         size="lg"
       >
-        {isFoodTab ? (
-          <FoodScreenForm screen={editingScreen} onSubmit={handleFoodSubmit}
-            onCancel={() => { setIsModalOpen(false); setEditingScreen(null); }} />
-        ) : (
-          <TokenScreenForm screen={editingScreen} onSubmit={handleTokenSubmit}
-            onCancel={() => { setIsModalOpen(false); setEditingScreen(null); }} />
-        )}
+        <TokenScreenForm screen={editingTokenScreen} onSubmit={handleTokenSubmit}
+          onCancel={() => { setIsTokenModalOpen(false); setEditingTokenScreen(null); }} />
       </Modal>
 
       {/* Delete Confirmation */}

@@ -12,6 +12,7 @@ import ItemsPage from './pages/ItemsPage';
 import MenusPage from './pages/MenusPage';
 // import SchedulesPage from './pages/SchedulesPage'; // Hidden — feature not active
 import ScreensPage from './pages/ScreensPage';
+import FoodScreenEditorPage from './pages/FoodScreenEditorPage';
 import UsersPage from './pages/UsersPage';
 import GalleryViewPage from './pages/GalleryViewPage';
 import LogsPage from './pages/LogsPage';
@@ -88,6 +89,8 @@ function App() {
                   <Route path="items" element={<ItemsPage />} />
                   <Route path="menus" element={<MenusPage />} />
                   {/* <Route path="schedules" element={<SchedulesPage />} /> */}{/* Hidden — feature not active */}
+                  <Route path="screens/food/new" element={<FoodScreenEditorPage />} />
+                  <Route path="screens/food/:id/edit" element={<FoodScreenEditorPage />} />
                   <Route path="screens" element={<ScreensPage />} />
                   <Route path="users" element={<UsersPage />} />
                   <Route path="logs" element={<LogsPage />} />
