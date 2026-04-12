@@ -6,7 +6,6 @@ import { ITEM_CATEGORIES } from '../../utils/constants';
 const ItemList = ({
   items,
   loading,
-  totalCount,
   search,
   category,
   isActive,

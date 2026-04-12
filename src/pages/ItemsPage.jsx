@@ -95,7 +95,6 @@ const ItemsPage = () => {
         <ItemList
           items={items}
           loading={loading}
-          totalCount={pagination.total}
           search={search}
           category={category}
           isActive={isActive}

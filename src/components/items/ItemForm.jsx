@@ -9,6 +9,7 @@ const ItemForm = ({ item, onSubmit, onCancel }) => {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
+    ingredients: '',
     price: '',
     category: '',
     image: null,
@@ -24,6 +25,7 @@ const ItemForm = ({ item, onSubmit, onCancel }) => {
       setFormData({
         name: item.name || '',
         description: item.description || '',
+        ingredients: item.ingredients || '',
         price: item.price != null ? item.price : '',
         category: item.category || '',
         image: item.image || null,
@@ -114,6 +116,22 @@ const ItemForm = ({ item, onSubmit, onCancel }) => {
           placeholder="Describe the item..."
         />
         {errors.description && <p className="mt-1 text-sm text-accent-200">{errors.description}</p>}
+      </div>
+
+      {/* Ingredients */}
+      <div>
+        <label htmlFor="ingredients" className="input-label">
+          Ingredients
+        </label>
+        <input
+          type="text"
+          id="ingredients"
+          name="ingredients"
+          value={formData.ingredients}
+          onChange={handleChange}
+          className="input-field"
+          placeholder="e.g., rice, chicken, spices"
+        />
       </div>
 
       {/* Price */}
