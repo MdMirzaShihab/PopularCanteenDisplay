@@ -118,10 +118,9 @@ const FoodScreenForm = forwardRef(({ screen, activeTab, onTabChange, onSubmit, o
         setFormData(prev => ({ ...prev, backgroundMedia: null }));
       }
     } catch (err) {
-      if (err.response?.status === 409) {
-        const data = err.response.data;
+      if (err.message && err.message.includes('used by')) {
         setDeleteTarget(mediaItem);
-        setDeleteWarning(`This media is used by ${data.screenCount} screen(s): ${data.screenNames.join(', ')}. Deleting it will remove it from those screens.`);
+        setDeleteWarning(err.message + ' Deleting it will remove it from those screens.');
         setDeleteConfirmOpen(true);
       } else {
         showError('Failed to delete media');
