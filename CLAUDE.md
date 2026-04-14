@@ -43,6 +43,7 @@ Architecture, styling, code conventions, auth/roles, terminology, and developmen
 | `auth-roles.md` | Three roles, boolean checks, route protection, cookie-based auth |
 | `terminology.md` | Domain entities, data relationships, API endpoints, gotchas |
 | `workflows.md` | Feature steps, debugging checklist, build/deploy |
+| `deployment.md` | Lightsail, GitHub Actions, VITE_API_URL, Nginx, troubleshooting |
 
 ## Deployment
 
