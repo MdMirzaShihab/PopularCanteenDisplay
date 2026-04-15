@@ -265,7 +265,6 @@ const TokenGalleryDisplay = ({ screen }) => {
                   <div
                     className="font-black leading-none text-center font-heading"
                     style={{
-                      fontSize: '18rem',
                       fontSize: 'clamp(12rem, 28vw, 22rem)',
                       background: 'linear-gradient(180deg, #fde68a 0%, #facc15 30%, #f59e0b 70%, #d97706 100%)',
                       WebkitBackgroundClip: 'text',
@@ -330,7 +329,7 @@ const TokenGalleryDisplay = ({ screen }) => {
               </span>
             </div>
             <div className="flex-1 h-px" style={{ background: 'linear-gradient(to right, rgba(250,204,21,0.15), transparent)' }} />
-            <span className="text-lg font-body" style={{ color: 'rgba(255,255,255,0.25)' }}>
+            <span className="text-lg font-body" style={{ color: 'rgba(255,255,255,0.5)' }}>
               {previousTokens.length > 0 ? `${previousTokens.length} called` : 'Waiting'}
             </span>
           </div>
@@ -341,47 +340,50 @@ const TokenGalleryDisplay = ({ screen }) => {
               <div className="flex items-center gap-3 overflow-x-auto scrollbar-hide">
                 {previousTokens.map((token, index) => {
                   const isFirst = index === 0;
-                  const isSecond = index === 1;
+                  // Yellow for most recent, then fade to white over 3-4 cards
+                  const chipBg = isFirst
+                    ? 'rgba(0,0,0,0.45)'
+                    : index <= 3
+                      ? 'rgba(0,0,0,0.40)'
+                      : 'rgba(0,0,0,0.35)';
+                  const chipBorder = isFirst
+                    ? 'rgba(250,204,21,0.3)'
+                    : index <= 3
+                      ? 'rgba(255,255,255,0.15)'
+                      : 'rgba(255,255,255,0.08)';
+                  const textColor = isFirst
+                    ? '#fef08a'       // yellow
+                    : index === 1
+                      ? '#fde68a'     // light yellow
+                      : index === 2
+                        ? '#e5e7eb'   // warm white
+                        : '#ffffff';  // full white
                   return (
                     <div
                       key={token.updatedAt}
                       className="flex-shrink-0 flex items-center gap-3 rounded-xl tv-glass-fallback"
                       style={{
                         padding: isFirst ? '14px 28px' : '10px 22px',
-                        background: isFirst
-                          ? 'rgba(250,204,21,0.12)'
-                          : isSecond
-                            ? 'rgba(255,255,255,0.08)'
-                            : 'rgba(255,255,255,0.04)',
+                        background: chipBg,
                         backdropFilter: 'blur(14px) saturate(1.3)',
                         WebkitBackdropFilter: 'blur(14px) saturate(1.3)',
-                        border: `1px solid ${
-                          isFirst
-                            ? 'rgba(250,204,21,0.25)'
-                            : isSecond
-                              ? 'rgba(255,255,255,0.12)'
-                              : 'rgba(255,255,255,0.06)'
-                        }`,
+                        border: `1px solid ${chipBorder}`,
                         boxShadow: isFirst
-                          ? 'inset 0 1px 0 rgba(250,204,21,0.06), 0 2px 12px rgba(0,0,0,0.1)'
-                          : 'inset 0 1px 0 rgba(255,255,255,0.04), 0 2px 8px rgba(0,0,0,0.08)',
+                          ? 'inset 0 1px 0 rgba(250,204,21,0.08), 0 2px 12px rgba(0,0,0,0.15)'
+                          : 'inset 0 1px 0 rgba(255,255,255,0.06), 0 2px 8px rgba(0,0,0,0.1)',
                       }}
                     >
                       <Hash
                         className="w-5 h-5"
                         style={{
-                          color: isFirst ? 'rgba(250,204,21,0.5)' : 'rgba(255,255,255,0.2)'
+                          color: isFirst ? 'rgba(250,204,21,0.6)' : 'rgba(255,255,255,0.4)'
                         }}
                       />
                       <span
                         className="font-bold font-heading tracking-wide"
                         style={{
-                          fontSize: isFirst ? '2rem' : isSecond ? '1.75rem' : '1.5rem',
-                          color: isFirst
-                            ? 'rgba(254,240,138,0.9)'
-                            : isSecond
-                              ? 'rgba(255,255,255,0.6)'
-                              : 'rgba(255,255,255,0.35)'
+                          fontSize: isFirst ? '2rem' : index <= 2 ? '1.75rem' : '1.5rem',
+                          color: textColor,
                         }}
                       >
                         {token.number}
