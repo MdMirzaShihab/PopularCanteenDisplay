@@ -1,10 +1,57 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSocketTokens } from '../../hooks/useSocketTokens';
-import { speakTokenNumber, preloadBanglaAudio } from '../../utils/speechUtils';
 import { getCurrentTime, formatTimeDisplay, formatDateDisplay } from '../../utils/timeUtils';
 import { Hash, Clock, Calendar } from 'lucide-react';
 import { hospitalLogo } from '../../assets';
 import { resolveMediaUrl } from '../../utils/mediaUtils';
+
+const API_BASE = import.meta.env.VITE_API_URL || '';
+
+/**
+ * Play a server-generated TTS audio file via HTML5 Audio.
+ * Samsung TV compatible: preloads before playing, retries once on failure,
+ * and uses a persistent audio element to avoid Samsung Tizen autoplay issues.
+ */
+let sharedAudio = null;
+const getSharedAudio = () => {
+  if (!sharedAudio) {
+    sharedAudio = new Audio();
+    sharedAudio.preload = 'auto';
+  }
+  return sharedAudio;
+};
+
+const playAudioUrl = (urlPath) => {
+  if (!urlPath) return Promise.resolve();
+  const url = `${API_BASE}${urlPath}`;
+
+  return new Promise((resolve) => {
+    const audio = getSharedAudio();
+
+    const cleanup = () => {
+      audio.onended = null;
+      audio.onerror = null;
+      audio.oncanplaythrough = null;
+    };
+
+    audio.onended = () => { cleanup(); resolve(); };
+    audio.onerror = () => { cleanup(); resolve(); };
+
+    audio.src = url;
+    audio.load();
+
+    audio.oncanplaythrough = () => {
+      audio.oncanplaythrough = null;
+      audio.play().catch(() => {
+        // Retry once after a short delay (Samsung TV autoplay quirk)
+        setTimeout(() => audio.play().catch(() => { cleanup(); resolve(); }), 200);
+      });
+    };
+
+    // Safety timeout — never block longer than 15s
+    setTimeout(() => { cleanup(); resolve(); }, 15000);
+  });
+};
 
 const getCropStyle = (screen) => ({
   objectPosition: `${screen.backgroundPositionX ?? 50}% ${screen.backgroundPositionY ?? 50}%`,
@@ -13,7 +60,11 @@ const getCropStyle = (screen) => ({
 });
 
 const TokenGalleryDisplay = ({ screen }) => {
-  const { currentToken: servingToken, tokenHistory, shouldAnnounce, reannounceNumber, clearReannounce } = useSocketTokens();
+  const {
+    currentToken: servingToken, tokenHistory,
+    shouldAnnounce, audioUrl,
+    reannounceNumber, reannounceAudioUrl, clearReannounce,
+  } = useSocketTokens();
   const [currentTime, setCurrentTime] = useState(getCurrentTime());
   const [currentDate, setCurrentDate] = useState(formatDateDisplay());
   const prevTokenRef = useRef(null);
@@ -27,40 +78,32 @@ const TokenGalleryDisplay = ({ screen }) => {
     return () => clearInterval(interval);
   }, []);
 
-  // Preload Bangla audio clips on mount
-  useEffect(() => { preloadBanglaAudio(); }, []);
-
   // Voice announcement when token changes (only if not silent)
   useEffect(() => {
-    const announceToken = async () => {
-      if (servingToken && servingToken.number !== prevTokenRef.current) {
-        if (shouldAnnounce) {
-          try {
-            await speakTokenNumber(servingToken.number);
-          } catch {
-            // Silently handle errors
-          }
-        }
-        prevTokenRef.current = servingToken.number;
-      } else if (!servingToken) {
-        prevTokenRef.current = null;
+    if (servingToken && servingToken.number !== prevTokenRef.current) {
+      if (shouldAnnounce && audioUrl) {
+        playAudioUrl(audioUrl).catch(() => {});
       }
-    };
-    announceToken();
-  }, [servingToken, shouldAnnounce]);
+      prevTokenRef.current = servingToken.number;
+    } else if (!servingToken) {
+      prevTokenRef.current = null;
+    }
+  }, [servingToken, shouldAnnounce, audioUrl]);
 
-  // Re-announce: play voice without changing token
+  // Re-announce: replay cached audio without changing token
   useEffect(() => {
-    if (reannounceNumber) {
-      speakTokenNumber(reannounceNumber).catch(() => {});
+    if (reannounceNumber && reannounceAudioUrl) {
+      playAudioUrl(reannounceAudioUrl).catch(() => {});
+      clearReannounce();
+    } else if (reannounceNumber) {
       clearReannounce();
     }
-  }, [reannounceNumber, clearReannounce]);
+  }, [reannounceNumber, reannounceAudioUrl, clearReannounce]);
 
   const previousTokens = tokenHistory;
 
   return (
-    <div className="fixed inset-0 flex flex-col overflow-hidden">
+    <div className="fixed inset-0 flex flex-col overflow-hidden gallery-gpu-layer">
       {/* Background Layer */}
       {screen.backgroundType === 'image' && resolveMediaUrl(screen.backgroundMedia) && (
         <img
@@ -94,11 +137,11 @@ const TokenGalleryDisplay = ({ screen }) => {
 
         {/* Header Bar */}
         <div
-          className="flex-shrink-0"
+          className="flex-shrink-0 tv-glass-fallback"
           style={{
             backdropFilter: 'blur(16px) saturate(1.4)',
             WebkitBackdropFilter: 'blur(16px) saturate(1.4)',
-            background: 'rgba(0,0,0,0.15)',
+            background: 'rgba(0,0,0,0.35)',
             boxShadow: '0 4px 30px rgba(0,0,0,0.3), inset 0 -1px 0 rgba(255,255,255,0.08)'
           }}
         >
@@ -134,7 +177,7 @@ const TokenGalleryDisplay = ({ screen }) => {
 
             {/* Date & Time */}
             <div
-              className="flex items-center gap-6 px-7 py-4 rounded-2xl"
+              className="flex items-center gap-6 px-7 py-4 rounded-2xl tv-glass-fallback"
               style={{
                 background: 'rgba(255,255,255,0.06)',
                 backdropFilter: 'blur(16px) saturate(1.4)',
@@ -188,7 +231,7 @@ const TokenGalleryDisplay = ({ screen }) => {
                   }}
                 />
                 <div
-                  className="relative"
+                  className="relative tv-glass-fallback"
                   style={{
                     padding: '2rem 5rem',
                     background: 'linear-gradient(145deg, rgba(250,204,21,0.08) 0%, rgba(251,146,60,0.04) 100%)',
@@ -202,11 +245,15 @@ const TokenGalleryDisplay = ({ screen }) => {
                   <div
                     className="font-black leading-none text-center font-heading"
                     style={{
+                      fontSize: '18rem',
                       fontSize: 'clamp(12rem, 28vw, 22rem)',
                       background: 'linear-gradient(180deg, #fde68a 0%, #facc15 30%, #f59e0b 70%, #d97706 100%)',
                       WebkitBackgroundClip: 'text',
+                      backgroundClip: 'text',
                       WebkitTextFillColor: 'transparent',
-                      filter: 'drop-shadow(0 6px 20px rgba(250,204,21,0.3))'
+                      color: 'transparent',
+                      filter: 'drop-shadow(0 6px 20px rgba(250,204,21,0.3))',
+                      WebkitFilter: 'drop-shadow(0 6px 20px rgba(250,204,21,0.3))'
                     }}
                   >
                     {servingToken.number}
@@ -225,7 +272,7 @@ const TokenGalleryDisplay = ({ screen }) => {
           ) : (
             <div className="text-center">
               <div
-                className="w-36 h-36 rounded-3xl mx-auto mb-8 flex items-center justify-center"
+                className="w-36 h-36 rounded-3xl mx-auto mb-8 flex items-center justify-center tv-glass-fallback"
                 style={{
                   background: 'rgba(255,255,255,0.03)',
                   backdropFilter: 'blur(16px) saturate(1.3)',

@@ -40,8 +40,9 @@ const SectionTimeSlotEditor = ({ timeSlots, onChange, menus }) => {
     if (!slot.content) return 'No content';
     if (slot.content.type === 'media' || slot.content.type === 'image' || slot.content.type === 'video') return 'Media';
     if (slot.content.type === 'menu' && slot.content.menuId) {
-      const menu = menus.find(m => m._id === slot.content.menuId);
-      return menu?.title || 'Menu';
+      const id = slot.content.menuId?._id || slot.content.menuId;
+      const menu = menus.find(m => m._id === id);
+      return menu?.title || slot.content.menuId?.title || 'Menu';
     }
     return 'Menu';
   };

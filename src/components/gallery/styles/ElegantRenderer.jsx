@@ -3,7 +3,7 @@ import { isVideoUrl } from '../../../utils/fileUtils';
 
 const ITEM_HEIGHT = 72;
 
-const ElegantRenderer = React.memo(({ items, showPrices = true }) => {
+const ElegantRenderer = React.memo(({ items, showPrices = true, itemFont, itemColor, priceFont, priceColor }) => {
   const [currentPage, setCurrentPage] = useState(0);
   const containerRef = useRef(null);
   const [itemsPerPage, setItemsPerPage] = useState(6);
@@ -44,10 +44,10 @@ const ElegantRenderer = React.memo(({ items, showPrices = true }) => {
         {pageItems.map(item => (
           <div
             key={item._id}
-            className="flex items-center gap-4 px-4 rounded-xl"
+            className="flex items-center gap-4 px-4 rounded-xl tv-glass-fallback"
             style={{
               height: `${ITEM_HEIGHT}px`,
-              background: 'rgba(0,0,0,0.2)',
+              background: 'rgba(0,0,0,0.35)',
               backdropFilter: 'blur(16px) saturate(1.3)',
               WebkitBackdropFilter: 'blur(16px) saturate(1.3)',
               border: '1px solid rgba(212,175,55,0.15)',
@@ -70,12 +70,12 @@ const ElegantRenderer = React.memo(({ items, showPrices = true }) => {
               </div>
             )}
             <div className="flex-1 min-w-0">
-              <p className="text-white font-body text-sm font-bold truncate drop-shadow-sm">{item.name}</p>
+              <p className={`${itemFont || 'font-body'} text-sm font-bold truncate drop-shadow-sm`} style={{ color: itemColor || '#ffffff' }}>{item.name}</p>
             </div>
             {showPrices && (
               <span
-                className="font-heading font-bold text-lg flex-shrink-0 tabular-nums tracking-wide"
-                style={{ color: '#f0d060' }}
+                className={`${priceFont || 'font-heading'} font-bold text-lg flex-shrink-0 tabular-nums tracking-wide`}
+                style={{ color: priceColor || '#f0d060' }}
               >
                 ৳{item.price.toFixed(0)}
               </span>

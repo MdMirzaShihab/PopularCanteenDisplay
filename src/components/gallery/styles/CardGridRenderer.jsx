@@ -4,7 +4,7 @@ import { isVideoUrl } from '../../../utils/fileUtils';
 const MIN_CARD_WIDTH = 200;
 const CARD_HEIGHT = 120;
 
-const CardGridRenderer = React.memo(({ items, showPrices = true }) => {
+const CardGridRenderer = React.memo(({ items, showPrices = true, itemFont, itemColor, priceFont, priceColor }) => {
   const [currentPage, setCurrentPage] = useState(0);
   const containerRef = useRef(null);
   const [itemsPerPage, setItemsPerPage] = useState(6);
@@ -45,10 +45,10 @@ const CardGridRenderer = React.memo(({ items, showPrices = true }) => {
         {pageItems.map(item => (
           <div
             key={item._id}
-            className="rounded-xl flex items-center gap-3 px-3 py-2.5"
+            className="rounded-xl flex items-center gap-3 px-3 py-2.5 tv-glass-fallback"
             style={{
               height: `${CARD_HEIGHT}px`,
-              background: 'rgba(0,0,0,0.25)',
+              background: 'rgba(0,0,0,0.35)',
               backdropFilter: 'blur(16px) saturate(1.4)',
               WebkitBackdropFilter: 'blur(16px) saturate(1.4)',
               border: '1px solid rgba(255,255,255,0.12)',
@@ -68,9 +68,9 @@ const CardGridRenderer = React.memo(({ items, showPrices = true }) => {
               </div>
             )}
             <div className="flex-1 min-w-0 flex flex-col justify-center">
-              <p className="font-semibold text-white/90 text-sm font-body leading-snug line-clamp-2">{item.name}</p>
+              <p className={`font-semibold text-sm ${itemFont || 'font-body'} leading-snug line-clamp-2`} style={{ color: itemColor || 'rgba(255,255,255,0.9)' }}>{item.name}</p>
               {showPrices && (
-                <p className="font-heading font-bold text-base mt-1 tracking-wide" style={{ color: '#6ee7b7' }}>
+                <p className={`${priceFont || 'font-heading'} font-bold text-base mt-1 tracking-wide`} style={{ color: priceColor || '#6ee7b7' }}>
                   ৳{item.price.toFixed(0)}
                 </p>
               )}

@@ -129,6 +129,43 @@ button {
   }
 }
 
+/* ── Samsung Smart TV / Tizen browser compatibility ── */
+
+/* Gallery display mode — full-screen TV kiosk */
+.gallery-display-root {
+  background-color: #000;
+  overflow: hidden;
+  cursor: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+/* GPU-accelerate gallery elements for smoother rendering on TV SoCs */
+.gallery-gpu-layer {
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+/* Fallback for browsers that don't support backdrop-filter */
+@supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  .tv-glass-fallback {
+    background-color: rgba(0, 0, 0, 0.6) !important;
+  }
+}
+
+/* Reduce motion for devices that prefer it (some TV accessibility modes) */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 /* Ensure smooth transitions */
 * {
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
@@ -137,10 +174,12 @@ button {
 /* Custom utility classes */
 @layer utilities {
   .backdrop-blur-sm {
+    -webkit-backdrop-filter: blur(8px);
     backdrop-filter: blur(8px);
   }
 
   .backdrop-blur-md {
+    -webkit-backdrop-filter: blur(12px);
     backdrop-filter: blur(12px);
   }
 

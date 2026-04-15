@@ -4,7 +4,7 @@ import { isVideoUrl } from '../../../utils/fileUtils';
 const MIN_CARD_WIDTH = 200;
 const CARD_HEIGHT = 180;
 
-const CatalogRenderer = React.memo(({ items, showPrices = true }) => {
+const CatalogRenderer = React.memo(({ items, showPrices = true, itemFont, itemColor, priceFont, priceColor }) => {
   const [currentPage, setCurrentPage] = useState(0);
   const containerRef = useRef(null);
   const [itemsPerPage, setItemsPerPage] = useState(4);
@@ -45,7 +45,7 @@ const CatalogRenderer = React.memo(({ items, showPrices = true }) => {
         {pageItems.map(item => (
           <div
             key={item._id}
-            className="relative overflow-hidden rounded-xl"
+            className="relative overflow-hidden rounded-xl tv-glass-fallback"
             style={{
               height: `${CARD_HEIGHT}px`,
               border: '1px solid rgba(255,255,255,0.12)',
@@ -72,15 +72,15 @@ const CatalogRenderer = React.memo(({ items, showPrices = true }) => {
             />
             <div className="absolute bottom-0 left-0 right-0 px-4 pb-3">
               <p
-                className="text-white font-display font-black text-lg leading-snug"
-                style={{ textShadow: '0 2px 10px rgba(0,0,0,0.8)' }}
+                className={`${itemFont || 'font-display'} font-black text-lg leading-snug`}
+                style={{ color: itemColor || '#ffffff', textShadow: '0 2px 10px rgba(0,0,0,0.8)' }}
               >
                 {item.name}
               </p>
               {showPrices && (
                 <p
-                  className="font-heading font-black text-xl mt-1"
-                  style={{ color: '#6ee7b7', textShadow: '0 2px 8px rgba(0,0,0,0.6)' }}
+                  className={`${priceFont || 'font-heading'} font-black text-xl mt-1`}
+                  style={{ color: priceColor || '#6ee7b7', textShadow: '0 2px 8px rgba(0,0,0,0.6)' }}
                 >
                   ৳{item.price.toFixed(0)}
                 </p>

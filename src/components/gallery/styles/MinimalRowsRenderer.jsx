@@ -3,7 +3,7 @@ import { isVideoUrl } from '../../../utils/fileUtils';
 
 const ITEM_HEIGHT = 56;
 
-const MinimalRowsRenderer = React.memo(({ items, showPrices = true }) => {
+const MinimalRowsRenderer = React.memo(({ items, showPrices = true, itemFont, itemColor, priceFont, priceColor }) => {
   const [currentPage, setCurrentPage] = useState(0);
   const containerRef = useRef(null);
   const [itemsPerPage, setItemsPerPage] = useState(8);
@@ -41,10 +41,10 @@ const MinimalRowsRenderer = React.memo(({ items, showPrices = true }) => {
         {pageItems.map((item, idx) => (
           <div
             key={item._id}
-            className="flex items-center gap-3 px-4 rounded-xl"
+            className="flex items-center gap-3 px-4 rounded-xl tv-glass-fallback"
             style={{
               height: `${ITEM_HEIGHT}px`,
-              background: idx % 2 === 0 ? 'rgba(0,0,0,0.22)' : 'rgba(0,0,0,0.1)',
+              background: idx % 2 === 0 ? 'rgba(0,0,0,0.35)' : 'rgba(0,0,0,0.2)',
               backdropFilter: 'blur(14px) saturate(1.3)',
               WebkitBackdropFilter: 'blur(14px) saturate(1.3)',
               borderLeft: '3px solid rgba(143,151,121,0.65)',
@@ -65,16 +65,16 @@ const MinimalRowsRenderer = React.memo(({ items, showPrices = true }) => {
             )}
             <div className="flex-1 min-w-0">
               <p
-                className="text-white font-body text-base font-black truncate"
-                style={{ textShadow: '0 1px 4px rgba(0,0,0,0.5)' }}
+                className={`${itemFont || 'font-body'} text-base font-black truncate`}
+                style={{ color: itemColor || '#ffffff', textShadow: '0 1px 4px rgba(0,0,0,0.5)' }}
               >
                 {item.name}
               </p>
             </div>
             {showPrices && (
               <span
-                className="text-white font-heading font-black text-lg flex-shrink-0 tabular-nums"
-                style={{ textShadow: '0 1px 4px rgba(0,0,0,0.4)' }}
+                className={`${priceFont || 'font-heading'} font-black text-lg flex-shrink-0 tabular-nums`}
+                style={{ color: priceColor || '#ffffff', textShadow: '0 1px 4px rgba(0,0,0,0.4)' }}
               >
                 ৳{item.price.toFixed(0)}
               </span>

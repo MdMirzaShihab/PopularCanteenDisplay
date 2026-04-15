@@ -10,26 +10,21 @@ import { format } from 'date-fns';
 
 const Dashboard = () => {
   const { user } = useAuth();
-  const { items } = useItems();
-  const { menus } = useMenus();
-  const { foodScreens } = useFoodScreens();
-  const { tokenScreens } = useTokenScreens();
-  const { logs: activityLogs } = useLogs();
+  const { loading: itemsLoading, pagination: itemsPagination } = useItems();
+  const { loading: menusLoading, pagination: menusPagination } = useMenus();
+  const { loading: foodScreensLoading, pagination: foodScreensPagination } = useFoodScreens();
+  const { loading: tokenScreensLoading, pagination: tokenScreensPagination } = useTokenScreens();
+  const { logs: activityLogs, loading: logsLoading } = useLogs(user?._id ? { userId: user._id } : {});
+  const recentLogs = activityLogs.slice(0, 5);
+
+  const statsLoading = itemsLoading || menusLoading || foodScreensLoading || tokenScreensLoading;
 
   const stats = [
-    { label: 'Total Items', value: items.length, icon: UtensilsCrossed, color: 'bg-primary-100', link: '/items' },
-    { label: 'Menus', value: menus.length, icon: BookOpen, color: 'bg-primary-200', link: '/menus' },
+    { label: 'Total Items', value: itemsPagination.total, icon: UtensilsCrossed, color: 'bg-primary-100', link: '/items' },
+    { label: 'Menus', value: menusPagination.total, icon: BookOpen, color: 'bg-primary-200', link: '/menus' },
     // { label: 'Schedules', value: schedules.length, icon: Activity, color: 'bg-accent-100', link: '/schedules' }, // Hidden — feature not active
-    { label: 'Screens', value: foodScreens.length + tokenScreens.length, icon: Monitor, color: 'bg-accent-200', link: '/screens' },
+    { label: 'Screens', value: foodScreensPagination.total + tokenScreensPagination.total, icon: Monitor, color: 'bg-accent-200', link: '/screens' },
   ];
-
-  // Filter activity logs to show only current user's activity
-  const recentLogs = activityLogs
-    .filter(log => {
-      const logUserId = typeof log.userId === 'object' ? log.userId?._id : log.userId;
-      return logUserId === user?._id;
-    })
-    .slice(0, 5);
 
   return (
     <div className="space-y-8">
@@ -55,7 +50,11 @@ const Dashboard = () => {
                 <div className={`${stat.color} w-12 h-12 rounded-lg flex items-center justify-center`}>
                   <Icon className="w-6 h-6 text-white" />
                 </div>
-                <span className="text-3xl font-bold text-text-100">{stat.value}</span>
+                <span className="text-3xl font-bold text-text-100">
+                  {statsLoading ? (
+                    <span className="inline-block w-8 h-8 bg-bg-200 rounded animate-pulse" />
+                  ) : stat.value}
+                </span>
               </div>
               <p className="text-sm font-medium text-text-200">{stat.label}</p>
             </Link>
@@ -120,7 +119,15 @@ const Dashboard = () => {
           </Link>
         </div>
         <div className="bg-white rounded-xl shadow-md overflow-hidden border border-bg-300">
-          {recentLogs.length === 0 ? (
+          {logsLoading ? (
+            <div className="p-8 text-center text-text-200">
+              <div className="animate-pulse space-y-3">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="h-12 bg-bg-200 rounded" />
+                ))}
+              </div>
+            </div>
+          ) : recentLogs.length === 0 ? (
             <div className="p-8 text-center text-text-200">
               No recent activity
             </div>

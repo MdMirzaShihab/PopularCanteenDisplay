@@ -63,7 +63,14 @@ const SectionRenderer = memo(function SectionRenderer({ section, gridArea }) {
             </div>
           </div>
           <div className="flex-1 min-h-0">
-            <StyleRenderer items={menuItems} showPrices={true} />
+            <StyleRenderer
+              items={menuItems}
+              showPrices={true}
+              itemFont={normalized.itemFont}
+              itemColor={normalized.itemColor}
+              priceFont={normalized.priceFont}
+              priceColor={normalized.priceColor}
+            />
           </div>
         </div>
       );
@@ -89,6 +96,8 @@ const SectionRenderer = memo(function SectionRenderer({ section, gridArea }) {
       className="relative overflow-hidden rounded-xl p-4"
       style={{
         gridArea,
+        background: 'rgba(0,0,0,0.30)',
+        border: '1px solid rgba(255,255,255,0.08)',
       }}
     >
       {renderContent()}

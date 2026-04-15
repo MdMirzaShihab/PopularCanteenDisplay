@@ -13,7 +13,7 @@ const ScreenGridRenderer = memo(({ screen }) => {
   const layout = getLayoutTheme(screen.layoutTheme);
 
   return (
-    <div className="relative w-screen h-screen overflow-hidden">
+    <div className="relative w-screen h-screen overflow-hidden gallery-gpu-layer">
       {/* Background */}
       {screen.backgroundType === 'color' ? (
         <div className="absolute inset-0" style={{ backgroundColor: screen.backgroundColor || '#1a1a2e' }} />

@@ -84,7 +84,7 @@ const SectionContentEditor = ({ content, onChange, menus, label }) => {
               Select Menu
             </label>
             <select
-              value={content?.menuId || ''}
+              value={content?.menuId?._id || content?.menuId || ''}
               onChange={handleMenuChange}
               className="w-full px-3 py-2 border border-bg-300 rounded-lg bg-white text-text-100 focus:outline-none focus:ring-2 focus:ring-primary-100"
             >
@@ -177,6 +177,118 @@ const SectionContentEditor = ({ content, onChange, menus, label }) => {
                   style={{ color: content?.titleColor || '#ffffff' }}
                 >
                   Preview Title
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Item Name Font */}
+          <div>
+            <label className="block text-sm font-medium text-text-200 mb-2">
+              Item Name Font
+            </label>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {TITLE_FONTS.map((font) => {
+                const isSelected = (content?.itemFont || 'font-body') === font.id;
+                return (
+                  <button
+                    key={font.id}
+                    type="button"
+                    onClick={() => onChange({ ...content, itemFont: font.id })}
+                    className={`p-2 rounded-lg border-2 transition-colors text-center ${
+                      isSelected
+                        ? 'border-primary-100 bg-primary-50'
+                        : 'border-bg-300 bg-white hover:border-primary-100/50'
+                    }`}
+                  >
+                    <span className={`${font.id} text-sm ${isSelected ? 'text-primary-100' : 'text-text-100'}`}>
+                      Chicken Biryani
+                    </span>
+                    <span className="block text-[10px] text-text-200 mt-0.5">{font.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Item Name Color */}
+          <div>
+            <label className="block text-sm font-medium text-text-200 mb-2">
+              Item Name Color
+            </label>
+            <div className="flex items-center gap-3">
+              <input
+                type="color"
+                value={content?.itemColor || '#ffffff'}
+                onChange={(e) => onChange({ ...content, itemColor: e.target.value })}
+                className="w-10 h-10 rounded border border-bg-300 cursor-pointer"
+              />
+              <span className="text-sm text-text-200 font-mono">{content?.itemColor || '#ffffff'}</span>
+              <div
+                className="flex-1 h-10 rounded-lg flex items-center justify-center border border-bg-300"
+                style={{ backgroundColor: '#1a1a2e' }}
+              >
+                <span
+                  className={`${content?.itemFont || 'font-body'} text-sm`}
+                  style={{ color: content?.itemColor || '#ffffff' }}
+                >
+                  Chicken Biryani
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Price Font */}
+          <div>
+            <label className="block text-sm font-medium text-text-200 mb-2">
+              Price Font
+            </label>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {TITLE_FONTS.map((font) => {
+                const isSelected = (content?.priceFont || 'font-heading') === font.id;
+                return (
+                  <button
+                    key={font.id}
+                    type="button"
+                    onClick={() => onChange({ ...content, priceFont: font.id })}
+                    className={`p-2 rounded-lg border-2 transition-colors text-center ${
+                      isSelected
+                        ? 'border-primary-100 bg-primary-50'
+                        : 'border-bg-300 bg-white hover:border-primary-100/50'
+                    }`}
+                  >
+                    <span className={`${font.id} text-sm ${isSelected ? 'text-primary-100' : 'text-text-100'}`}>
+                      ৳120
+                    </span>
+                    <span className="block text-[10px] text-text-200 mt-0.5">{font.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Price Color */}
+          <div>
+            <label className="block text-sm font-medium text-text-200 mb-2">
+              Price Color
+            </label>
+            <div className="flex items-center gap-3">
+              <input
+                type="color"
+                value={content?.priceColor || '#6ee7b7'}
+                onChange={(e) => onChange({ ...content, priceColor: e.target.value })}
+                className="w-10 h-10 rounded border border-bg-300 cursor-pointer"
+              />
+              <span className="text-sm text-text-200 font-mono">{content?.priceColor || '#6ee7b7'}</span>
+              <div
+                className="flex-1 h-10 rounded-lg flex items-center justify-center border border-bg-300"
+                style={{ backgroundColor: '#1a1a2e' }}
+              >
+                <span
+                  className={`${content?.priceFont || 'font-heading'} text-sm font-bold`}
+                  style={{ color: content?.priceColor || '#6ee7b7' }}
+                >
+                  ৳120
                 </span>
               </div>
             </div>

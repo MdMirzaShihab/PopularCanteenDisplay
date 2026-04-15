@@ -198,7 +198,8 @@ const FoodScreenEditorPage = () => {
         </div>
 
         {/* Preview panel */}
-        <div className="w-[42%] border-l border-bg-300 bg-bg-100 p-5 overflow-y-auto flex-shrink-0">
+        <div className="w-[40%] border-l border-bg-300 flex-shrink-0 flex flex-col overflow-hidden"
+          style={{ background: 'linear-gradient(160deg, #e8e5df 0%, #dedad4 100%)' }}>
           <FoodScreenPreview formData={formData} />
         </div>
       </div>

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 
 const ITEM_HEIGHT = 46;
 
-const MenuBoardRenderer = React.memo(({ items, showPrices = true }) => {
+const MenuBoardRenderer = React.memo(({ items, showPrices = true, itemFont, itemColor, priceFont, priceColor }) => {
   const [currentPage, setCurrentPage] = useState(0);
   const containerRef = useRef(null);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -43,10 +43,10 @@ const MenuBoardRenderer = React.memo(({ items, showPrices = true }) => {
         {pageItems.map((item, idx) => (
           <div
             key={item._id}
-            className="flex items-center gap-3 px-4 rounded-xl"
+            className="flex items-center gap-3 px-4 rounded-xl tv-glass-fallback"
             style={{
               height: `${ITEM_HEIGHT}px`,
-              background: idx % 2 === 0 ? 'rgba(0,0,0,0.22)' : 'rgba(0,0,0,0.1)',
+              background: idx % 2 === 0 ? 'rgba(0,0,0,0.35)' : 'rgba(0,0,0,0.2)',
               backdropFilter: 'blur(14px) saturate(1.3)',
               WebkitBackdropFilter: 'blur(14px) saturate(1.3)',
               borderLeft: '3px solid rgba(245,215,120,0.55)',
@@ -54,8 +54,8 @@ const MenuBoardRenderer = React.memo(({ items, showPrices = true }) => {
             }}
           >
             <span
-              className="text-white font-handwritten text-lg font-black flex-1 truncate"
-              style={{ textShadow: '0 2px 6px rgba(0,0,0,0.6)' }}
+              className={`${itemFont || 'font-handwritten'} text-lg font-black flex-1 truncate`}
+              style={{ color: itemColor || '#ffffff', textShadow: '0 2px 6px rgba(0,0,0,0.6)' }}
             >
               {item.name}
             </span>
@@ -69,8 +69,8 @@ const MenuBoardRenderer = React.memo(({ items, showPrices = true }) => {
             />
             {showPrices && (
               <span
-                className="font-marker text-xl font-black flex-shrink-0 tabular-nums"
-                style={{ color: '#f5d778', textShadow: '0 2px 6px rgba(0,0,0,0.5)' }}
+                className={`${priceFont || 'font-marker'} text-xl font-black flex-shrink-0 tabular-nums`}
+                style={{ color: priceColor || '#f5d778', textShadow: '0 2px 6px rgba(0,0,0,0.5)' }}
               >
                 ৳{item.price.toFixed(0)}
               </span>
