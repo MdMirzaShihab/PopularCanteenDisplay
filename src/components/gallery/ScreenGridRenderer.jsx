@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useRef, useEffect } from 'react';
 import { getLayoutTheme } from './themes/layoutRegistry';
 import SectionRenderer from './SectionRenderer';
 import { resolveMediaUrl } from '../../utils/mediaUtils';
@@ -11,6 +11,21 @@ const getCropStyle = (screen) => ({
 
 const ScreenGridRenderer = memo(({ screen }) => {
   const layout = getLayoutTheme(screen.layoutTheme);
+  const bgVideoRef = useRef(null);
+
+  // Samsung TV video health monitor — recover from silent drops
+  useEffect(() => {
+    if (screen.backgroundType !== 'video') return;
+    const check = setInterval(() => {
+      const vid = bgVideoRef.current;
+      if (!vid) return;
+      if (vid.paused || vid.ended || vid.readyState < 2) {
+        vid.load();
+        vid.play().catch(() => {});
+      }
+    }, 5000);
+    return () => clearInterval(check);
+  }, [screen.backgroundType]);
 
   return (
     <div className="relative w-screen h-screen overflow-hidden gallery-gpu-layer">
@@ -19,11 +34,21 @@ const ScreenGridRenderer = memo(({ screen }) => {
         <div className="absolute inset-0" style={{ backgroundColor: screen.backgroundColor || '#1a1a2e' }} />
       ) : screen.backgroundType === 'video' ? (
         <video
+          ref={bgVideoRef}
           src={resolveMediaUrl(screen.backgroundMedia)}
           autoPlay
           loop
           muted
           playsInline
+          preload="auto"
+          onError={(e) => {
+            const vid = e.currentTarget;
+            setTimeout(() => { vid.load(); vid.play().catch(() => {}); }, 1000);
+          }}
+          onStalled={(e) => {
+            const vid = e.currentTarget;
+            setTimeout(() => { vid.play().catch(() => {}); }, 500);
+          }}
           className="absolute inset-0 w-full h-full object-cover"
           style={getCropStyle(screen)}
         />
