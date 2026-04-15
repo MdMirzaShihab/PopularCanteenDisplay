@@ -135,14 +135,12 @@ const TokenGalleryDisplay = ({ screen }) => {
       {/* Content */}
       <div className="relative z-10 flex flex-col h-full">
 
-        {/* Header Bar */}
+        {/* Header Bar — solid background, no blur (Samsung TV compatible) */}
         <div
-          className="flex-shrink-0 tv-glass-fallback"
+          className="flex-shrink-0"
           style={{
-            backdropFilter: 'blur(16px) saturate(1.4)',
-            WebkitBackdropFilter: 'blur(16px) saturate(1.4)',
-            background: 'rgba(0,0,0,0.35)',
-            boxShadow: '0 4px 30px rgba(0,0,0,0.3), inset 0 -1px 0 rgba(255,255,255,0.08)'
+            background: 'rgba(0,0,0,0.45)',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
           }}
         >
           <div className="px-10 py-5 flex items-center justify-between">
@@ -177,13 +175,10 @@ const TokenGalleryDisplay = ({ screen }) => {
 
             {/* Date & Time */}
             <div
-              className="flex items-center gap-6 px-7 py-4 rounded-2xl tv-glass-fallback"
+              className="flex items-center gap-6 px-7 py-4 rounded-2xl"
               style={{
-                background: 'rgba(255,255,255,0.06)',
-                backdropFilter: 'blur(16px) saturate(1.4)',
-                WebkitBackdropFilter: 'blur(16px) saturate(1.4)',
+                background: 'rgba(255,255,255,0.08)',
                 border: '1px solid rgba(255,255,255,0.12)',
-                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.06), 0 4px 20px rgba(0,0,0,0.15)',
               }}
             >
               <div className="flex items-center gap-3">
@@ -231,15 +226,13 @@ const TokenGalleryDisplay = ({ screen }) => {
                   }}
                 />
                 <div
-                  className="relative tv-glass-fallback"
+                  className="relative"
                   style={{
                     padding: '2rem 5rem',
-                    background: 'linear-gradient(145deg, rgba(250,204,21,0.08) 0%, rgba(251,146,60,0.04) 100%)',
-                    backdropFilter: 'blur(20px) saturate(1.5)',
-                    WebkitBackdropFilter: 'blur(20px) saturate(1.5)',
+                    background: 'linear-gradient(145deg, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.15) 100%)',
                     borderRadius: '2.5rem',
                     border: '2px solid rgba(250,204,21,0.2)',
-                    boxShadow: '0 0 100px rgba(250,204,21,0.08), inset 0 1px 0 rgba(255,255,255,0.08), 0 8px 40px rgba(0,0,0,0.15)',
+                    boxShadow: '0 0 100px rgba(250,204,21,0.08), 0 8px 40px rgba(0,0,0,0.15)',
                   }}
                 >
                   <div
@@ -263,8 +256,8 @@ const TokenGalleryDisplay = ({ screen }) => {
 
               {/* Collect message */}
               <p
-                className="text-3xl text-white/35 font-body tracking-widest uppercase"
-                style={{ letterSpacing: '0.2em' }}
+                className="text-4xl text-white/80 font-body font-semibold tracking-widest uppercase"
+                style={{ letterSpacing: '0.15em', textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}
               >
                 Please collect your order
               </p>
@@ -272,13 +265,10 @@ const TokenGalleryDisplay = ({ screen }) => {
           ) : (
             <div className="text-center">
               <div
-                className="w-36 h-36 rounded-3xl mx-auto mb-8 flex items-center justify-center tv-glass-fallback"
+                className="w-36 h-36 rounded-3xl mx-auto mb-8 flex items-center justify-center"
                 style={{
-                  background: 'rgba(255,255,255,0.03)',
-                  backdropFilter: 'blur(16px) saturate(1.3)',
-                  WebkitBackdropFilter: 'blur(16px) saturate(1.3)',
+                  background: 'rgba(255,255,255,0.05)',
                   border: '1px solid rgba(255,255,255,0.08)',
-                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04), 0 4px 20px rgba(0,0,0,0.1)'
                 }}
               >
                 <Hash className="w-20 h-20 text-white/15" />
@@ -328,14 +318,14 @@ const TokenGalleryDisplay = ({ screen }) => {
                   return (
                     <div
                       key={token.updatedAt}
-                      className="flex-shrink-0 flex items-center gap-2.5 rounded-xl"
+                      className="flex-shrink-0 flex items-center gap-2.5 rounded-xl tv-glass-fallback"
                       style={{
                         padding: isFirst ? '10px 22px' : '8px 18px',
                         background: isFirst
-                          ? 'rgba(250,204,21,0.08)'
+                          ? 'rgba(250,204,21,0.12)'
                           : isSecond
-                            ? 'rgba(255,255,255,0.04)'
-                            : 'rgba(255,255,255,0.02)',
+                            ? 'rgba(255,255,255,0.08)'
+                            : 'rgba(255,255,255,0.04)',
                         backdropFilter: 'blur(14px) saturate(1.3)',
                         WebkitBackdropFilter: 'blur(14px) saturate(1.3)',
                         border: `1px solid ${
