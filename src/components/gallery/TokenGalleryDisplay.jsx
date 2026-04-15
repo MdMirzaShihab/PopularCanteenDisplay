@@ -68,6 +68,7 @@ const TokenGalleryDisplay = ({ screen }) => {
   const [currentTime, setCurrentTime] = useState(getCurrentTime());
   const [currentDate, setCurrentDate] = useState(formatDateDisplay());
   const prevTokenRef = useRef(null);
+  const bgVideoRef = useRef(null);
 
   // Update clock and date every 60 seconds
   useEffect(() => {
@@ -77,6 +78,21 @@ const TokenGalleryDisplay = ({ screen }) => {
     }, 60000);
     return () => clearInterval(interval);
   }, []);
+
+  // Samsung TV video health monitor — recover from silent drops
+  useEffect(() => {
+    if (screen.backgroundType !== 'video') return;
+    const check = setInterval(() => {
+      const vid = bgVideoRef.current;
+      if (!vid) return;
+      // If video has stalled or paused unexpectedly, reload and play
+      if (vid.paused || vid.ended || vid.readyState < 2) {
+        vid.load();
+        vid.play().catch(() => {});
+      }
+    }, 5000);
+    return () => clearInterval(check);
+  }, [screen.backgroundType]);
 
   // Voice announcement when token changes (only if not silent)
   useEffect(() => {
@@ -115,11 +131,22 @@ const TokenGalleryDisplay = ({ screen }) => {
       )}
       {screen.backgroundType === 'video' && resolveMediaUrl(screen.backgroundMedia) && (
         <video
+          ref={bgVideoRef}
           src={resolveMediaUrl(screen.backgroundMedia)}
           autoPlay
           muted
           loop
           playsInline
+          preload="auto"
+          onError={(e) => {
+            // Samsung TV: reload video on error
+            const vid = e.currentTarget;
+            setTimeout(() => { vid.load(); vid.play().catch(() => {}); }, 1000);
+          }}
+          onStalled={(e) => {
+            const vid = e.currentTarget;
+            setTimeout(() => { vid.play().catch(() => {}); }, 500);
+          }}
           className="fixed inset-0 w-full h-full object-cover"
           style={getCropStyle(screen)}
         />
