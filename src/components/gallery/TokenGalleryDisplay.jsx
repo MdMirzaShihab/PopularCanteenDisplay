@@ -143,23 +143,23 @@ const TokenGalleryDisplay = ({ screen }) => {
             boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
           }}
         >
-          <div className="px-10 py-5 flex items-center justify-between">
+          <div className="px-10 py-6 flex items-center justify-between">
             {/* Logo & Branding */}
             <div className="flex items-center gap-5">
               <img
                 src={hospitalLogo}
                 alt="PMCH Logo"
-                className="h-16 w-auto object-contain brightness-0 invert"
+                className="h-20 w-auto object-contain brightness-0 invert"
               />
               <div
-                className="h-12"
-                style={{ width: '1px', background: 'linear-gradient(to bottom, transparent, rgba(255,255,255,0.2), transparent)' }}
+                className="h-14"
+                style={{ width: '2px', background: 'linear-gradient(to bottom, transparent, rgba(255,255,255,0.25), transparent)' }}
               />
               <div className="flex flex-col">
-                <span className="text-xl font-bold text-white tracking-wide font-body leading-tight">
+                <span className="text-3xl font-bold text-white tracking-wide font-body leading-tight">
                   Popular Medical College and Hospital
                 </span>
-                <span className="text-sm text-white/40 font-body italic tracking-widest text-right mt-0.5">
+                <span className="text-lg text-white/40 font-body italic tracking-widest text-right mt-0.5">
                   We Care for Life
                 </span>
               </div>
@@ -167,7 +167,7 @@ const TokenGalleryDisplay = ({ screen }) => {
 
             {/* Screen Title */}
             <h1
-              className={`text-4xl font-bold tracking-[0.15em] ${screen.titleFont || 'font-heading'}`}
+              className={`text-5xl font-bold tracking-[0.15em] ${screen.titleFont || 'font-heading'}`}
               style={{ color: screen.titleColor || '#ffffff' }}
             >
               {screen.title}
@@ -175,22 +175,22 @@ const TokenGalleryDisplay = ({ screen }) => {
 
             {/* Date & Time */}
             <div
-              className="flex items-center gap-6 px-7 py-4 rounded-2xl"
+              className="flex items-center gap-6 px-8 py-5 rounded-2xl"
               style={{
                 background: 'rgba(255,255,255,0.08)',
                 border: '1px solid rgba(255,255,255,0.12)',
               }}
             >
               <div className="flex items-center gap-3">
-                <Calendar className="w-5 h-5 text-white/40" />
-                <span className="text-lg font-medium text-white/70 font-body tracking-wide">
+                <Calendar className="w-7 h-7 text-white/40" />
+                <span className="text-2xl font-medium text-white/70 font-body tracking-wide">
                   {currentDate}
                 </span>
               </div>
-              <div className="w-px h-8" style={{ background: 'rgba(255,255,255,0.12)' }} />
+              <div className="w-px h-10" style={{ background: 'rgba(255,255,255,0.12)' }} />
               <div className="flex items-center gap-3">
-                <Clock className="w-5 h-5 text-white/40" />
-                <span className="text-2xl font-bold text-white/90 font-heading tracking-wider">
+                <Clock className="w-7 h-7 text-white/40" />
+                <span className="text-4xl font-bold text-white/90 font-heading tracking-wider">
                   {formatTimeDisplay(currentTime)}
                 </span>
               </div>
@@ -203,16 +203,16 @@ const TokenGalleryDisplay = ({ screen }) => {
           {servingToken ? (
             <>
               {/* NOW SERVING Label */}
-              <div className="mb-4">
-                <div className="flex items-center gap-5">
-                  <div className="h-[2px] w-20" style={{ background: 'linear-gradient(to right, transparent, rgba(250,204,21,0.5))' }} />
+              <div className="mb-6">
+                <div className="flex items-center gap-6">
+                  <div className="h-[2px] w-28" style={{ background: 'linear-gradient(to right, transparent, rgba(250,204,21,0.5))' }} />
                   <span
-                    className="text-4xl font-bold uppercase tracking-[0.35em] font-heading"
+                    className="text-5xl font-bold uppercase tracking-[0.35em] font-heading"
                     style={{ color: 'rgba(250,204,21,0.7)' }}
                   >
                     Now Serving
                   </span>
-                  <div className="h-[2px] w-20" style={{ background: 'linear-gradient(to left, transparent, rgba(250,204,21,0.5))' }} />
+                  <div className="h-[2px] w-28" style={{ background: 'linear-gradient(to left, transparent, rgba(250,204,21,0.5))' }} />
                 </div>
               </div>
 
@@ -256,7 +256,7 @@ const TokenGalleryDisplay = ({ screen }) => {
 
               {/* Collect message */}
               <p
-                className="text-4xl text-white/80 font-body font-semibold tracking-widest uppercase"
+                className="text-5xl text-white/80 font-body font-semibold tracking-widest uppercase"
                 style={{ letterSpacing: '0.15em', textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}
               >
                 Please collect your order
@@ -273,10 +273,10 @@ const TokenGalleryDisplay = ({ screen }) => {
               >
                 <Hash className="w-20 h-20 text-white/15" />
               </div>
-              <p className="text-5xl font-semibold text-white/30 font-heading tracking-wider">
+              <p className="text-6xl font-semibold text-white/30 font-heading tracking-wider">
                 No Active Token
               </p>
-              <p className="text-2xl mt-4 text-white/15 font-body">
+              <p className="text-3xl mt-4 text-white/15 font-body">
                 Waiting for next customer
               </p>
             </div>
@@ -292,18 +292,18 @@ const TokenGalleryDisplay = ({ screen }) => {
           }}
         >
           {/* Label */}
-          <div className="flex items-center gap-4 px-10 pt-4 pb-2">
+          <div className="flex items-center gap-4 px-10 pt-5 pb-3">
             <div className="flex items-center gap-3">
               <div
-                className="w-2.5 h-2.5 rounded-full animate-pulse"
+                className="w-3 h-3 rounded-full animate-pulse"
                 style={{ backgroundColor: '#facc15', boxShadow: '0 0 10px rgba(250,204,21,0.5)' }}
               />
-              <span className="text-sm font-bold uppercase tracking-[0.2em] font-heading" style={{ color: 'rgba(250,204,21,0.7)' }}>
+              <span className="text-xl font-bold uppercase tracking-[0.2em] font-heading" style={{ color: 'rgba(250,204,21,0.7)' }}>
                 Previous Tokens
               </span>
             </div>
             <div className="flex-1 h-px" style={{ background: 'linear-gradient(to right, rgba(250,204,21,0.15), transparent)' }} />
-            <span className="text-sm font-body" style={{ color: 'rgba(255,255,255,0.25)' }}>
+            <span className="text-lg font-body" style={{ color: 'rgba(255,255,255,0.25)' }}>
               {previousTokens.length > 0 ? `${previousTokens.length} called` : 'Waiting'}
             </span>
           </div>
@@ -318,9 +318,9 @@ const TokenGalleryDisplay = ({ screen }) => {
                   return (
                     <div
                       key={token.updatedAt}
-                      className="flex-shrink-0 flex items-center gap-2.5 rounded-xl tv-glass-fallback"
+                      className="flex-shrink-0 flex items-center gap-3 rounded-xl tv-glass-fallback"
                       style={{
-                        padding: isFirst ? '10px 22px' : '8px 18px',
+                        padding: isFirst ? '14px 28px' : '10px 22px',
                         background: isFirst
                           ? 'rgba(250,204,21,0.12)'
                           : isSecond
@@ -341,7 +341,7 @@ const TokenGalleryDisplay = ({ screen }) => {
                       }}
                     >
                       <Hash
-                        className="w-4 h-4"
+                        className="w-5 h-5"
                         style={{
                           color: isFirst ? 'rgba(250,204,21,0.5)' : 'rgba(255,255,255,0.2)'
                         }}
@@ -349,7 +349,7 @@ const TokenGalleryDisplay = ({ screen }) => {
                       <span
                         className="font-bold font-heading tracking-wide"
                         style={{
-                          fontSize: isFirst ? '1.6rem' : isSecond ? '1.4rem' : '1.25rem',
+                          fontSize: isFirst ? '2rem' : isSecond ? '1.75rem' : '1.5rem',
                           color: isFirst
                             ? 'rgba(254,240,138,0.9)'
                             : isSecond
