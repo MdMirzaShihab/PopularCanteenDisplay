@@ -4,7 +4,7 @@ import {
   ANNOUNCEMENT_PRESETS,
   ANNOUNCEMENT_ICON_OPTIONS,
   ANNOUNCEMENT_ICONS,
-} from '../gallery/AnnouncementRenderer';
+} from '../gallery/AnnouncementRenderer.constants';
 import { getMedia, deleteMedia } from '../../api/media.api';
 import { useNotification } from '../../context/NotificationContext';
 import ColorPicker from '../ui/ColorPicker';
@@ -128,7 +128,7 @@ const AnnouncementEditor = ({ content, onChange }) => {
       if (announcement.backgroundMedia?._id === deleteTarget._id) {
         updateFields({ backgroundMedia: null });
       }
-    } catch (err) {
+    } catch {
       showError('Failed to delete media');
     } finally {
       setDeleteConfirmOpen(false);
