@@ -8,6 +8,24 @@ import LoadingSpinner from '../components/common/LoadingSpinner';
 import ConfirmDialog from '../components/common/ConfirmDialog';
 import { ArrowLeft, Layout, Layers, Image, Settings, Save } from 'lucide-react';
 
+const stripMediaId = (value) => (typeof value === 'object' && value?._id ? value._id : value);
+
+const normalizeContentMedia = (content) => {
+  if (!content) return content;
+  const result = {
+    ...content,
+    media: content.media?.map(stripMediaId),
+    menuId: stripMediaId(content.menuId),
+  };
+  if (content.type === 'announcement' && content.announcement) {
+    result.announcement = {
+      ...content.announcement,
+      backgroundMedia: stripMediaId(content.announcement.backgroundMedia),
+    };
+  }
+  return result;
+};
+
 const extractMediaIds = (data) => {
   const result = { ...data };
 
@@ -20,26 +38,10 @@ const extractMediaIds = (data) => {
   if (result.sections) {
     result.sections = result.sections.map(section => ({
       ...section,
-      defaultContent: section.defaultContent ? {
-        ...section.defaultContent,
-        media: section.defaultContent.media?.map(m =>
-          typeof m === 'object' && m._id ? m._id : m
-        ),
-        menuId: typeof section.defaultContent.menuId === 'object'
-          ? section.defaultContent.menuId._id
-          : section.defaultContent.menuId,
-      } : section.defaultContent,
+      defaultContent: normalizeContentMedia(section.defaultContent),
       timeSlots: section.timeSlots?.map(ts => ({
         ...ts,
-        content: ts.content ? {
-          ...ts.content,
-          media: ts.content.media?.map(m =>
-            typeof m === 'object' && m._id ? m._id : m
-          ),
-          menuId: typeof ts.content.menuId === 'object'
-            ? ts.content.menuId._id
-            : ts.content.menuId,
-        } : ts.content,
+        content: normalizeContentMedia(ts.content),
       })),
     }));
   }

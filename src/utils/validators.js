@@ -130,6 +130,13 @@ export const validateFoodScreen = (screenData) => {
         }
       } else if (section.defaultContent.type === 'media' && (!Array.isArray(section.defaultContent.media) || section.defaultContent.media.length === 0)) {
         se.defaultContent = 'Please select at least one media item';
+      } else if (section.defaultContent.type === 'announcement') {
+        const ann = section.defaultContent.announcement;
+        if (!ann || !ann.headline || ann.headline.trim().length === 0) {
+          se.defaultContent = 'Announcement headline is required';
+        } else if (ann.backgroundMode && ann.backgroundMode !== 'color' && !ann.backgroundMedia) {
+          se.defaultContent = 'Background image is required for image modes';
+        }
       }
 
       if (section.timeSlots && section.timeSlots.length > 0) {
@@ -146,6 +153,13 @@ export const validateFoodScreen = (screenData) => {
             se[`timeSlot_${slotIdx}_content`] = 'Please select a menu';
           } else if (slot.content.type === 'media' && (!Array.isArray(slot.content.media) || slot.content.media.length === 0)) {
             se[`timeSlot_${slotIdx}_content`] = 'Please select at least one media item';
+          } else if (slot.content.type === 'announcement') {
+            const ann = slot.content.announcement;
+            if (!ann || !ann.headline || ann.headline.trim().length === 0) {
+              se[`timeSlot_${slotIdx}_content`] = 'Announcement headline is required';
+            } else if (ann.backgroundMode && ann.backgroundMode !== 'color' && !ann.backgroundMedia) {
+              se[`timeSlot_${slotIdx}_content`] = 'Background image is required for image modes';
+            }
           }
         });
 
