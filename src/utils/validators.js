@@ -134,7 +134,7 @@ export const validateFoodScreen = (screenData) => {
         const ann = section.defaultContent.announcement;
         if (!ann || !ann.headline || ann.headline.trim().length === 0) {
           se.defaultContent = 'Announcement headline is required';
-        } else if (ann.backgroundMode && ann.backgroundMode !== 'color' && !ann.backgroundMedia) {
+        } else if (['image', 'image-overlay'].includes(ann.backgroundMode) && !ann.backgroundMedia) {
           se.defaultContent = 'Background image is required for image modes';
         }
       }
@@ -157,7 +157,7 @@ export const validateFoodScreen = (screenData) => {
             const ann = slot.content.announcement;
             if (!ann || !ann.headline || ann.headline.trim().length === 0) {
               se[`timeSlot_${slotIdx}_content`] = 'Announcement headline is required';
-            } else if (ann.backgroundMode && ann.backgroundMode !== 'color' && !ann.backgroundMedia) {
+            } else if (['image', 'image-overlay'].includes(ann.backgroundMode) && !ann.backgroundMedia) {
               se[`timeSlot_${slotIdx}_content`] = 'Background image is required for image modes';
             }
           }
