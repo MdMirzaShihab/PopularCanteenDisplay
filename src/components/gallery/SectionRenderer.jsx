@@ -101,11 +101,11 @@ const SectionRenderer = memo(function SectionRenderer({ section, gridArea }) {
 
   return (
     <div
-      className={`relative overflow-hidden rounded-xl ${isAnnouncement ? '' : 'p-4'}`}
-      style={{
+      className={`relative overflow-hidden rounded-xl ${isAnnouncement ? 'bg-transparent border-0' : 'p-4'}`}
+      style={isAnnouncement ? { gridArea } : {
         gridArea,
-        background: isAnnouncement ? 'transparent' : 'rgba(0,0,0,0.30)',
-        border: isAnnouncement ? 'none' : '1px solid rgba(255,255,255,0.08)',
+        background: 'rgba(0,0,0,0.30)',
+        border: '1px solid rgba(255,255,255,0.08)',
       }}
     >
       {renderContent()}

@@ -1,25 +1,26 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AlignLeft, AlignCenter, AlignRight, FolderOpen, Upload, Trash2, X } from 'lucide-react';
 import {
   ANNOUNCEMENT_PRESETS,
   ANNOUNCEMENT_ICON_OPTIONS,
   ANNOUNCEMENT_ICONS,
 } from '../gallery/AnnouncementRenderer.constants';
-import { getMedia, deleteMedia } from '../../api/media.api';
 import { useNotification } from '../../context/NotificationContext';
+import { useBackgroundGallery } from '../../hooks/useBackgroundGallery';
 import ColorPicker from '../ui/ColorPicker';
 import BackgroundCropTool from '../common/BackgroundCropTool';
 import ImageUpload from '../common/ImageUpload';
 import ConfirmDialog from '../common/ConfirmDialog';
+import { FONT_CHOICES } from '../../utils/constants';
 
-const TEXT_FONTS = [
-  { id: 'font-heading', label: 'Bebas Neue', sample: 'ANNOUNCEMENT' },
-  { id: 'font-display', label: 'Righteous', sample: 'Announcement' },
-  { id: 'font-script', label: 'Pacifico', sample: 'Announcement' },
-  { id: 'font-marker', label: 'Permanent Marker', sample: 'ANNOUNCEMENT' },
-  { id: 'font-handwritten', label: 'Kalam', sample: 'Announcement' },
-  { id: 'font-body', label: 'Poppins', sample: 'Announcement' },
-];
+const FONT_SAMPLE = {
+  'font-heading': 'ANNOUNCEMENT',
+  'font-display': 'Announcement',
+  'font-script': 'Announcement',
+  'font-marker': 'ANNOUNCEMENT',
+  'font-handwritten': 'Announcement',
+  'font-body': 'Announcement',
+};
 
 const ALIGN_OPTIONS = [
   { id: 'left', label: 'Left', icon: AlignLeft },
@@ -37,30 +38,10 @@ const HEADLINE_SOFT_LIMIT = 120;
 const SUBTEXT_SOFT_LIMIT = 200;
 
 const AnnouncementEditor = ({ content, onChange }) => {
-  const announcement = content?.announcement || {};
+  const announcement = useMemo(() => content?.announcement || {}, [content?.announcement]);
   const { error: showError } = useNotification();
 
   const [bgSource, setBgSource] = useState('gallery');
-  const [galleryMedia, setGalleryMedia] = useState([]);
-  const [galleryLoading, setGalleryLoading] = useState(true);
-  const [deleteTarget, setDeleteTarget] = useState(null);
-  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-  const [deleteWarning, setDeleteWarning] = useState('');
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const result = await getMedia({ limit: 100, folder: 'backgrounds' });
-        if (!cancelled) setGalleryMedia((result.data || []).filter(m => m.type === 'image'));
-      } catch (err) {
-        console.error('Failed to load announcement background gallery:', err);
-      } finally {
-        if (!cancelled) setGalleryLoading(false);
-      }
-    })();
-    return () => { cancelled = true; };
-  }, []);
 
   const updateField = (field, value) => {
     onChange({
@@ -76,6 +57,27 @@ const AnnouncementEditor = ({ content, onChange }) => {
     });
   };
 
+  const handleGalleryItemDeleted = useCallback((id) => {
+    if (announcement.backgroundMedia?._id === id) {
+      onChange({
+        ...content,
+        announcement: { ...announcement, backgroundMedia: null },
+      });
+    }
+  }, [announcement, content, onChange]);
+
+  const { galleryMedia, galleryLoading, handleDeleteMedia, addMedia, confirmDialogProps } =
+    useBackgroundGallery({ onDeleted: handleGalleryItemDeleted });
+
+  const imageMedia = useMemo(() => galleryMedia.filter(m => m.type === 'image'), [galleryMedia]);
+
+  // Reset source toggle when leaving image modes so next re-entry starts on the Gallery tab.
+  useEffect(() => {
+    if (announcement.backgroundMode !== 'image' && announcement.backgroundMode !== 'image-overlay') {
+      setBgSource('gallery');
+    }
+  }, [announcement.backgroundMode]);
+
   const handlePresetChange = (presetId) => {
     const preset = ANNOUNCEMENT_PRESETS.find(p => p.id === presetId);
     if (!preset) return;
@@ -84,7 +86,6 @@ const AnnouncementEditor = ({ content, onChange }) => {
       textFont: preset.defaults.textFont,
       textColor: preset.defaults.textColor,
       backgroundColor: preset.defaults.backgroundColor,
-      backgroundMode: preset.defaults.backgroundMode,
       textAlign: preset.defaults.textAlign,
     });
   };
@@ -98,42 +99,13 @@ const AnnouncementEditor = ({ content, onChange }) => {
     });
   };
 
+  const handleUploadedImage = (mediaItem) => {
+    addMedia(mediaItem);
+    handleSelectGalleryImage(mediaItem);
+  };
+
   const handleClearBackgroundMedia = () => {
     updateFields({ backgroundMedia: null });
-  };
-
-  const handleDeleteMedia = async (mediaItem) => {
-    try {
-      await deleteMedia(mediaItem._id);
-      setGalleryMedia(prev => prev.filter(m => m._id !== mediaItem._id));
-      if (announcement.backgroundMedia?._id === mediaItem._id) {
-        updateFields({ backgroundMedia: null });
-      }
-    } catch (err) {
-      if (err.message && err.message.includes('used by')) {
-        setDeleteTarget(mediaItem);
-        setDeleteWarning(err.message + ' Deleting it will remove it from those screens.');
-        setDeleteConfirmOpen(true);
-      } else {
-        showError('Failed to delete media');
-      }
-    }
-  };
-
-  const handleForceDelete = async () => {
-    if (!deleteTarget) return;
-    try {
-      await deleteMedia(deleteTarget._id, true);
-      setGalleryMedia(prev => prev.filter(m => m._id !== deleteTarget._id));
-      if (announcement.backgroundMedia?._id === deleteTarget._id) {
-        updateFields({ backgroundMedia: null });
-      }
-    } catch {
-      showError('Failed to delete media');
-    } finally {
-      setDeleteConfirmOpen(false);
-      setDeleteTarget(null);
-    }
   };
 
   const headlineLen = (announcement.headline || '').length;
@@ -239,7 +211,7 @@ const AnnouncementEditor = ({ content, onChange }) => {
         <div>
           <label className="block text-sm font-medium text-text-200 mb-2">Text Font</label>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-            {TEXT_FONTS.map(font => {
+            {FONT_CHOICES.map(font => {
               const isSelected = (announcement.textFont || 'font-heading') === font.id;
               return (
                 <button
@@ -253,7 +225,7 @@ const AnnouncementEditor = ({ content, onChange }) => {
                   }`}
                 >
                   <span className={`${font.id} text-sm ${isSelected ? 'text-primary-100' : 'text-text-100'}`}>
-                    {font.sample}
+                    {FONT_SAMPLE[font.id]}
                   </span>
                   <span className="block text-[10px] text-text-200 mt-0.5">{font.label}</span>
                 </button>
@@ -343,13 +315,13 @@ const AnnouncementEditor = ({ content, onChange }) => {
               <div>
                 {galleryLoading ? (
                   <p className="text-sm text-text-200">Loading gallery...</p>
-                ) : galleryMedia.length === 0 ? (
+                ) : imageMedia.length === 0 ? (
                   <p className="text-sm text-text-200">
                     No background images yet. Upload one here or from the screen Background tab.
                   </p>
                 ) : (
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    {galleryMedia.map(item => {
+                    {imageMedia.map(item => {
                       const isSelected = announcement.backgroundMedia?._id === item._id;
                       return (
                         <button
@@ -389,7 +361,7 @@ const AnnouncementEditor = ({ content, onChange }) => {
             {bgSource === 'upload' && (
               <ImageUpload
                 value={announcement.backgroundMedia}
-                onChange={handleSelectGalleryImage}
+                onChange={handleUploadedImage}
                 onError={showError}
                 accept="image/*"
                 label="Background Image"
@@ -490,15 +462,7 @@ const AnnouncementEditor = ({ content, onChange }) => {
         </div>
       </div>
 
-      <ConfirmDialog
-        isOpen={deleteConfirmOpen}
-        onClose={() => { setDeleteConfirmOpen(false); setDeleteTarget(null); }}
-        onConfirm={handleForceDelete}
-        title="Delete Media"
-        message={deleteWarning}
-        confirmText="Delete"
-        type="danger"
-      />
+      <ConfirmDialog {...confirmDialogProps} />
     </div>
   );
 };

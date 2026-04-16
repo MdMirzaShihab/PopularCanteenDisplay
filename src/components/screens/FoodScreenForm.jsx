@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef, useCallback, useImperativeHandle, forwardRef } from 'react';
+import { useState, useEffect, useRef, useCallback, useImperativeHandle, forwardRef, useMemo } from 'react';
 import { useMenus } from '../../hooks/useMenus';
 import { useNotification } from '../../context/NotificationContext';
+import { useBackgroundGallery } from '../../hooks/useBackgroundGallery';
 import { validateFoodScreen } from '../../utils/validators';
 import { buildEmptySections, LAYOUT_THEMES } from '../gallery/themes/layoutRegistry';
 import LayoutPicker from './LayoutPicker';
@@ -9,7 +10,6 @@ import ImageUpload from '../common/ImageUpload';
 import BackgroundCropTool from '../common/BackgroundCropTool';
 import ColorPicker from '../ui/ColorPicker';
 import { FolderOpen, Upload, Trash2 } from 'lucide-react';
-import { getMedia, deleteMedia } from '../../api/media.api';
 import ConfirmDialog from '../common/ConfirmDialog';
 
 const GAP_OPTIONS = [
@@ -26,26 +26,6 @@ const FoodScreenForm = forwardRef(({ screen, activeTab, onTabChange, onSubmit, o
   const [bgMediaSource, setBgMediaSource] = useState('gallery');
   const [formErrors, setFormErrors] = useState({});
 
-  const [galleryMedia, setGalleryMedia] = useState([]);
-  const [galleryLoading, setGalleryLoading] = useState(true);
-  const [deleteTarget, setDeleteTarget] = useState(null);
-  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-  const [deleteWarning, setDeleteWarning] = useState('');
-
-  useEffect(() => {
-    const fetchGallery = async () => {
-      try {
-        const result = await getMedia({ limit: 100, folder: 'backgrounds' });
-        setGalleryMedia(result.data);
-      } catch (err) {
-        console.error('Failed to load media gallery:', err);
-      } finally {
-        setGalleryLoading(false);
-      }
-    };
-    fetchGallery();
-  }, []);
-
   const [formData, setFormData] = useState({
     title: screen?.title || '',
     screenId: screen?.screenId || '',
@@ -61,6 +41,18 @@ const FoodScreenForm = forwardRef(({ screen, activeTab, onTabChange, onSubmit, o
   });
 
   const initialFormData = useRef(JSON.stringify(formData));
+
+  const handleGalleryItemDeleted = useCallback((id) => {
+    setFormData(prev => (prev.backgroundMedia?._id === id ? { ...prev, backgroundMedia: null } : prev));
+  }, []);
+
+  const { galleryMedia, galleryLoading, handleDeleteMedia, addMedia, confirmDialogProps } =
+    useBackgroundGallery({ onDeleted: handleGalleryItemDeleted });
+
+  const filteredGalleryMedia = useMemo(
+    () => galleryMedia.filter(m => m.type === formData.backgroundType),
+    [galleryMedia, formData.backgroundType]
+  );
 
   // Report formData changes to parent (for preview)
   useEffect(() => {
@@ -110,40 +102,6 @@ const FoodScreenForm = forwardRef(({ screen, activeTab, onTabChange, onSubmit, o
     isDirty: () => JSON.stringify(formData) !== initialFormData.current,
     getFormErrors: () => formErrors,
   }), [handleSubmit, formData, formErrors]);
-
-  const handleDeleteMedia = async (mediaItem) => {
-    try {
-      await deleteMedia(mediaItem._id);
-      setGalleryMedia(prev => prev.filter(m => m._id !== mediaItem._id));
-      if (formData.backgroundMedia?._id === mediaItem._id) {
-        setFormData(prev => ({ ...prev, backgroundMedia: null }));
-      }
-    } catch (err) {
-      if (err.message && err.message.includes('used by')) {
-        setDeleteTarget(mediaItem);
-        setDeleteWarning(err.message + ' Deleting it will remove it from those screens.');
-        setDeleteConfirmOpen(true);
-      } else {
-        showError('Failed to delete media');
-      }
-    }
-  };
-
-  const handleForceDelete = async () => {
-    if (!deleteTarget) return;
-    try {
-      await deleteMedia(deleteTarget._id, true);
-      setGalleryMedia(prev => prev.filter(m => m._id !== deleteTarget._id));
-      if (formData.backgroundMedia?._id === deleteTarget._id) {
-        setFormData(prev => ({ ...prev, backgroundMedia: null }));
-      }
-    } catch (err) {
-      showError('Failed to delete media');
-    } finally {
-      setDeleteConfirmOpen(false);
-      setDeleteTarget(null);
-    }
-  };
 
   const clearFieldError = (field) => {
     if (formErrors[field]) {
@@ -296,7 +254,7 @@ const FoodScreenForm = forwardRef(({ screen, activeTab, onTabChange, onSubmit, o
                     <p className="text-sm text-text-200">Loading gallery...</p>
                   ) : (
                     <div className={`grid ${formData.backgroundType === 'image' ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-2 sm:grid-cols-3'} gap-2`}>
-                      {galleryMedia.filter(m => m.type === formData.backgroundType).map((item) => {
+                      {filteredGalleryMedia.map((item) => {
                         const isSelected = formData.backgroundMedia?._id === item._id;
                         return (
                           <button key={item._id} type="button"
@@ -340,10 +298,13 @@ const FoodScreenForm = forwardRef(({ screen, activeTab, onTabChange, onSubmit, o
 
               {bgMediaSource === 'upload' && (
                 <ImageUpload value={formData.backgroundMedia}
-                  onChange={(mediaObj) => setFormData(prev => ({
-                    ...prev, backgroundMedia: mediaObj,
-                    backgroundPositionX: 50, backgroundPositionY: 50, backgroundScale: 1,
-                  }))}
+                  onChange={(mediaObj) => {
+                    addMedia(mediaObj);
+                    setFormData(prev => ({
+                      ...prev, backgroundMedia: mediaObj,
+                      backgroundPositionX: 50, backgroundPositionY: 50, backgroundScale: 1,
+                    }));
+                  }}
                   onError={showError}
                   accept={formData.backgroundType === 'image' ? 'image/*' : 'video/*'}
                   label={`Background ${formData.backgroundType === 'image' ? 'Image' : 'Video'}`}
@@ -389,15 +350,7 @@ const FoodScreenForm = forwardRef(({ screen, activeTab, onTabChange, onSubmit, o
         </div>
       )}
 
-      <ConfirmDialog
-        isOpen={deleteConfirmOpen}
-        onClose={() => { setDeleteConfirmOpen(false); setDeleteTarget(null); }}
-        onConfirm={handleForceDelete}
-        title="Delete Media"
-        message={deleteWarning}
-        confirmText="Delete"
-        type="danger"
-      />
+      <ConfirmDialog {...confirmDialogProps} />
     </div>
   );
 });
