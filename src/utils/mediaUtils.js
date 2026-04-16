@@ -37,6 +37,9 @@ export const normalizeContent = (content) => {
   // Menu content passes through unchanged
   if (content.type === 'menu') return content;
 
+  // Announcement content passes through unchanged
+  if (content.type === 'announcement') return content;
+
   // Already new format
   if (content.type === 'media' && Array.isArray(content.media)) return content;
 

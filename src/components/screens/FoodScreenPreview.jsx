@@ -4,6 +4,7 @@ import { resolveMediaUrl, normalizeContent, resolveMediaUrls } from '../../utils
 import { getStyleRenderer } from '../gallery/styles/index.js';
 import { useMenus } from '../../hooks/useMenus';
 import MediaSlideshow from '../gallery/MediaSlideshow';
+import AnnouncementRenderer from '../gallery/AnnouncementRenderer';
 
 const TV_LANDSCAPE = { w: 1920, h: 1080 };
 const TV_PORTRAIT = { w: 1080, h: 1920 };
@@ -29,12 +30,15 @@ const resolveSections = (sections, menus) =>
 const PreviewSection = memo(({ section, gridArea }) => {
   const content = section.defaultContent;
   const normalized = content ? normalizeContent(content) : null;
+  const isAnnouncement = normalized?.type === 'announcement';
 
-  const sectionStyle = {
-    gridArea,
-    background: 'rgba(0,0,0,0.30)',
-    border: '1px solid rgba(255,255,255,0.08)',
-  };
+  const sectionStyle = isAnnouncement
+    ? { gridArea, background: 'transparent', border: 'none' }
+    : {
+        gridArea,
+        background: 'rgba(0,0,0,0.30)',
+        border: '1px solid rgba(255,255,255,0.08)',
+      };
 
   if (!normalized) {
     return (
@@ -96,6 +100,21 @@ const PreviewSection = memo(({ section, gridArea }) => {
           slideDuration={normalized.slideDuration}
           transition={normalized.transition}
         />
+      </div>
+    );
+  }
+
+  if (normalized.type === 'announcement') {
+    if (!normalized.announcement) {
+      return (
+        <div className="rounded-xl flex items-center justify-center" style={{ gridArea, background: 'rgba(0,0,0,0.30)' }}>
+          <span className="text-white/40 text-lg font-body">{section.label}</span>
+        </div>
+      );
+    }
+    return (
+      <div style={sectionStyle}>
+        <AnnouncementRenderer announcement={normalized.announcement} />
       </div>
     );
   }

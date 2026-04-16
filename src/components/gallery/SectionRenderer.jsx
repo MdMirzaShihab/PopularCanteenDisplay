@@ -3,6 +3,7 @@ import { getCurrentTime, getCurrentDayOfWeek, isTimeInRange } from '../../utils/
 import { getStyleRenderer } from './styles/index.js';
 import { normalizeContent, resolveMediaUrls } from '../../utils/mediaUtils';
 import MediaSlideshow from './MediaSlideshow';
+import AnnouncementRenderer from './AnnouncementRenderer';
 
 const SectionRenderer = memo(function SectionRenderer({ section, gridArea }) {
   const resolveContent = useCallback(() => {
@@ -88,16 +89,23 @@ const SectionRenderer = memo(function SectionRenderer({ section, gridArea }) {
       );
     }
 
+    if (normalized.type === 'announcement') {
+      if (!normalized.announcement) return null;
+      return <AnnouncementRenderer announcement={normalized.announcement} />;
+    }
+
     return null;
   };
 
+  const isAnnouncement = content?.type === 'announcement';
+
   return (
     <div
-      className="relative overflow-hidden rounded-xl p-4"
+      className={`relative overflow-hidden rounded-xl ${isAnnouncement ? '' : 'p-4'}`}
       style={{
         gridArea,
-        background: 'rgba(0,0,0,0.30)',
-        border: '1px solid rgba(255,255,255,0.08)',
+        background: isAnnouncement ? 'transparent' : 'rgba(0,0,0,0.30)',
+        border: isAnnouncement ? 'none' : '1px solid rgba(255,255,255,0.08)',
       }}
     >
       {renderContent()}
