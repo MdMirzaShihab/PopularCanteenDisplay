@@ -39,6 +39,9 @@ const SectionTimeSlotEditor = ({ timeSlots, onChange, menus }) => {
   const getSlotLabel = (slot) => {
     if (!slot.content) return 'No content';
     if (slot.content.type === 'media' || slot.content.type === 'image' || slot.content.type === 'video') return 'Media';
+    if (slot.content.type === 'announcement') {
+      return slot.content.announcement?.headline?.trim() || 'Announcement';
+    }
     if (slot.content.type === 'menu' && slot.content.menuId) {
       const id = slot.content.menuId?._id || slot.content.menuId;
       const menu = menus.find(m => m._id === id);

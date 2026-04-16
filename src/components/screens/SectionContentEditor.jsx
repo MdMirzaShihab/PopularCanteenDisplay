@@ -1,14 +1,34 @@
 import { useRef } from 'react';
-import { UtensilsCrossed, Film } from 'lucide-react';
+import { UtensilsCrossed, Film, Megaphone } from 'lucide-react';
 import { VISUAL_STYLES } from '../gallery/themes/visualStyleRegistry';
 import MediaMultiPicker from './MediaMultiPicker';
+import AnnouncementEditor from './AnnouncementEditor';
 import ColorPicker from '../ui/ColorPicker';
 import { TRANSITION_EFFECTS, DEFAULT_SLIDE_DURATION, DEFAULT_TRANSITION } from '../../utils/mediaUtils';
 
 const CONTENT_TYPES = [
   { type: 'menu', label: 'Menu', icon: UtensilsCrossed },
-  { type: 'media', label: 'Media', icon: Film }
+  { type: 'media', label: 'Media', icon: Film },
+  { type: 'announcement', label: 'Announcement', icon: Megaphone }
 ];
+
+const DEFAULT_ANNOUNCEMENT = {
+  headline: '',
+  subtext: '',
+  textAlign: 'center',
+  textFont: 'font-heading',
+  textColor: '#ffffff',
+  backgroundMode: 'color',
+  backgroundColor: '#1a1a2e',
+  backgroundMedia: null,
+  backgroundPositionX: 50,
+  backgroundPositionY: 50,
+  backgroundScale: 1,
+  overlayColor: '#000000',
+  overlayOpacity: 0.4,
+  visualStyle: 'poster',
+  icon: null,
+};
 
 const TITLE_FONTS = [
   { id: 'font-heading', label: 'Bebas Neue', sample: 'MENU TITLE' },
@@ -38,6 +58,8 @@ const SectionContentEditor = ({ content, onChange, menus, label }) => {
       onChange({ type: 'menu', menuId: '', visualStyle: 'card-grid', titleFont: 'font-heading', titleColor: '#ffffff' });
     } else if (newType === 'media') {
       onChange({ type: 'media', media: [], slideDuration: DEFAULT_SLIDE_DURATION, transition: DEFAULT_TRANSITION });
+    } else if (newType === 'announcement') {
+      onChange({ type: 'announcement', announcement: { ...DEFAULT_ANNOUNCEMENT } });
     }
   };
 
@@ -340,6 +362,11 @@ const SectionContentEditor = ({ content, onChange, menus, label }) => {
             </>
           )}
         </div>
+      )}
+
+      {/* Announcement content */}
+      {currentType === 'announcement' && (
+        <AnnouncementEditor content={content} onChange={onChange} />
       )}
     </div>
   );
