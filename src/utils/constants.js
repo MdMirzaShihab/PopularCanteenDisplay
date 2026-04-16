@@ -1,3 +1,12 @@
+export const FONT_CHOICES = [
+  { id: 'font-heading', label: 'Bebas Neue' },
+  { id: 'font-display', label: 'Righteous' },
+  { id: 'font-script', label: 'Pacifico' },
+  { id: 'font-marker', label: 'Permanent Marker' },
+  { id: 'font-handwritten', label: 'Kalam' },
+  { id: 'font-body', label: 'Poppins' },
+];
+
 export const ITEM_CATEGORIES = [
   // Bangladeshi staples
   'Rice & Biryani',

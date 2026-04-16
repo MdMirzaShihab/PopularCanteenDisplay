@@ -7,15 +7,16 @@ import { getMedia, deleteMedia } from '../../api/media.api';
 import BackgroundCropTool from '../common/BackgroundCropTool';
 import ConfirmDialog from '../common/ConfirmDialog';
 import ColorPicker from '../ui/ColorPicker';
+import { FONT_CHOICES } from '../../utils/constants';
 
-const TITLE_FONTS = [
-  { id: 'font-heading', label: 'Bebas Neue', sample: 'TOKEN DISPLAY' },
-  { id: 'font-display', label: 'Righteous', sample: 'Token Display' },
-  { id: 'font-script', label: 'Pacifico', sample: 'Token Display' },
-  { id: 'font-marker', label: 'Permanent Marker', sample: 'TOKEN DISPLAY' },
-  { id: 'font-handwritten', label: 'Kalam', sample: 'Token Display' },
-  { id: 'font-body', label: 'Poppins', sample: 'Token Display' }
-];
+const TITLE_FONT_SAMPLE = {
+  'font-heading': 'TOKEN DISPLAY',
+  'font-display': 'Token Display',
+  'font-script': 'Token Display',
+  'font-marker': 'TOKEN DISPLAY',
+  'font-handwritten': 'Token Display',
+  'font-body': 'Token Display',
+};
 
 const MediaGalleryPicker = ({ items, loading, type, value, onSelect, onDelete }) => {
   if (loading) return <div className="p-4 text-center text-sm text-text-200">Loading gallery...</div>;
@@ -291,7 +292,7 @@ const TokenScreenForm = ({ screen, onSubmit, onCancel }) => {
           <div>
             <label className="block text-sm font-medium text-text-100 mb-2">Title Font</label>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              {TITLE_FONTS.map((font) => {
+              {FONT_CHOICES.map((font) => {
                 const isSelected = formData.titleFont === font.id;
                 return (
                   <button
@@ -305,7 +306,7 @@ const TokenScreenForm = ({ screen, onSubmit, onCancel }) => {
                     }`}
                   >
                     <span className={`${font.id} text-sm ${isSelected ? 'text-primary-100' : 'text-text-100'}`}>
-                      {font.sample}
+                      {TITLE_FONT_SAMPLE[font.id]}
                     </span>
                     <span className="block text-[10px] text-text-200 mt-0.5">{font.label}</span>
                   </button>

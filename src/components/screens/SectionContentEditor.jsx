@@ -5,6 +5,7 @@ import MediaMultiPicker from './MediaMultiPicker';
 import AnnouncementEditor from './AnnouncementEditor';
 import ColorPicker from '../ui/ColorPicker';
 import { TRANSITION_EFFECTS, DEFAULT_SLIDE_DURATION, DEFAULT_TRANSITION } from '../../utils/mediaUtils';
+import { FONT_CHOICES } from '../../utils/constants';
 
 const CONTENT_TYPES = [
   { type: 'menu', label: 'Menu', icon: UtensilsCrossed },
@@ -30,14 +31,14 @@ const DEFAULT_ANNOUNCEMENT = {
   icon: null,
 };
 
-const TITLE_FONTS = [
-  { id: 'font-heading', label: 'Bebas Neue', sample: 'MENU TITLE' },
-  { id: 'font-display', label: 'Righteous', sample: 'Menu Title' },
-  { id: 'font-script', label: 'Pacifico', sample: 'Menu Title' },
-  { id: 'font-marker', label: 'Permanent Marker', sample: 'MENU TITLE' },
-  { id: 'font-handwritten', label: 'Kalam', sample: 'Menu Title' },
-  { id: 'font-body', label: 'Poppins', sample: 'Menu Title' }
-];
+const TITLE_FONT_SAMPLE = {
+  'font-heading': 'MENU TITLE',
+  'font-display': 'Menu Title',
+  'font-script': 'Menu Title',
+  'font-marker': 'MENU TITLE',
+  'font-handwritten': 'Menu Title',
+  'font-body': 'Menu Title',
+};
 
 const SectionContentEditor = ({ content, onChange, menus, label }) => {
   // Normalize legacy types for the form
@@ -155,7 +156,7 @@ const SectionContentEditor = ({ content, onChange, menus, label }) => {
               Title Font
             </label>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              {TITLE_FONTS.map((font) => {
+              {FONT_CHOICES.map((font) => {
                 const isSelected = (content?.titleFont || 'font-heading') === font.id;
                 return (
                   <button
@@ -169,7 +170,7 @@ const SectionContentEditor = ({ content, onChange, menus, label }) => {
                     }`}
                   >
                     <span className={`${font.id} text-sm ${isSelected ? 'text-primary-100' : 'text-text-100'}`}>
-                      {font.sample}
+                      {TITLE_FONT_SAMPLE[font.id]}
                     </span>
                     <span className="block text-[10px] text-text-200 mt-0.5">{font.label}</span>
                   </button>
@@ -207,7 +208,7 @@ const SectionContentEditor = ({ content, onChange, menus, label }) => {
               Item Name Font
             </label>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              {TITLE_FONTS.map((font) => {
+              {FONT_CHOICES.map((font) => {
                 const isSelected = (content?.itemFont || 'font-body') === font.id;
                 return (
                   <button
@@ -259,7 +260,7 @@ const SectionContentEditor = ({ content, onChange, menus, label }) => {
               Price Font
             </label>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              {TITLE_FONTS.map((font) => {
+              {FONT_CHOICES.map((font) => {
                 const isSelected = (content?.priceFont || 'font-heading') === font.id;
                 return (
                   <button

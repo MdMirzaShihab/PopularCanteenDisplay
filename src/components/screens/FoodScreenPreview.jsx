@@ -113,7 +113,7 @@ const PreviewSection = memo(({ section, gridArea }) => {
       );
     }
     return (
-      <div style={sectionStyle}>
+      <div className="rounded-xl overflow-hidden w-full h-full" style={sectionStyle}>
         <AnnouncementRenderer announcement={normalized.announcement} />
       </div>
     );

@@ -10,7 +10,6 @@ const PRESET_STYLES = {
     iconClass: 'w-14 h-14 3xl:w-24 3xl:h-24 mb-4 opacity-95',
     iconLayout: 'stacked',
     decoration: null,
-    subtextFont: 'font-body',
   },
   notice: {
     paddingClass: 'px-10 py-8 3xl:px-16 3xl:py-14',
@@ -19,7 +18,6 @@ const PRESET_STYLES = {
     iconClass: 'w-10 h-10 3xl:w-16 3xl:h-16 opacity-90',
     iconLayout: 'inline-left',
     decoration: 'left-bar',
-    subtextFont: 'font-body',
   },
   chalkboard: {
     paddingClass: 'px-8 py-10 3xl:px-14 3xl:py-16',
@@ -28,7 +26,6 @@ const PRESET_STYLES = {
     iconClass: 'w-12 h-12 3xl:w-20 3xl:h-20 mb-3 opacity-90',
     iconLayout: 'stacked',
     decoration: 'dashed-frame',
-    subtextFont: 'font-handwritten',
   },
   banner: {
     paddingClass: 'px-8 py-6 3xl:px-12 3xl:py-8',
@@ -37,7 +34,6 @@ const PRESET_STYLES = {
     iconClass: 'w-12 h-12 3xl:w-16 3xl:h-16',
     iconLayout: 'inline-left',
     decoration: null,
-    subtextFont: 'font-body',
   },
 };
 
