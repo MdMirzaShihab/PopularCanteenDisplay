@@ -7,6 +7,7 @@ import LayoutPicker from './LayoutPicker';
 import SectionConfigTab from './SectionConfigTab';
 import ImageUpload from '../common/ImageUpload';
 import BackgroundCropTool from '../common/BackgroundCropTool';
+import ColorPicker from '../ui/ColorPicker';
 import { FolderOpen, Upload, Trash2 } from 'lucide-react';
 import { getMedia, deleteMedia } from '../../api/media.api';
 import ConfirmDialog from '../common/ConfirmDialog';
@@ -361,12 +362,12 @@ const FoodScreenForm = forwardRef(({ screen, activeTab, onTabChange, onSubmit, o
 
           {formData.backgroundType === 'color' && (
             <div>
-              <label htmlFor="backgroundColor" className="block text-sm font-medium text-text-100 mb-2">Background Color</label>
-              <div className="flex items-center gap-3">
-                <input type="color" id="backgroundColor" name="backgroundColor" value={formData.backgroundColor}
-                  onChange={handleChange} className="w-12 h-10 rounded border border-bg-300 cursor-pointer" />
-                <span className="text-sm text-text-200 font-mono">{formData.backgroundColor}</span>
-              </div>
+              <ColorPicker
+                label="Background Color"
+                value={formData.backgroundColor || '#000000'}
+                defaultValue="#000000"
+                onChange={(hex) => setFormData(prev => ({ ...prev, backgroundColor: hex }))}
+              />
             </div>
           )}
         </div>

@@ -2,6 +2,7 @@ import { useRef } from 'react';
 import { UtensilsCrossed, Film } from 'lucide-react';
 import { VISUAL_STYLES } from '../gallery/themes/visualStyleRegistry';
 import MediaMultiPicker from './MediaMultiPicker';
+import ColorPicker from '../ui/ColorPicker';
 import { TRANSITION_EFFECTS, DEFAULT_SLIDE_DURATION, DEFAULT_TRANSITION } from '../../utils/mediaUtils';
 
 const CONTENT_TYPES = [
@@ -157,29 +158,25 @@ const SectionContentEditor = ({ content, onChange, menus, label }) => {
 
           {/* Title Color */}
           <div>
-            <label className="block text-sm font-medium text-text-200 mb-2">
-              Title Color
-            </label>
-            <div className="flex items-center gap-3">
-              <input
-                type="color"
-                value={content?.titleColor || '#ffffff'}
-                onChange={(e) => onChange({ ...content, titleColor: e.target.value })}
-                className="w-10 h-10 rounded border border-bg-300 cursor-pointer"
-              />
-              <span className="text-sm text-text-200 font-mono">{content?.titleColor || '#ffffff'}</span>
-              <div
-                className="flex-1 h-10 rounded-lg flex items-center justify-center border border-bg-300"
-                style={{ backgroundColor: '#1a1a2e' }}
-              >
-                <span
-                  className={`${content?.titleFont || 'font-heading'} text-sm`}
-                  style={{ color: content?.titleColor || '#ffffff' }}
+            <ColorPicker
+              label="Title Color"
+              value={content?.titleColor || '#ffffff'}
+              defaultValue="#ffffff"
+              onChange={(hex) => onChange({ ...content, titleColor: hex })}
+              renderPreview={({ color }) => (
+                <div
+                  className="h-10 rounded-lg flex items-center justify-center border border-bg-300"
+                  style={{ backgroundColor: '#1a1a2e' }}
                 >
-                  Preview Title
-                </span>
-              </div>
-            </div>
+                  <span
+                    className={`${content?.titleFont || 'font-heading'} text-sm`}
+                    style={{ color }}
+                  >
+                    Preview Title
+                  </span>
+                </div>
+              )}
+            />
           </div>
 
           {/* Item Name Font */}
@@ -213,29 +210,25 @@ const SectionContentEditor = ({ content, onChange, menus, label }) => {
 
           {/* Item Name Color */}
           <div>
-            <label className="block text-sm font-medium text-text-200 mb-2">
-              Item Name Color
-            </label>
-            <div className="flex items-center gap-3">
-              <input
-                type="color"
-                value={content?.itemColor || '#ffffff'}
-                onChange={(e) => onChange({ ...content, itemColor: e.target.value })}
-                className="w-10 h-10 rounded border border-bg-300 cursor-pointer"
-              />
-              <span className="text-sm text-text-200 font-mono">{content?.itemColor || '#ffffff'}</span>
-              <div
-                className="flex-1 h-10 rounded-lg flex items-center justify-center border border-bg-300"
-                style={{ backgroundColor: '#1a1a2e' }}
-              >
-                <span
-                  className={`${content?.itemFont || 'font-body'} text-sm`}
-                  style={{ color: content?.itemColor || '#ffffff' }}
+            <ColorPicker
+              label="Item Name Color"
+              value={content?.itemColor || '#ffffff'}
+              defaultValue="#ffffff"
+              onChange={(hex) => onChange({ ...content, itemColor: hex })}
+              renderPreview={({ color }) => (
+                <div
+                  className="h-10 rounded-lg flex items-center justify-center border border-bg-300"
+                  style={{ backgroundColor: '#1a1a2e' }}
                 >
-                  Chicken Biryani
-                </span>
-              </div>
-            </div>
+                  <span
+                    className={`${content?.itemFont || 'font-body'} text-sm`}
+                    style={{ color }}
+                  >
+                    Chicken Biryani
+                  </span>
+                </div>
+              )}
+            />
           </div>
 
           {/* Price Font */}
@@ -269,29 +262,25 @@ const SectionContentEditor = ({ content, onChange, menus, label }) => {
 
           {/* Price Color */}
           <div>
-            <label className="block text-sm font-medium text-text-200 mb-2">
-              Price Color
-            </label>
-            <div className="flex items-center gap-3">
-              <input
-                type="color"
-                value={content?.priceColor || '#6ee7b7'}
-                onChange={(e) => onChange({ ...content, priceColor: e.target.value })}
-                className="w-10 h-10 rounded border border-bg-300 cursor-pointer"
-              />
-              <span className="text-sm text-text-200 font-mono">{content?.priceColor || '#6ee7b7'}</span>
-              <div
-                className="flex-1 h-10 rounded-lg flex items-center justify-center border border-bg-300"
-                style={{ backgroundColor: '#1a1a2e' }}
-              >
-                <span
-                  className={`${content?.priceFont || 'font-heading'} text-sm font-bold`}
-                  style={{ color: content?.priceColor || '#6ee7b7' }}
+            <ColorPicker
+              label="Price Color"
+              value={content?.priceColor || '#6ee7b7'}
+              defaultValue="#6ee7b7"
+              onChange={(hex) => onChange({ ...content, priceColor: hex })}
+              renderPreview={({ color }) => (
+                <div
+                  className="h-10 rounded-lg flex items-center justify-center border border-bg-300"
+                  style={{ backgroundColor: '#1a1a2e' }}
                 >
-                  ৳120
-                </span>
-              </div>
-            </div>
+                  <span
+                    className={`${content?.priceFont || 'font-heading'} text-sm font-bold`}
+                    style={{ color }}
+                  >
+                    ৳120
+                  </span>
+                </div>
+              )}
+            />
           </div>
         </div>
       )}

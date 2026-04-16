@@ -6,8 +6,7 @@ import { Image, Video, Palette, FolderOpen, Upload, Trash2 } from 'lucide-react'
 import { getMedia, deleteMedia } from '../../api/media.api';
 import BackgroundCropTool from '../common/BackgroundCropTool';
 import ConfirmDialog from '../common/ConfirmDialog';
-
-const COLOR_PRESETS = ['#1f2937', '#0f172a', '#1a2e1a', '#2d1b1b', '#000000', '#1e3a5f'];
+import ColorPicker from '../ui/ColorPicker';
 
 const TITLE_FONTS = [
   { id: 'font-heading', label: 'Bebas Neue', sample: 'TOKEN DISPLAY' },
@@ -17,8 +16,6 @@ const TITLE_FONTS = [
   { id: 'font-handwritten', label: 'Kalam', sample: 'Token Display' },
   { id: 'font-body', label: 'Poppins', sample: 'Token Display' }
 ];
-
-const TITLE_COLOR_PRESETS = ['#ffffff', '#facc15', '#4ade80', '#60a5fa', '#f472b6', '#c084fc'];
 
 const MediaGalleryPicker = ({ items, loading, type, value, onSelect, onDelete }) => {
   if (loading) return <div className="p-4 text-center text-sm text-text-200">Loading gallery...</div>;
@@ -319,43 +316,25 @@ const TokenScreenForm = ({ screen, onSubmit, onCancel }) => {
 
           {/* Title Color */}
           <div>
-            <label className="block text-sm font-medium text-text-100 mb-2">Title Color</label>
-            <div className="flex items-center gap-3 mb-2">
-              {TITLE_COLOR_PRESETS.map(color => (
-                <button
-                  key={color}
-                  type="button"
-                  onClick={() => setFormData(prev => ({ ...prev, titleColor: color }))}
-                  className={`w-8 h-8 rounded-full border-2 transition-all duration-200 hover:scale-110 ${
-                    formData.titleColor === color
-                      ? 'border-primary-100 ring-2 ring-primary-100/30'
-                      : 'border-bg-300'
-                  }`}
-                  style={{ backgroundColor: color }}
-                  title={color}
-                />
-              ))}
-            </div>
-            <div className="flex items-center gap-3">
-              <input
-                type="color"
-                value={formData.titleColor}
-                onChange={(e) => setFormData(prev => ({ ...prev, titleColor: e.target.value }))}
-                className="w-10 h-10 rounded border border-bg-300 cursor-pointer"
-              />
-              <span className="text-sm text-text-200 font-mono">{formData.titleColor}</span>
-              <div
-                className="flex-1 h-10 rounded-lg flex items-center justify-center border border-bg-300"
-                style={{ backgroundColor: '#1a1a2e' }}
-              >
-                <span
-                  className={`${formData.titleFont} text-sm`}
-                  style={{ color: formData.titleColor }}
+            <ColorPicker
+              label="Title Color"
+              value={formData.titleColor}
+              defaultValue="#ffffff"
+              onChange={(hex) => setFormData(prev => ({ ...prev, titleColor: hex }))}
+              renderPreview={({ color }) => (
+                <div
+                  className="h-10 rounded-lg flex items-center justify-center border border-bg-300"
+                  style={{ backgroundColor: '#1a1a2e' }}
                 >
-                  {formData.title || 'Preview Title'}
-                </span>
-              </div>
-            </div>
+                  <span
+                    className={`${formData.titleFont} text-sm`}
+                    style={{ color }}
+                  >
+                    {formData.title || 'Preview Title'}
+                  </span>
+                </div>
+              )}
+            />
           </div>
 
           <div className="p-4 bg-bg-100 rounded-lg border border-bg-300">
@@ -565,38 +544,13 @@ const TokenScreenForm = ({ screen, onSubmit, onCancel }) => {
           {/* Solid Color Picker */}
           {formData.backgroundType === 'color' && (
             <div className="space-y-4">
-              <label className="block text-sm font-medium text-text-100">Background Color</label>
+              <ColorPicker
+                label="Background Color"
+                value={formData.backgroundColor}
+                defaultValue="#000000"
+                onChange={(hex) => handleColorChange(hex)}
+              />
 
-              {/* Preset Swatches */}
-              <div className="flex items-center gap-3">
-                {COLOR_PRESETS.map(color => (
-                  <button
-                    key={color}
-                    type="button"
-                    onClick={() => handleColorChange(color)}
-                    className={`w-10 h-10 rounded-full border-2 transition-all duration-200 hover:scale-110 ${
-                      formData.backgroundColor === color
-                        ? 'border-primary-100 ring-2 ring-primary-100/30'
-                        : 'border-bg-300'
-                    }`}
-                    style={{ backgroundColor: color }}
-                    title={color}
-                  />
-                ))}
-              </div>
-
-              {/* Custom Color Input */}
-              <div className="flex items-center gap-3">
-                <input
-                  type="color"
-                  value={formData.backgroundColor}
-                  onChange={(e) => handleColorChange(e.target.value)}
-                  className="w-10 h-10 rounded-lg border border-bg-300 cursor-pointer"
-                />
-                <span className="text-sm text-text-200">Custom color: {formData.backgroundColor}</span>
-              </div>
-
-              {/* Preview */}
               <div
                 className="w-full h-24 rounded-lg border border-bg-300 flex items-center justify-center"
                 style={{ backgroundColor: formData.backgroundColor }}
