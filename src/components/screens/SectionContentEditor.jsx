@@ -19,7 +19,7 @@ const DEFAULT_ANNOUNCEMENT = {
   textAlign: 'center',
   textFont: 'font-heading',
   textColor: '#ffffff',
-  backgroundMode: 'color',
+  backgroundMode: 'transparent',
   backgroundColor: '#1a1a2e',
   backgroundMedia: null,
   backgroundPositionX: 50,

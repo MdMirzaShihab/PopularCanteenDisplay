@@ -29,6 +29,7 @@ const ALIGN_OPTIONS = [
 ];
 
 const BG_MODE_OPTIONS = [
+  { id: 'transparent', label: 'Transparent' },
   { id: 'color', label: 'Solid Color' },
   { id: 'image', label: 'Image' },
   { id: 'image-overlay', label: 'Image + Overlay' },
@@ -260,7 +261,7 @@ const AnnouncementEditor = ({ content, onChange }) => {
           <label className="block text-sm font-medium text-text-200 mb-2">Background Mode</label>
           <div className="flex gap-2">
             {BG_MODE_OPTIONS.map(opt => {
-              const isSelected = (announcement.backgroundMode || 'color') === opt.id;
+              const isSelected = (announcement.backgroundMode || 'transparent') === opt.id;
               return (
                 <button
                   key={opt.id}
@@ -279,7 +280,7 @@ const AnnouncementEditor = ({ content, onChange }) => {
           </div>
         </div>
 
-        {(announcement.backgroundMode || 'color') === 'color' && (
+        {(announcement.backgroundMode || 'transparent') === 'color' && (
           <ColorPicker
             label="Background Color"
             value={announcement.backgroundColor || '#1a1a2e'}
