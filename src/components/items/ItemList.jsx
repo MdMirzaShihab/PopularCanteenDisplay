@@ -1,7 +1,6 @@
 import { Search } from 'lucide-react';
 import ItemCard from './ItemCard';
 import SearchableSelect from '../common/SearchableSelect';
-import { ITEM_CATEGORIES } from '../../utils/constants';
 
 const ItemList = ({
   items,
@@ -9,6 +8,7 @@ const ItemList = ({
   search,
   category,
   isActive,
+  categories = [],
   onSearchChange,
   onCategoryChange,
   onIsActiveChange,
@@ -36,7 +36,7 @@ const ItemList = ({
           <SearchableSelect
             value={category}
             onChange={onCategoryChange}
-            options={ITEM_CATEGORIES}
+            options={categories}
             placeholder="All Categories"
           />
         </div>

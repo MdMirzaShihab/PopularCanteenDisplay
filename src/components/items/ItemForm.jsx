@@ -3,9 +3,8 @@ import ImageUpload from '../common/ImageUpload';
 import SearchableSelect from '../common/SearchableSelect';
 import { validateItem } from '../../utils/validators';
 import { useNotification } from '../../context/NotificationContext';
-import { ITEM_CATEGORIES } from '../../utils/constants';
 
-const ItemForm = ({ item, onSubmit, onCancel }) => {
+const ItemForm = ({ item, categories = [], onSubmit, onCancel }) => {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -162,7 +161,7 @@ const ItemForm = ({ item, onSubmit, onCancel }) => {
           onChange={(val) => {
             setFormData(prev => ({ ...prev, category: val }));
           }}
-          options={ITEM_CATEGORIES}
+          options={categories}
           placeholder="Select a category"
         />
       </div>

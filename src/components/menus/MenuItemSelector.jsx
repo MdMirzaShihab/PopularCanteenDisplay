@@ -1,10 +1,13 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { Search, X, Check } from 'lucide-react';
 import { useItems } from '../../hooks/useItems';
+import { useCategories } from '../../hooks/useCategories';
 import SearchableSelect from '../common/SearchableSelect';
-import { ITEM_CATEGORIES } from '../../utils/constants';
 
 const MenuItemSelector = ({ selectedItemIds, initialItems = [], onChange }) => {
+  const { categories } = useCategories();
+  const categoryNames = useMemo(() => categories.map((c) => c.name), [categories]);
+
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [category, setCategory] = useState('');
@@ -112,7 +115,7 @@ const MenuItemSelector = ({ selectedItemIds, initialItems = [], onChange }) => {
             <SearchableSelect
               value={category}
               onChange={setCategory}
-              options={ITEM_CATEGORIES}
+              options={categoryNames}
               placeholder="All Categories"
             />
           </div>

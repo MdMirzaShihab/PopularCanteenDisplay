@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react';
-import { Plus } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import { Plus, Tags } from 'lucide-react';
 import { useItems } from '../hooks/useItems';
+import { useCategories } from '../hooks/useCategories';
 import { useNotification } from '../context/NotificationContext';
 import ItemList from '../components/items/ItemList';
 import ItemForm from '../components/items/ItemForm';
+import CategoryManager from '../components/items/CategoryManager';
 import Modal from '../components/common/Modal';
 import ConfirmDialog from '../components/common/ConfirmDialog';
 import Pagination from '../components/common/Pagination';
@@ -27,11 +29,18 @@ const ItemsPage = () => {
     isActive,
   });
 
+  const categoriesHook = useCategories();
+  const categoryNames = useMemo(
+    () => categoriesHook.categories.map((c) => c.name),
+    [categoriesHook.categories]
+  );
+
   const { success, error } = useNotification();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [deletingItem, setDeletingItem] = useState(null);
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
 
   const handleCreate = () => {
     setEditingItem(null);
@@ -76,18 +85,27 @@ const ItemsPage = () => {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
         <div>
           <h1 className="text-3xl font-bold text-text-100">Items Management</h1>
           <p className="text-text-200 mt-1">Manage your food and beverage items</p>
         </div>
-        <button
-          onClick={handleCreate}
-          className="btn-primary flex items-center gap-2"
-        >
-          <Plus className="w-5 h-5" />
-          Add New Item
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setIsCategoryModalOpen(true)}
+            className="btn-secondary flex items-center gap-2"
+          >
+            <Tags className="w-5 h-5" />
+            Manage Categories
+          </button>
+          <button
+            onClick={handleCreate}
+            className="btn-primary flex items-center gap-2"
+          >
+            <Plus className="w-5 h-5" />
+            Add New Item
+          </button>
+        </div>
       </div>
 
       {/* Items List */}
@@ -98,6 +116,7 @@ const ItemsPage = () => {
           search={search}
           category={category}
           isActive={isActive}
+          categories={categoryNames}
           onSearchChange={setSearch}
           onCategoryChange={setCategory}
           onIsActiveChange={setIsActive}
@@ -125,12 +144,27 @@ const ItemsPage = () => {
       >
         <ItemForm
           item={editingItem}
+          categories={categoryNames}
           onSubmit={handleSubmit}
           onCancel={() => {
             setIsModalOpen(false);
             setEditingItem(null);
           }}
         />
+      </Modal>
+
+      {/* Manage Categories Modal */}
+      <Modal
+        isOpen={isCategoryModalOpen}
+        onClose={() => {
+          setIsCategoryModalOpen(false);
+          // Reset filter so a renamed/deleted category doesn't leave the list empty
+          setCategory('');
+        }}
+        title="Manage Categories"
+        size="md"
+      >
+        <CategoryManager {...categoriesHook} />
       </Modal>
 
       {/* Delete Confirmation */}
