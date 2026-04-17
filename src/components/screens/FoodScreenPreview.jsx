@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState, useEffect, memo } from 'react';
 import { getLayoutTheme } from '../gallery/themes/layoutRegistry';
+import { getTitleSizeClass } from '../gallery/themes/typographyRegistry';
 import { resolveMediaUrl, normalizeContent, resolveMediaUrls } from '../../utils/mediaUtils';
 import { getStyleRenderer } from '../gallery/styles/index.js';
 import { useMenus } from '../../hooks/useMenus';
@@ -8,6 +9,22 @@ import AnnouncementRenderer from '../gallery/AnnouncementRenderer';
 
 const TV_LANDSCAPE = { w: 1920, h: 1080 };
 const TV_PORTRAIT = { w: 1080, h: 1920 };
+
+const MEDIA_ACCENT_FALLBACK = '#F2EFE9';
+
+const withAlpha = (hex, alpha) => {
+  if (typeof hex !== 'string' || !hex.startsWith('#')) return hex;
+  const full = hex.length === 4
+    ? `#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}`
+    : hex.slice(0, 7);
+  const a = Math.round(alpha * 255).toString(16).padStart(2, '0');
+  return `${full}${a}`;
+};
+
+const buildFrameStyle = (accentColor) => ({
+  border: `1.5px solid ${withAlpha(accentColor, 0.4)}`,
+  boxShadow: `inset 0 0 0 1px ${withAlpha(accentColor, 0.08)}, inset 0 1px 0 rgba(255,255,255,0.06), 0 6px 28px rgba(0,0,0,0.18)`,
+});
 
 const resolveContentMenus = (content, menus) => {
   if (!content || content.type !== 'menu') return content;
@@ -32,17 +49,17 @@ const PreviewSection = memo(({ section, gridArea }) => {
   const normalized = content ? normalizeContent(content) : null;
   const isAnnouncement = normalized?.type === 'announcement';
 
+  const accentColor = normalized?.type === 'menu'
+    ? (normalized.titleColor || '#ffffff')
+    : MEDIA_ACCENT_FALLBACK;
+
   const sectionStyle = isAnnouncement
     ? { gridArea, background: 'transparent', border: 'none' }
-    : {
-        gridArea,
-        background: 'rgba(0,0,0,0.30)',
-        border: '1px solid rgba(255,255,255,0.08)',
-      };
+    : { gridArea, ...buildFrameStyle(accentColor) };
 
   if (!normalized) {
     return (
-      <div className="rounded-xl flex items-center justify-center" style={sectionStyle}>
+      <div className="rounded-lg flex items-center justify-center" style={sectionStyle}>
         <span className="text-white/40 text-lg font-body">{section.label}</span>
       </div>
     );
@@ -52,7 +69,7 @@ const PreviewSection = memo(({ section, gridArea }) => {
     const menu = normalized.menuId;
     if (!menu || typeof menu !== 'object') {
       return (
-        <div className="rounded-xl flex items-center justify-center" style={sectionStyle}>
+        <div className="rounded-lg flex items-center justify-center" style={sectionStyle}>
           <span className="text-white/40 text-lg font-body">{section.label}</span>
         </div>
       );
@@ -63,17 +80,17 @@ const PreviewSection = memo(({ section, gridArea }) => {
     const titleColor = normalized.titleColor || '#ffffff';
 
     return (
-      <div className="rounded-xl p-4 overflow-hidden flex flex-col" style={sectionStyle}>
+      <div className="rounded-lg p-4 overflow-hidden flex flex-col" style={sectionStyle}>
         <div className="flex-shrink-0 mb-2 px-1">
           <div className="flex items-center gap-3">
             <div className="h-[2px] w-8 rounded-full opacity-60" style={{ backgroundColor: titleColor }} />
             <h3
-              className={`${normalized.titleFont || 'font-heading'} text-2xl 3xl:text-4xl uppercase tracking-[0.15em] drop-shadow-lg`}
+              className={`${normalized.titleFont || 'font-heading'} ${getTitleSizeClass(normalized.titleSize)} uppercase tracking-[0.15em] drop-shadow-lg`}
               style={{ color: titleColor }}
             >
               {menu.title}
             </h3>
-            <div className="flex-1 h-[1px] opacity-20" style={{ backgroundColor: titleColor }} />
+            <div className="flex-1 h-[1px] opacity-35" style={{ backgroundColor: titleColor }} />
           </div>
         </div>
         <div className="flex-1 min-h-0">
@@ -82,8 +99,10 @@ const PreviewSection = memo(({ section, gridArea }) => {
             showPrices={true}
             itemFont={normalized.itemFont}
             itemColor={normalized.itemColor}
+            itemSize={normalized.itemSize}
             priceFont={normalized.priceFont}
             priceColor={normalized.priceColor}
+            priceSize={normalized.priceSize}
           />
         </div>
       </div>
@@ -94,7 +113,7 @@ const PreviewSection = memo(({ section, gridArea }) => {
     const urls = resolveMediaUrls(normalized.media);
     if (urls.length === 0) return null;
     return (
-      <div className="rounded-xl overflow-hidden" style={sectionStyle}>
+      <div className="rounded-lg overflow-hidden" style={sectionStyle}>
         <MediaSlideshow
           mediaItems={urls}
           slideDuration={normalized.slideDuration}
@@ -107,19 +126,27 @@ const PreviewSection = memo(({ section, gridArea }) => {
   if (normalized.type === 'announcement') {
     if (!normalized.announcement) {
       return (
-        <div className="rounded-xl flex items-center justify-center" style={{ gridArea, background: 'rgba(0,0,0,0.30)' }}>
+        <div
+          className="rounded-lg flex items-center justify-center"
+          style={{ gridArea, ...buildFrameStyle(MEDIA_ACCENT_FALLBACK) }}
+        >
           <span className="text-white/40 text-lg font-body">{section.label}</span>
         </div>
       );
     }
     return (
-      <div className="rounded-xl overflow-hidden w-full h-full" style={sectionStyle}>
+      <div className="rounded-lg overflow-hidden w-full h-full" style={sectionStyle}>
         <AnnouncementRenderer announcement={normalized.announcement} />
       </div>
     );
   }
 
-  return <div className="rounded-xl" style={{ gridArea, background: 'rgba(0,0,0,0.30)' }} />;
+  return (
+    <div
+      className="rounded-lg"
+      style={{ gridArea, ...buildFrameStyle(MEDIA_ACCENT_FALLBACK) }}
+    />
+  );
 });
 
 PreviewSection.displayName = 'PreviewSection';
@@ -151,7 +178,11 @@ const FoodScreenPreview = ({ formData }) => {
       : {};
   }, [formData]);
 
-  /* Fit the TV frame to the largest size that fits the available area */
+  /* Fit the TV frame to the largest size that fits the available area.
+     `hasFormData` is part of the deps so the observer re-attaches when
+     formData first arrives (the early `return null` below would otherwise
+     leave areaRef unattached on the initial mount). */
+  const hasFormData = formData != null;
   useEffect(() => {
     const el = areaRef.current;
     if (!el) return;
@@ -166,7 +197,7 @@ const FoodScreenPreview = ({ formData }) => {
     });
     observer.observe(el);
     return () => observer.disconnect();
-  }, [tv.w, tv.h]);
+  }, [tv.w, tv.h, hasFormData]);
 
   if (!formData) return null;
 

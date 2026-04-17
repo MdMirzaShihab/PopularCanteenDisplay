@@ -1,8 +1,25 @@
 import React, { useState, useEffect, useRef } from 'react';
+import {
+  getItemSizeClass,
+  getPriceSizeClass,
+  getItemHeight,
+  effectiveRowSize,
+} from '../themes/typographyRegistry';
 
-const ITEM_HEIGHT = 46;
+const VISUAL_STYLE_ID = 'menu-board';
 
-const MenuBoardRenderer = React.memo(({ items, showPrices = true, itemFont, itemColor, priceFont, priceColor }) => {
+// Rotating neon accents — vaporwave palette. One hue per row, cycling every 3 rows.
+const NEON_HUES = [
+  { line: '#5eead4', text: '#67e8f9', glow: 'rgba(94,234,212,0.5)'  }, // cyan
+  { line: '#f472b6', text: '#f9a8d4', glow: 'rgba(244,114,182,0.5)' }, // pink
+  { line: '#fbbf24', text: '#fde68a', glow: 'rgba(251,191,36,0.5)'  }, // amber
+];
+
+const MenuBoardRenderer = React.memo(({ items, showPrices = true, itemFont, itemColor, itemSize, priceFont, priceColor, priceSize }) => {
+  const itemSizeClass = getItemSizeClass(VISUAL_STYLE_ID, itemSize);
+  const priceSizeClass = getPriceSizeClass(VISUAL_STYLE_ID, priceSize);
+  const effSize = effectiveRowSize(itemSize, priceSize);
+  const itemHeight = getItemHeight(VISUAL_STYLE_ID, effSize);
   const [currentPage, setCurrentPage] = useState(0);
   const containerRef = useRef(null);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -11,13 +28,13 @@ const MenuBoardRenderer = React.memo(({ items, showPrices = true, itemFont, item
     if (!containerRef.current) return;
     const observer = new ResizeObserver(entries => {
       const { height } = entries[0].contentRect;
-      const rows = Math.floor(height / (ITEM_HEIGHT + 6)) || 1;
+      const rows = Math.floor(height / (itemHeight + 6)) || 1;
       setItemsPerPage(Math.max(1, rows));
       setCurrentPage(0);
     });
     observer.observe(containerRef.current);
     return () => observer.disconnect();
-  }, []);
+  }, [itemHeight]);
 
   useEffect(() => {
     const totalPages = Math.ceil(items.length / itemsPerPage);
@@ -33,61 +50,89 @@ const MenuBoardRenderer = React.memo(({ items, showPrices = true, itemFont, item
 
   const totalPages = Math.ceil(items.length / itemsPerPage);
   const pageItems = items.slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage);
+  const priceColorOverride = priceColor;
 
   return (
-    <div
-      ref={containerRef}
-      className="w-full h-full flex flex-col overflow-hidden"
-    >
+    <div ref={containerRef} className="w-full h-full flex flex-col overflow-hidden">
       <div className="flex-1 flex flex-col gap-1.5 px-4 py-2 overflow-hidden">
-        {pageItems.map((item, idx) => (
-          <div
-            key={item._id}
-            className="flex items-center gap-3 px-4 rounded-xl tv-glass-fallback"
-            style={{
-              height: `${ITEM_HEIGHT}px`,
-              background: idx % 2 === 0 ? 'rgba(0,0,0,0.35)' : 'rgba(0,0,0,0.2)',
-              backdropFilter: 'blur(14px) saturate(1.3)',
-              WebkitBackdropFilter: 'blur(14px) saturate(1.3)',
-              borderLeft: '3px solid rgba(245,215,120,0.55)',
-              boxShadow: 'inset 0 1px 0 rgba(245,215,120,0.04), 0 2px 10px rgba(0,0,0,0.1)'
-            }}
-          >
-            <span
-              className={`${itemFont || 'font-handwritten'} text-lg font-black flex-1 truncate`}
-              style={{ color: itemColor || '#ffffff', textShadow: '0 2px 6px rgba(0,0,0,0.6)' }}
-            >
-              {item.name}
-            </span>
+        {pageItems.map((item, idx) => {
+          const hue = NEON_HUES[idx % NEON_HUES.length];
+          const resolvedPriceColor = priceColorOverride || hue.text;
+          return (
             <div
-              className="flex-1 mx-2"
+              key={item._id}
+              className="relative flex items-center gap-3 pl-6 pr-3 overflow-hidden tv-glass-fallback"
               style={{
-                borderBottom: '2px dotted rgba(245,215,120,0.3)',
-                minWidth: '20px',
-                maxWidth: '120px'
+                height: `${itemHeight}px`,
+                borderRadius: '12px',
+                background: idx % 2 === 0
+                  ? 'linear-gradient(90deg, rgba(12,10,24,0.72) 0%, rgba(18,14,30,0.58) 100%)'
+                  : 'linear-gradient(90deg, rgba(16,14,28,0.55) 0%, rgba(22,18,34,0.42) 100%)',
+                backdropFilter: 'blur(14px) saturate(1.3)',
+                WebkitBackdropFilter: 'blur(14px) saturate(1.3)',
+                boxShadow: `0 2px 12px rgba(0,0,0,0.32), inset 0 1px 0 rgba(255,255,255,0.04)`,
               }}
-            />
-            {showPrices && (
+            >
+              {/* Left neon accent bar */}
+              <div className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r-full pointer-events-none" style={{
+                background: hue.line,
+                boxShadow: `0 0 8px ${hue.glow}, 0 0 16px ${hue.glow}`,
+              }} />
+
+              {/* Glowing indicator dot */}
+              <div className="flex-shrink-0 w-2 h-2 rounded-full" style={{
+                background: hue.line,
+                boxShadow: `0 0 6px ${hue.glow}, 0 0 14px ${hue.glow}`,
+              }} />
+
               <span
-                className={`${priceFont || 'font-marker'} text-xl font-black flex-shrink-0 tabular-nums`}
-                style={{ color: priceColor || '#f5d778', textShadow: '0 2px 6px rgba(0,0,0,0.5)' }}
-              >
-                ৳{item.price.toFixed(0)}
-              </span>
-            )}
-          </div>
-        ))}
+                className={`${itemFont || 'font-handwritten'} ${itemSizeClass} font-black flex-1 truncate`}
+                style={{
+                  color: itemColor || '#ffffff',
+                  textShadow: `0 1px 4px rgba(0,0,0,0.65), 0 0 12px ${hue.glow}`,
+                }}
+              >{item.name}</span>
+
+              {/* Dotted leader — matches row's neon hue */}
+              <div className="flex-1 mx-2 self-end mb-[0.35em]" style={{
+                borderBottom: `2px dotted ${hue.line}`,
+                opacity: 0.45,
+                minWidth: '20px',
+                maxWidth: '140px',
+              }} />
+
+              {showPrices && (
+                <div className="flex-shrink-0 px-3 py-1 rounded-full" style={{
+                  background: 'rgba(0,0,0,0.55)',
+                  border: `1px solid ${hue.line}`,
+                  boxShadow: `0 0 14px -2px ${hue.glow}, inset 0 1px 0 rgba(255,255,255,0.06)`,
+                }}>
+                  <span
+                    className={`${priceFont || 'font-marker'} ${priceSizeClass} font-black tabular-nums`}
+                    style={{
+                      color: resolvedPriceColor,
+                      textShadow: `0 0 8px ${hue.glow}`,
+                    }}
+                  >৳{item.price.toFixed(0)}</span>
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
       {totalPages > 1 && (
-        <div className="flex justify-center items-center gap-2 py-2.5">
+        <div className="flex justify-center items-center gap-1.5 py-2.5">
           {Array.from({ length: totalPages }).map((_, i) => (
             <div
               key={i}
               className="rounded-full transition-all duration-300"
               style={{
-                width: i === currentPage ? '24px' : '8px',
-                height: '8px',
-                backgroundColor: i === currentPage ? '#f5d778' : 'rgba(245,215,120,0.2)'
+                width: i === currentPage ? '22px' : '6px',
+                height: '4px',
+                background: i === currentPage
+                  ? 'linear-gradient(90deg, #5eead4 0%, #f472b6 50%, #fbbf24 100%)'
+                  : 'rgba(255,255,255,0.22)',
+                boxShadow: i === currentPage ? '0 0 10px rgba(244,114,182,0.5)' : 'none',
               }}
             />
           ))}

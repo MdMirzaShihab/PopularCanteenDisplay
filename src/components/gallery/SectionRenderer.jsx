@@ -2,8 +2,22 @@ import { useState, useEffect, useCallback, memo } from 'react';
 import { getCurrentTime, getCurrentDayOfWeek, isTimeInRange } from '../../utils/timeUtils';
 import { getStyleRenderer } from './styles/index.js';
 import { normalizeContent, resolveMediaUrls } from '../../utils/mediaUtils';
+import { getTitleSizeClass } from './themes/typographyRegistry';
 import MediaSlideshow from './MediaSlideshow';
 import AnnouncementRenderer from './AnnouncementRenderer';
+
+// Append an alpha channel to a #RRGGBB or #RGB hex color.
+const withAlpha = (hex, alpha) => {
+  if (typeof hex !== 'string' || !hex.startsWith('#')) return hex;
+  const full = hex.length === 4
+    ? `#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}`
+    : hex.slice(0, 7);
+  const a = Math.round(alpha * 255).toString(16).padStart(2, '0');
+  return `${full}${a}`;
+};
+
+// Warm cream fallback for media sections (matches app's bg-100).
+const MEDIA_ACCENT_FALLBACK = '#F2EFE9';
 
 const SectionRenderer = memo(function SectionRenderer({ section, gridArea }) {
   const resolveContent = useCallback(() => {
@@ -55,12 +69,12 @@ const SectionRenderer = memo(function SectionRenderer({ section, gridArea }) {
             <div className="flex items-center gap-3">
               <div className="h-[2px] w-8 rounded-full opacity-60" style={{ backgroundColor: titleColor }} />
               <h3
-                className={`${normalized.titleFont || 'font-heading'} text-2xl 3xl:text-4xl uppercase tracking-[0.15em] drop-shadow-lg`}
+                className={`${normalized.titleFont || 'font-heading'} ${getTitleSizeClass(normalized.titleSize)} uppercase tracking-[0.15em] drop-shadow-lg`}
                 style={{ color: titleColor }}
               >
                 {menu.title}
               </h3>
-              <div className="flex-1 h-[1px] opacity-20" style={{ backgroundColor: titleColor }} />
+              <div className="flex-1 h-[1px] opacity-35" style={{ backgroundColor: titleColor }} />
             </div>
           </div>
           <div className="flex-1 min-h-0">
@@ -69,8 +83,10 @@ const SectionRenderer = memo(function SectionRenderer({ section, gridArea }) {
               showPrices={true}
               itemFont={normalized.itemFont}
               itemColor={normalized.itemColor}
+              itemSize={normalized.itemSize}
               priceFont={normalized.priceFont}
               priceColor={normalized.priceColor}
+              priceSize={normalized.priceSize}
             />
           </div>
         </div>
@@ -97,15 +113,19 @@ const SectionRenderer = memo(function SectionRenderer({ section, gridArea }) {
     return null;
   };
 
-  const isAnnouncement = content?.type === 'announcement';
+  const normalized = content ? normalizeContent(content) : null;
+  const isAnnouncement = normalized?.type === 'announcement';
+  const accentColor = normalized?.type === 'menu'
+    ? (normalized.titleColor || '#ffffff')
+    : MEDIA_ACCENT_FALLBACK;
 
   return (
     <div
-      className={`relative overflow-hidden rounded-xl ${isAnnouncement ? 'bg-transparent border-0' : 'p-4'}`}
+      className={`relative overflow-hidden rounded-lg ${isAnnouncement ? 'bg-transparent border-0' : 'p-4'}`}
       style={isAnnouncement ? { gridArea } : {
         gridArea,
-        background: 'rgba(0,0,0,0.30)',
-        border: '1px solid rgba(255,255,255,0.08)',
+        border: `1.5px solid ${withAlpha(accentColor, 0.4)}`,
+        boxShadow: `inset 0 0 0 1px ${withAlpha(accentColor, 0.08)}, inset 0 1px 0 rgba(255,255,255,0.06), 0 6px 28px rgba(0,0,0,0.18)`,
       }}
     >
       {renderContent()}

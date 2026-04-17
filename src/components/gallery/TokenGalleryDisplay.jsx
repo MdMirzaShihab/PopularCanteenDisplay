@@ -170,23 +170,31 @@ const TokenGalleryDisplay = ({ screen }) => {
             boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
           }}
         >
-          <div className="px-10 py-6 flex items-center justify-between">
+          <div className="px-6 py-3 flex items-center justify-between gap-6">
             {/* Logo & Branding */}
-            <div className="flex items-center gap-5">
-              <img
-                src={hospitalLogo}
-                alt="PMCH Logo"
-                className="h-20 w-auto object-contain brightness-0 invert"
-              />
+            <div className="flex items-center gap-4 min-w-0">
+              <div className="shrink-0 bg-white rounded-lg p-1.5 flex items-center justify-center">
+                <img
+                  src={hospitalLogo}
+                  alt="PMCH Logo"
+                  className="h-11 w-auto object-contain"
+                />
+              </div>
               <div
-                className="h-14"
+                className="h-12 shrink-0"
                 style={{ width: '2px', background: 'linear-gradient(to bottom, transparent, rgba(255,255,255,0.25), transparent)' }}
               />
-              <div className="flex flex-col">
-                <span className="text-3xl font-bold text-white tracking-wide font-body leading-tight">
+              <div className="flex flex-col min-w-0">
+                <span
+                  className="text-xl xl:text-2xl font-bold tracking-wide font-body leading-tight whitespace-nowrap"
+                  style={{ color: screen.brandingColor || '#ffffff' }}
+                >
                   Popular Medical College and Hospital
                 </span>
-                <span className="text-lg text-white/40 font-body italic tracking-widest text-right mt-0.5">
+                <span
+                  className="text-sm xl:text-base font-body italic tracking-[0.2em] mt-0.5 whitespace-nowrap"
+                  style={{ color: screen.brandingColor || '#ffffff', opacity: 0.5 }}
+                >
                   We Care for Life
                 </span>
               </div>
@@ -194,7 +202,7 @@ const TokenGalleryDisplay = ({ screen }) => {
 
             {/* Screen Title */}
             <h1
-              className={`text-5xl font-bold tracking-[0.15em] ${screen.titleFont || 'font-heading'}`}
+              className={`text-2xl xl:text-3xl 2xl:text-4xl font-bold tracking-[0.08em] whitespace-nowrap shrink-0 ${screen.titleFont || 'font-heading'}`}
               style={{ color: screen.titleColor || '#ffffff' }}
             >
               {screen.title}
@@ -202,22 +210,28 @@ const TokenGalleryDisplay = ({ screen }) => {
 
             {/* Date & Time */}
             <div
-              className="flex items-center gap-6 px-8 py-5 rounded-2xl"
+              className="flex items-center gap-4 px-5 py-2.5 rounded-xl shrink-0 whitespace-nowrap"
               style={{
                 background: 'rgba(255,255,255,0.08)',
                 border: '1px solid rgba(255,255,255,0.12)',
               }}
             >
-              <div className="flex items-center gap-3">
-                <Calendar className="w-7 h-7 text-white/40" />
-                <span className="text-2xl font-medium text-white/70 font-body tracking-wide">
+              <div className="flex items-center gap-2">
+                <Calendar className="w-5 h-5 shrink-0" style={{ color: screen.dateTimeColor || '#ffffff', opacity: 0.5 }} />
+                <span
+                  className={`text-base xl:text-lg font-medium tracking-wide ${screen.dateTimeFont || 'font-body'}`}
+                  style={{ color: screen.dateTimeColor || '#ffffff', opacity: 0.9 }}
+                >
                   {currentDate}
                 </span>
               </div>
-              <div className="w-px h-10" style={{ background: 'rgba(255,255,255,0.12)' }} />
-              <div className="flex items-center gap-3">
-                <Clock className="w-7 h-7 text-white/40" />
-                <span className="text-4xl font-bold text-white/90 font-heading tracking-wider">
+              <div className="w-px h-7" style={{ background: 'rgba(255,255,255,0.12)' }} />
+              <div className="flex items-center gap-2">
+                <Clock className="w-5 h-5 shrink-0" style={{ color: screen.dateTimeColor || '#ffffff', opacity: 0.5 }} />
+                <span
+                  className={`text-xl xl:text-2xl font-bold tracking-wider ${screen.dateTimeFont || 'font-body'}`}
+                  style={{ color: screen.dateTimeColor || '#ffffff' }}
+                >
                   {formatTimeDisplay(currentTime)}
                 </span>
               </div>
@@ -226,28 +240,28 @@ const TokenGalleryDisplay = ({ screen }) => {
         </div>
 
         {/* Main Token Area */}
-        <div className="flex-1 flex flex-col items-center justify-center px-8 -mt-4">
+        <div className="flex-1 min-h-0 flex flex-col items-center justify-center px-8 py-4">
           {servingToken ? (
             <>
               {/* NOW SERVING Label */}
-              <div className="mb-6">
-                <div className="flex items-center gap-6">
-                  <div className="h-[2px] w-28" style={{ background: 'linear-gradient(to right, transparent, rgba(250,204,21,0.5))' }} />
+              <div className="mb-4">
+                <div className="flex items-center gap-5">
+                  <div className="h-[2px] w-20" style={{ background: 'linear-gradient(to right, transparent, rgba(250,204,21,0.5))' }} />
                   <span
-                    className="text-5xl font-bold uppercase tracking-[0.35em] font-heading"
-                    style={{ color: 'rgba(250,204,21,0.7)' }}
+                    className={`text-5xl xl:text-6xl font-bold uppercase tracking-[0.25em] ${screen.servingFont || 'font-heading'}`}
+                    style={{ color: screen.servingColor || '#facc15', opacity: 0.85 }}
                   >
                     Now Serving
                   </span>
-                  <div className="h-[2px] w-28" style={{ background: 'linear-gradient(to left, transparent, rgba(250,204,21,0.5))' }} />
+                  <div className="h-[2px] w-20" style={{ background: 'linear-gradient(to left, transparent, rgba(250,204,21,0.5))' }} />
                 </div>
               </div>
 
               {/* Token Number */}
-              <div className="relative mb-4">
+              <div className="relative mb-3">
                 {/* Ambient glow */}
                 <div
-                  className="absolute -inset-16 animate-pulse"
+                  className="absolute -inset-12 animate-pulse"
                   style={{
                     background: 'radial-gradient(ellipse, rgba(250,204,21,0.15) 0%, transparent 70%)',
                   }}
@@ -255,24 +269,20 @@ const TokenGalleryDisplay = ({ screen }) => {
                 <div
                   className="relative"
                   style={{
-                    padding: '2rem 5rem',
+                    padding: '1rem 3rem',
                     background: 'linear-gradient(145deg, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.15) 100%)',
-                    borderRadius: '2.5rem',
+                    borderRadius: '2rem',
                     border: '2px solid rgba(250,204,21,0.2)',
                     boxShadow: '0 0 100px rgba(250,204,21,0.08), 0 8px 40px rgba(0,0,0,0.15)',
                   }}
                 >
                   <div
-                    className="font-black leading-none text-center font-heading"
+                    className={`font-black leading-none text-center ${screen.servingFont || 'font-heading'}`}
                     style={{
-                      fontSize: 'clamp(12rem, 28vw, 22rem)',
-                      background: 'linear-gradient(180deg, #fde68a 0%, #facc15 30%, #f59e0b 70%, #d97706 100%)',
-                      WebkitBackgroundClip: 'text',
-                      backgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent',
-                      color: 'transparent',
-                      filter: 'drop-shadow(0 6px 20px rgba(250,204,21,0.3))',
-                      WebkitFilter: 'drop-shadow(0 6px 20px rgba(250,204,21,0.3))'
+                      fontSize: 'clamp(10rem, 26vw, 22rem)',
+                      color: screen.servingColor || '#facc15',
+                      filter: 'drop-shadow(0 6px 20px rgba(0,0,0,0.3))',
+                      WebkitFilter: 'drop-shadow(0 6px 20px rgba(0,0,0,0.3))'
                     }}
                   >
                     {servingToken.number}
@@ -282,8 +292,13 @@ const TokenGalleryDisplay = ({ screen }) => {
 
               {/* Collect message */}
               <p
-                className="text-5xl text-white/80 font-body font-semibold tracking-widest uppercase"
-                style={{ letterSpacing: '0.15em', textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}
+                className={`text-4xl xl:text-5xl font-semibold uppercase ${screen.collectFont || 'font-body'}`}
+                style={{
+                  letterSpacing: '0.15em',
+                  textShadow: '0 2px 10px rgba(0,0,0,0.5)',
+                  color: screen.collectColor || '#ffffff',
+                  opacity: 0.9,
+                }}
               >
                 Please collect your order
               </p>

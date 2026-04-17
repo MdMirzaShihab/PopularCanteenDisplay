@@ -1,42 +1,48 @@
-import { LayoutGrid, Sparkles, List, Image, BookOpen, Minus } from 'lucide-react';
+import { LayoutGrid, Sparkles, Image, BookOpen, Zap, Star, LayoutPanelTop } from 'lucide-react';
 
 export const VISUAL_STYLES = {
   'card-grid': {
     id: 'card-grid',
-    label: 'Card Grid',
-    description: 'Cards with circular images, clean layout',
+    label: 'Prism',
+    description: 'Holographic border, neon price glow, cyan image ring',
     icon: LayoutGrid
-  },
-  'elegant': {
-    id: 'elegant',
-    label: 'Elegant',
-    description: 'Gold accents, script fonts, premium feel',
-    icon: Sparkles
-  },
-  'compact': {
-    id: 'compact',
-    label: 'Compact List',
-    description: 'Dense 2-column list, max items visible',
-    icon: List
   },
   'catalog': {
     id: 'catalog',
-    label: 'Catalog',
-    description: 'Full-bleed images with overlay text',
+    label: 'Cinema',
+    description: 'Full-bleed image, viewfinder brackets, floating price pill',
     icon: Image
+  },
+  'elegant': {
+    id: 'elegant',
+    label: 'Gilded',
+    description: 'Art-deco gold, triangle ornaments, plaque price',
+    icon: Sparkles
   },
   'menu-board': {
     id: 'menu-board',
-    label: 'Menu Board',
-    description: 'Chalkboard aesthetic, dotted price lines',
+    label: 'Neon Chalk',
+    description: 'Rotating neon hues, glowing indicator dots and price pills',
     icon: BookOpen
   },
-  'minimal-rows': {
-    id: 'minimal-rows',
-    label: 'Minimal Rows',
-    description: 'Clean horizontal rows, accent bar',
-    icon: Minus
-  }
+  'kinetic-strips': {
+    id: 'kinetic-strips',
+    label: 'Kinetic',
+    description: 'Angular parallelogram panels, rotating neon accents',
+    icon: Zap
+  },
+  'spotlight': {
+    id: 'spotlight',
+    label: 'Spotlight',
+    description: 'Featured hero item cycles every few seconds + small grid',
+    icon: Star
+  },
+  'bento': {
+    id: 'bento',
+    label: 'Bento',
+    description: 'Mixed-size mosaic — one signature cell + five smaller',
+    icon: LayoutPanelTop
+  },
 };
 
 export const VALID_VISUAL_STYLE_IDS = Object.keys(VISUAL_STYLES);

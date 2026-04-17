@@ -1,17 +1,19 @@
 import CardGridRenderer from './CardGridRenderer';
 import ElegantRenderer from './ElegantRenderer';
-import CompactRenderer from './CompactRenderer';
 import CatalogRenderer from './CatalogRenderer';
 import MenuBoardRenderer from './MenuBoardRenderer';
-import MinimalRowsRenderer from './MinimalRowsRenderer';
+import KineticStripsRenderer from './KineticStripsRenderer';
+import SpotlightRenderer from './SpotlightRenderer';
+import BentoRenderer from './BentoRenderer';
 
 const STYLE_RENDERERS = {
   'card-grid': CardGridRenderer,
-  'elegant': ElegantRenderer,
-  'compact': CompactRenderer,
   'catalog': CatalogRenderer,
+  'elegant': ElegantRenderer,
   'menu-board': MenuBoardRenderer,
-  'minimal-rows': MinimalRowsRenderer
+  'kinetic-strips': KineticStripsRenderer,
+  'spotlight': SpotlightRenderer,
+  'bento': BentoRenderer,
 };
 
 export const getStyleRenderer = (styleId) =>

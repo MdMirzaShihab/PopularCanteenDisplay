@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { ChevronDown, Check, Plus, Pipette, RotateCcw } from 'lucide-react';
+import { ChevronDown, Check, Plus, Pipette, RotateCcw, Sparkles } from 'lucide-react';
 import { GRAYSCALE_ROW, COLOR_GRID_ROWS, STANDARD_COLORS } from './ColorPicker.swatches';
 
-const ColorPicker = ({ value, defaultValue, onChange, label, renderPreview, className = '' }) => {
+const THEME_DEFAULT_GRADIENT = 'conic-gradient(from 0deg, #5eead4, #f472b6, #fbbf24, #a78bfa, #34d399, #5eead4)';
+
+const ColorPicker = ({ value, defaultValue, onChange, label, renderPreview, className = '', themeDefault = false }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [customSubpanelOpen, setCustomSubpanelOpen] = useState(false);
   const [hexInput, setHexInput] = useState(value || '#000000');
@@ -13,6 +15,7 @@ const ColorPicker = ({ value, defaultValue, onChange, label, renderPreview, clas
   const resetTarget = defaultValue ?? initialValueRef.current;
   const hasEyeDropper = typeof window !== 'undefined' && 'EyeDropper' in window;
   const hexInputInvalid = customSubpanelOpen && hexInput.length > 0 && !/^#?[0-9a-fA-F]{6}$/.test(hexInput);
+  const usingThemeDefault = themeDefault && !value;
 
   useEffect(() => {
     if (!isOpen) return;
@@ -66,6 +69,12 @@ const ColorPicker = ({ value, defaultValue, onChange, label, renderPreview, clas
   const handleReset = useCallback(() => {
     onChange(resetTarget);
   }, [onChange, resetTarget]);
+
+  const handleUseThemeDefault = useCallback(() => {
+    onChange('');
+    setIsOpen(false);
+    triggerRef.current?.focus();
+  }, [onChange]);
 
   const handleEyedropper = useCallback(async () => {
     if (!hasEyeDropper) return;
@@ -124,24 +133,50 @@ const ColorPicker = ({ value, defaultValue, onChange, label, renderPreview, clas
         aria-haspopup="dialog"
         aria-expanded={isOpen}
       >
-        <span
-          className="w-6 h-6 rounded border border-bg-300 shrink-0"
-          style={{ backgroundColor: value }}
-        />
-        <span className="text-sm text-text-100 font-mono flex-1 text-left">{value}</span>
+        {usingThemeDefault ? (
+          <>
+            <span
+              className="w-6 h-6 rounded border-2 border-dashed border-bg-300 shrink-0"
+              style={{ background: THEME_DEFAULT_GRADIENT }}
+            />
+            <span className="text-sm text-text-200 italic flex-1 text-left">Style default</span>
+          </>
+        ) : (
+          <>
+            <span
+              className="w-6 h-6 rounded border border-bg-300 shrink-0"
+              style={{ backgroundColor: value }}
+            />
+            <span className="text-sm text-text-100 font-mono flex-1 text-left">{value}</span>
+          </>
+        )}
         <ChevronDown size={16} className="text-text-200" />
       </button>
 
       {isOpen && (
         <div className="absolute z-50 top-full left-0 mt-1 w-[280px] bg-white border border-bg-300 rounded-lg shadow-lg p-3">
-          <button
-            type="button"
-            onClick={handleReset}
-            className="flex items-center gap-1 text-xs text-text-200 hover:text-primary-100 mb-2"
-          >
-            <RotateCcw size={12} />
-            Reset
-          </button>
+          <div className="flex items-center gap-3 mb-2">
+            <button
+              type="button"
+              onClick={handleReset}
+              className="flex items-center gap-1 text-xs text-text-200 hover:text-primary-100"
+            >
+              <RotateCcw size={12} />
+              Reset
+            </button>
+            {themeDefault && (
+              <button
+                type="button"
+                onClick={handleUseThemeDefault}
+                disabled={usingThemeDefault}
+                className="flex items-center gap-1 text-xs text-text-200 hover:text-primary-100 disabled:opacity-50 disabled:cursor-default"
+                aria-label="Use style default color"
+              >
+                <Sparkles size={12} />
+                Style default
+              </button>
+            )}
+          </div>
 
           <div
             className="grid grid-cols-10 gap-1 mb-3"
@@ -246,9 +281,18 @@ const ColorPicker = ({ value, defaultValue, onChange, label, renderPreview, clas
             )}
           </div>
 
-          {renderPreview && (
+          {renderPreview && value && (
             <div className="mt-3 pt-3 border-t border-bg-300">
               {renderPreview({ color: value })}
+            </div>
+          )}
+          {renderPreview && !value && themeDefault && (
+            <div className="mt-3 pt-3 border-t border-bg-300 flex items-center gap-2 text-xs text-text-200 italic">
+              <span
+                className="w-5 h-5 rounded border border-dashed border-bg-300 shrink-0"
+                style={{ background: THEME_DEFAULT_GRADIENT }}
+              />
+              Color comes from the chosen visual style
             </div>
           )}
         </div>

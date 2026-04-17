@@ -4,8 +4,9 @@ import { VISUAL_STYLES } from '../gallery/themes/visualStyleRegistry';
 import MediaMultiPicker from './MediaMultiPicker';
 import AnnouncementEditor from './AnnouncementEditor';
 import ColorPicker from '../ui/ColorPicker';
+import SizePicker from '../ui/SizePicker';
 import { TRANSITION_EFFECTS, DEFAULT_SLIDE_DURATION, DEFAULT_TRANSITION } from '../../utils/mediaUtils';
-import { FONT_CHOICES } from '../../utils/constants';
+import { FONT_CHOICES, makeFontSampleMap } from '../../utils/constants';
 
 const CONTENT_TYPES = [
   { type: 'menu', label: 'Menu', icon: UtensilsCrossed },
@@ -31,14 +32,7 @@ const DEFAULT_ANNOUNCEMENT = {
   icon: null,
 };
 
-const TITLE_FONT_SAMPLE = {
-  'font-heading': 'MENU TITLE',
-  'font-display': 'Menu Title',
-  'font-script': 'Menu Title',
-  'font-marker': 'MENU TITLE',
-  'font-handwritten': 'Menu Title',
-  'font-body': 'Menu Title',
-};
+const TITLE_FONT_SAMPLE = makeFontSampleMap('MENU TITLE', 'Menu Title');
 
 const SectionContentEditor = ({ content, onChange, menus, label }) => {
   // Normalize legacy types for the form
@@ -155,7 +149,7 @@ const SectionContentEditor = ({ content, onChange, menus, label }) => {
             <label className="block text-sm font-medium text-text-200 mb-2">
               Title Font
             </label>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-72 overflow-y-auto pr-1">
               {FONT_CHOICES.map((font) => {
                 const isSelected = (content?.titleFont || 'font-heading') === font.id;
                 return (
@@ -169,7 +163,7 @@ const SectionContentEditor = ({ content, onChange, menus, label }) => {
                         : 'border-bg-300 bg-white hover:border-primary-100/50'
                     }`}
                   >
-                    <span className={`${font.id} text-sm ${isSelected ? 'text-primary-100' : 'text-text-100'}`}>
+                    <span className={`${font.id} text-lg leading-tight ${isSelected ? 'text-primary-100' : 'text-text-100'}`}>
                       {TITLE_FONT_SAMPLE[font.id]}
                     </span>
                     <span className="block text-[10px] text-text-200 mt-0.5">{font.label}</span>
@@ -179,12 +173,20 @@ const SectionContentEditor = ({ content, onChange, menus, label }) => {
             </div>
           </div>
 
+          {/* Title Size */}
+          <SizePicker
+            label="Title Size"
+            value={content?.titleSize}
+            onChange={(step) => onChange({ ...content, titleSize: step })}
+          />
+
           {/* Title Color */}
           <div>
             <ColorPicker
               label="Title Color"
-              value={content?.titleColor || '#ffffff'}
+              value={content?.titleColor}
               defaultValue="#ffffff"
+              themeDefault
               onChange={(hex) => onChange({ ...content, titleColor: hex })}
               renderPreview={({ color }) => (
                 <div
@@ -207,7 +209,7 @@ const SectionContentEditor = ({ content, onChange, menus, label }) => {
             <label className="block text-sm font-medium text-text-200 mb-2">
               Item Name Font
             </label>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-72 overflow-y-auto pr-1">
               {FONT_CHOICES.map((font) => {
                 const isSelected = (content?.itemFont || 'font-body') === font.id;
                 return (
@@ -221,7 +223,7 @@ const SectionContentEditor = ({ content, onChange, menus, label }) => {
                         : 'border-bg-300 bg-white hover:border-primary-100/50'
                     }`}
                   >
-                    <span className={`${font.id} text-sm ${isSelected ? 'text-primary-100' : 'text-text-100'}`}>
+                    <span className={`${font.id} text-lg leading-tight ${isSelected ? 'text-primary-100' : 'text-text-100'}`}>
                       Chicken Biryani
                     </span>
                     <span className="block text-[10px] text-text-200 mt-0.5">{font.label}</span>
@@ -231,12 +233,20 @@ const SectionContentEditor = ({ content, onChange, menus, label }) => {
             </div>
           </div>
 
+          {/* Item Name Size */}
+          <SizePicker
+            label="Item Name Size"
+            value={content?.itemSize}
+            onChange={(step) => onChange({ ...content, itemSize: step })}
+          />
+
           {/* Item Name Color */}
           <div>
             <ColorPicker
               label="Item Name Color"
-              value={content?.itemColor || '#ffffff'}
+              value={content?.itemColor}
               defaultValue="#ffffff"
+              themeDefault
               onChange={(hex) => onChange({ ...content, itemColor: hex })}
               renderPreview={({ color }) => (
                 <div
@@ -259,7 +269,7 @@ const SectionContentEditor = ({ content, onChange, menus, label }) => {
             <label className="block text-sm font-medium text-text-200 mb-2">
               Price Font
             </label>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-72 overflow-y-auto pr-1">
               {FONT_CHOICES.map((font) => {
                 const isSelected = (content?.priceFont || 'font-heading') === font.id;
                 return (
@@ -273,7 +283,7 @@ const SectionContentEditor = ({ content, onChange, menus, label }) => {
                         : 'border-bg-300 bg-white hover:border-primary-100/50'
                     }`}
                   >
-                    <span className={`${font.id} text-sm ${isSelected ? 'text-primary-100' : 'text-text-100'}`}>
+                    <span className={`${font.id} text-lg leading-tight ${isSelected ? 'text-primary-100' : 'text-text-100'}`}>
                       ৳120
                     </span>
                     <span className="block text-[10px] text-text-200 mt-0.5">{font.label}</span>
@@ -283,12 +293,20 @@ const SectionContentEditor = ({ content, onChange, menus, label }) => {
             </div>
           </div>
 
+          {/* Price Size */}
+          <SizePicker
+            label="Price Size"
+            value={content?.priceSize}
+            onChange={(step) => onChange({ ...content, priceSize: step })}
+          />
+
           {/* Price Color */}
           <div>
             <ColorPicker
               label="Price Color"
-              value={content?.priceColor || '#6ee7b7'}
+              value={content?.priceColor}
               defaultValue="#6ee7b7"
+              themeDefault
               onChange={(hex) => onChange({ ...content, priceColor: hex })}
               renderPreview={({ color }) => (
                 <div

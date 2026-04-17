@@ -11,16 +11,9 @@ import ColorPicker from '../ui/ColorPicker';
 import BackgroundCropTool from '../common/BackgroundCropTool';
 import ImageUpload from '../common/ImageUpload';
 import ConfirmDialog from '../common/ConfirmDialog';
-import { FONT_CHOICES } from '../../utils/constants';
+import { FONT_CHOICES, makeFontSampleMap } from '../../utils/constants';
 
-const FONT_SAMPLE = {
-  'font-heading': 'ANNOUNCEMENT',
-  'font-display': 'Announcement',
-  'font-script': 'Announcement',
-  'font-marker': 'ANNOUNCEMENT',
-  'font-handwritten': 'Announcement',
-  'font-body': 'Announcement',
-};
+const FONT_SAMPLE = makeFontSampleMap('ANNOUNCEMENT', 'Announcement');
 
 const ALIGN_OPTIONS = [
   { id: 'left', label: 'Left', icon: AlignLeft },
@@ -211,7 +204,7 @@ const AnnouncementEditor = ({ content, onChange }) => {
 
         <div>
           <label className="block text-sm font-medium text-text-200 mb-2">Text Font</label>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-72 overflow-y-auto pr-1">
             {FONT_CHOICES.map(font => {
               const isSelected = (announcement.textFont || 'font-heading') === font.id;
               return (
@@ -225,7 +218,7 @@ const AnnouncementEditor = ({ content, onChange }) => {
                       : 'border-bg-300 bg-white hover:border-primary-100/50'
                   }`}
                 >
-                  <span className={`${font.id} text-sm ${isSelected ? 'text-primary-100' : 'text-text-100'}`}>
+                  <span className={`${font.id} text-lg leading-tight ${isSelected ? 'text-primary-100' : 'text-text-100'}`}>
                     {FONT_SAMPLE[font.id]}
                   </span>
                   <span className="block text-[10px] text-text-200 mt-0.5">{font.label}</span>

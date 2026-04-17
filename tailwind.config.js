@@ -4,18 +4,51 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
+  safelist: [
+    // Font classes applied dynamically in gallery renderers
+    'font-heading', 'font-display', 'font-script', 'font-marker', 'font-handwritten', 'font-body',
+    'font-oswald', 'font-anton', 'font-fjalla', 'font-alfa', 'font-yeseva', 'font-abril',
+    'font-playfair', 'font-cinzel', 'font-cormorant', 'font-lora', 'font-merriweather',
+    'font-montserrat', 'font-raleway', 'font-lato', 'font-dancing', 'font-lobster',
+    // Size classes from typographyRegistry (static + 3xl: responsive variants)
+    'text-xs', 'text-sm', 'text-base', 'text-lg', 'text-xl',
+    'text-2xl', 'text-3xl', 'text-4xl', 'text-5xl', 'text-6xl', 'text-7xl',
+    '3xl:text-3xl', '3xl:text-4xl', '3xl:text-5xl', '3xl:text-6xl', '3xl:text-7xl',
+  ],
   theme: {
     extend: {
       screens: {
         '3xl': '2000px', // Ultra-wide displays (55" 4K monitors)
       },
       fontFamily: {
-        'heading': ['Bebas Neue', 'sans-serif'],      // Bold, chunky all-caps headers
-        'script': ['Pacifico', 'cursive'],            // Stylish script/handwritten
-        'display': ['Righteous', 'cursive'],          // Eye-catching display font
-        'marker': ['Permanent Marker', 'cursive'],    // Casual marker style
-        'handwritten': ['Kalam', 'cursive'],          // Handwritten look
-        'body': ['Poppins', 'sans-serif'],            // Clean body text
+        // Originals
+        'heading':      ['Bebas Neue', 'sans-serif'],
+        'display':      ['Righteous', 'cursive'],
+        'script':       ['Pacifico', 'cursive'],
+        'marker':       ['Permanent Marker', 'cursive'],
+        'handwritten':  ['Kalam', 'cursive'],
+        'body':         ['Poppins', 'sans-serif'],
+        // Condensed display
+        'oswald':       ['Oswald', 'sans-serif'],
+        'anton':        ['Anton', 'sans-serif'],
+        'fjalla':       ['Fjalla One', 'sans-serif'],
+        // Slab / impact display
+        'alfa':         ['Alfa Slab One', 'serif'],
+        'yeseva':       ['Yeseva One', 'serif'],
+        'abril':        ['Abril Fatface', 'serif'],
+        // Editorial / readable serif
+        'playfair':     ['Playfair Display', 'serif'],
+        'cinzel':       ['Cinzel', 'serif'],
+        'cormorant':    ['Cormorant Garamond', 'serif'],
+        'lora':         ['Lora', 'serif'],
+        'merriweather': ['Merriweather', 'serif'],
+        // Clean sans
+        'montserrat':   ['Montserrat', 'sans-serif'],
+        'raleway':      ['Raleway', 'sans-serif'],
+        'lato':         ['Lato', 'sans-serif'],
+        // Script
+        'dancing':      ['Dancing Script', 'cursive'],
+        'lobster':      ['Lobster', 'cursive'],
       },
       colors: {
         white: '#FFFFFF',

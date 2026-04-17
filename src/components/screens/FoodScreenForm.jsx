@@ -3,6 +3,7 @@ import { useMenus } from '../../hooks/useMenus';
 import { useNotification } from '../../context/NotificationContext';
 import { useBackgroundGallery } from '../../hooks/useBackgroundGallery';
 import { validateFoodScreen } from '../../utils/validators';
+import { slugify } from '../../utils/constants';
 import { buildEmptySections, LAYOUT_THEMES } from '../gallery/themes/layoutRegistry';
 import LayoutPicker from './LayoutPicker';
 import SectionConfigTab from './SectionConfigTab';
@@ -25,6 +26,7 @@ const FoodScreenForm = forwardRef(({ screen, activeTab, onTabChange, onSubmit, o
   const [activeSectionIdx, setActiveSectionIdx] = useState(0);
   const [bgMediaSource, setBgMediaSource] = useState('gallery');
   const [formErrors, setFormErrors] = useState({});
+  const [screenIdManuallyEdited, setScreenIdManuallyEdited] = useState(Boolean(screen?.screenId));
 
   const [formData, setFormData] = useState({
     title: screen?.title || '',
@@ -111,8 +113,16 @@ const FoodScreenForm = forwardRef(({ screen, activeTab, onTabChange, onSubmit, o
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData(prev => {
+      const next = { ...prev, [name]: value };
+      if (name === 'title' && !screenIdManuallyEdited) {
+        next.screenId = slugify(value);
+      }
+      return next;
+    });
+    if (name === 'screenId') setScreenIdManuallyEdited(true);
     clearFieldError(name);
+    if (name === 'title' && !screenIdManuallyEdited) clearFieldError('screenId');
   };
 
   const handleLayoutChange = (newLayoutId) => {
@@ -177,8 +187,10 @@ const FoodScreenForm = forwardRef(({ screen, activeTab, onTabChange, onSubmit, o
             <label htmlFor="screenId" className="block text-sm font-medium text-text-100 mb-2">Screen ID *</label>
             <input type="text" id="screenId" name="screenId" value={formData.screenId} onChange={handleChange}
               className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-100 bg-bg-100 text-text-100 ${formErrors.screenId ? 'border-accent-200' : 'border-bg-300'}`}
-              placeholder="e.g., HALL-A-01" />
-            <p className="mt-1 text-xs text-text-200">Unique identifier for tracking and management</p>
+              placeholder="e.g., main-dining-hall" />
+            <p className="mt-1 text-xs text-text-200">
+              Used in the gallery URL. Auto-generated from the title — edit if you need a custom value.
+            </p>
             {formErrors.screenId && <p className="mt-1 text-sm text-accent-200">{formErrors.screenId}</p>}
           </div>
 
