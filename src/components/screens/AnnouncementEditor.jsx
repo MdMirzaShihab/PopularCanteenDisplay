@@ -8,10 +8,11 @@ import {
 import { useNotification } from '../../context/NotificationContext';
 import { useBackgroundGallery } from '../../hooks/useBackgroundGallery';
 import ColorPicker from '../ui/ColorPicker';
+import TypographyControl from '../ui/TypographyControl';
 import BackgroundCropTool from '../common/BackgroundCropTool';
 import ImageUpload from '../common/ImageUpload';
 import ConfirmDialog from '../common/ConfirmDialog';
-import { FONT_CHOICES, makeFontSampleMap } from '../../utils/constants';
+import { makeFontSampleMap } from '../../utils/constants';
 
 const FONT_SAMPLE = makeFontSampleMap('ANNOUNCEMENT', 'Announcement');
 
@@ -199,52 +200,21 @@ const AnnouncementEditor = ({ content, onChange }) => {
       </div>
 
       {/* 3. Typography */}
-      <div className="space-y-3">
-        <h4 className="text-sm font-semibold text-text-100 uppercase tracking-wide">Typography</h4>
-
-        <div>
-          <label className="block text-sm font-medium text-text-200 mb-2">Text Font</label>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-72 overflow-y-auto pr-1">
-            {FONT_CHOICES.map(font => {
-              const isSelected = (announcement.textFont || 'font-heading') === font.id;
-              return (
-                <button
-                  key={font.id}
-                  type="button"
-                  onClick={() => updateField('textFont', font.id)}
-                  className={`p-2 rounded-lg border-2 text-center transition-colors ${
-                    isSelected
-                      ? 'border-primary-100 bg-primary-50'
-                      : 'border-bg-300 bg-white hover:border-primary-100/50'
-                  }`}
-                >
-                  <span className={`${font.id} text-lg leading-tight ${isSelected ? 'text-primary-100' : 'text-text-100'}`}>
-                    {FONT_SAMPLE[font.id]}
-                  </span>
-                  <span className="block text-[10px] text-text-200 mt-0.5">{font.label}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        <ColorPicker
-          label="Text Color"
-          value={announcement.textColor || '#ffffff'}
-          defaultValue="#ffffff"
-          onChange={(hex) => updateField('textColor', hex)}
-          renderPreview={({ color }) => (
-            <div
-              className="mt-2 px-4 py-3 rounded-lg flex items-center justify-center"
-              style={{ backgroundColor: announcement.backgroundColor || '#1a1a2e' }}
-            >
-              <span className={`${announcement.textFont || 'font-heading'} text-xl`} style={{ color }}>
-                {announcement.headline || 'Preview headline'}
-              </span>
-            </div>
-          )}
-        />
-      </div>
+      <TypographyControl
+        label="Typography"
+        previewBackground={announcement.backgroundColor || '#1a1a2e'}
+        font={announcement.textFont || 'font-heading'}
+        fontSample={FONT_SAMPLE}
+        onFontChange={(id) => updateField('textFont', id)}
+        color={announcement.textColor || '#ffffff'}
+        colorDefault="#ffffff"
+        onColorChange={(hex) => updateField('textColor', hex)}
+        renderPreview={({ font, color }) => (
+          <span className={`${font} text-xl`} style={{ color }}>
+            {announcement.headline || 'Preview headline'}
+          </span>
+        )}
+      />
 
       {/* 4. Background */}
       <div className="space-y-3">

@@ -7,9 +7,13 @@ import { getMedia, deleteMedia } from '../../api/media.api';
 import BackgroundCropTool from '../common/BackgroundCropTool';
 import ConfirmDialog from '../common/ConfirmDialog';
 import ColorPicker from '../ui/ColorPicker';
-import { FONT_CHOICES, makeFontSampleMap, slugify } from '../../utils/constants';
+import TypographyControl from '../ui/TypographyControl';
+import { makeFontSampleMap, slugify } from '../../utils/constants';
 
 const TITLE_FONT_SAMPLE = makeFontSampleMap('TOKEN DISPLAY', 'Token Display');
+const DATETIME_FONT_SAMPLE = makeFontSampleMap('12:45 PM', 'Wed, Apr 17');
+const SERVING_FONT_SAMPLE = makeFontSampleMap('NOW SERVING', 'Now Serving');
+const COLLECT_FONT_SAMPLE = makeFontSampleMap('PLEASE COLLECT', 'Please collect');
 
 const DEFAULTS = {
   titleFont: 'font-heading',
@@ -22,34 +26,6 @@ const DEFAULTS = {
   collectFont: 'font-body',
   collectColor: '#ffffff',
 };
-
-const FontPicker = ({ label, value, sampleMap, onChange }) => (
-  <div>
-    <label className="block text-sm font-medium text-text-100 mb-2">{label}</label>
-    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-60 overflow-y-auto pr-1">
-      {FONT_CHOICES.map((font) => {
-        const isSelected = value === font.id;
-        return (
-          <button
-            key={font.id}
-            type="button"
-            onClick={() => onChange(font.id)}
-            className={`p-2 rounded-lg border-2 transition-colors text-center ${
-              isSelected
-                ? 'border-primary-100 bg-primary-50'
-                : 'border-bg-300 bg-white hover:border-primary-100/50'
-            }`}
-          >
-            <span className={`${font.id} text-lg leading-tight ${isSelected ? 'text-primary-100' : 'text-text-100'}`}>
-              {sampleMap[font.id]}
-            </span>
-            <span className="block text-[10px] text-text-200 mt-0.5">{font.label}</span>
-          </button>
-        );
-      })}
-    </div>
-  </div>
-);
 
 const MediaGalleryPicker = ({ items, loading, type, value, onSelect, onDelete }) => {
   if (loading) return <div className="p-4 text-center text-sm text-text-200">Loading gallery...</div>;
@@ -365,141 +341,88 @@ const TokenScreenForm = ({ screen, onSubmit, onCancel }) => {
 
       {/* Typography Tab */}
       {activeTab === 'typography' && (
-        <div className="space-y-8">
-          {/* Branding */}
-          <div className="pb-6 border-b border-bg-300">
-            <h4 className="text-sm font-semibold text-text-100 uppercase tracking-wide mb-3">Branding Line</h4>
-            <p className="text-xs text-text-200 mb-3">
-              "Popular Medical College and Hospital — We Care for Life". Font is fixed; only the color is configurable.
-            </p>
-            <ColorPicker
-              label="Branding Color"
-              value={formData.brandingColor}
-              defaultValue={DEFAULTS.brandingColor}
-              onChange={(hex) => setFormData(prev => ({ ...prev, brandingColor: hex }))}
-              renderPreview={({ color }) => (
-                <div
-                  className="h-12 rounded-lg flex flex-col items-center justify-center border border-bg-300"
-                  style={{ backgroundColor: '#1a1a2e' }}
-                >
-                  <span className="text-xs font-bold font-body" style={{ color }}>
-                    Popular Medical College and Hospital
-                  </span>
-                  <span className="text-[10px] font-body italic" style={{ color, opacity: 0.6 }}>
-                    We Care for Life
-                  </span>
-                </div>
-              )}
-            />
-          </div>
+        <div className="space-y-4">
+          <TypographyControl
+            label="Branding Line"
+            description={'"Popular Medical College and Hospital — We Care for Life". Font is fixed; only the color is configurable.'}
+            color={formData.brandingColor}
+            colorDefault={DEFAULTS.brandingColor}
+            onColorChange={(hex) => setFormData(prev => ({ ...prev, brandingColor: hex }))}
+            renderPreview={({ color }) => (
+              <div className="flex flex-col items-center gap-0.5">
+                <span className="text-xs font-bold font-body" style={{ color }}>
+                  Popular Medical College and Hospital
+                </span>
+                <span className="text-[10px] font-body italic" style={{ color, opacity: 0.6 }}>
+                  We Care for Life
+                </span>
+              </div>
+            )}
+          />
 
-          {/* Screen Title */}
-          <div className="pb-6 border-b border-bg-300">
-            <h4 className="text-sm font-semibold text-text-100 uppercase tracking-wide mb-3">Screen Title</h4>
-            <div className="space-y-4">
-              <FontPicker
-                label="Title Font"
-                value={formData.titleFont}
-                sampleMap={TITLE_FONT_SAMPLE}
-                onChange={(id) => setFormData(prev => ({ ...prev, titleFont: id }))}
-              />
-              <ColorPicker
-                label="Title Color"
-                value={formData.titleColor}
-                defaultValue={DEFAULTS.titleColor}
-                onChange={(hex) => setFormData(prev => ({ ...prev, titleColor: hex }))}
-                renderPreview={({ color }) => (
-                  <div className="h-12 rounded-lg flex items-center justify-center border border-bg-300" style={{ backgroundColor: '#1a1a2e' }}>
-                    <span className={`${formData.titleFont} text-base`} style={{ color }}>
-                      {formData.title || 'Preview Title'}
-                    </span>
-                  </div>
-                )}
-              />
-            </div>
-          </div>
+          <TypographyControl
+            label="Screen Title"
+            font={formData.titleFont}
+            fontSample={TITLE_FONT_SAMPLE}
+            onFontChange={(id) => setFormData(prev => ({ ...prev, titleFont: id }))}
+            color={formData.titleColor}
+            colorDefault={DEFAULTS.titleColor}
+            onColorChange={(hex) => setFormData(prev => ({ ...prev, titleColor: hex }))}
+            renderPreview={({ font, color }) => (
+              <span className={`${font} text-xl`} style={{ color }}>
+                {formData.title || 'Preview Title'}
+              </span>
+            )}
+          />
 
-          {/* Date & Time */}
-          <div className="pb-6 border-b border-bg-300">
-            <h4 className="text-sm font-semibold text-text-100 uppercase tracking-wide mb-3">Date &amp; Time Card</h4>
-            <div className="space-y-4">
-              <FontPicker
-                label="Date/Time Font"
-                value={formData.dateTimeFont}
-                sampleMap={makeFontSampleMap('12:45 PM', 'Wed, Apr 17')}
-                onChange={(id) => setFormData(prev => ({ ...prev, dateTimeFont: id }))}
-              />
-              <ColorPicker
-                label="Date/Time Color"
-                value={formData.dateTimeColor}
-                defaultValue={DEFAULTS.dateTimeColor}
-                onChange={(hex) => setFormData(prev => ({ ...prev, dateTimeColor: hex }))}
-                renderPreview={({ color }) => (
-                  <div className="h-12 rounded-lg flex items-center justify-center gap-4 border border-bg-300" style={{ backgroundColor: '#1a1a2e' }}>
-                    <span className={`${formData.dateTimeFont} text-sm`} style={{ color }}>Wed, Apr 17</span>
-                    <span className={`${formData.dateTimeFont} text-base font-bold`} style={{ color }}>12:45 PM</span>
-                  </div>
-                )}
-              />
-            </div>
-          </div>
+          <TypographyControl
+            label="Date & Time Card"
+            font={formData.dateTimeFont}
+            fontSample={DATETIME_FONT_SAMPLE}
+            onFontChange={(id) => setFormData(prev => ({ ...prev, dateTimeFont: id }))}
+            color={formData.dateTimeColor}
+            colorDefault={DEFAULTS.dateTimeColor}
+            onColorChange={(hex) => setFormData(prev => ({ ...prev, dateTimeColor: hex }))}
+            renderPreview={({ font, color }) => (
+              <div className="flex items-center gap-3">
+                <span className={`${font} text-base`} style={{ color }}>Wed, Apr 17</span>
+                <span className={`${font} text-lg font-bold`} style={{ color }}>12:45 PM</span>
+              </div>
+            )}
+          />
 
-          {/* Now Serving + Token */}
-          <div className="pb-6 border-b border-bg-300">
-            <h4 className="text-sm font-semibold text-text-100 uppercase tracking-wide mb-3">Now Serving &amp; Token</h4>
-            <p className="text-xs text-text-200 mb-3">
-              Applied to both the "Now Serving" label and the big token number.
-            </p>
-            <div className="space-y-4">
-              <FontPicker
-                label="Serving Font"
-                value={formData.servingFont}
-                sampleMap={makeFontSampleMap('NOW SERVING', 'Now Serving')}
-                onChange={(id) => setFormData(prev => ({ ...prev, servingFont: id }))}
-              />
-              <ColorPicker
-                label="Serving Color"
-                value={formData.servingColor}
-                defaultValue={DEFAULTS.servingColor}
-                onChange={(hex) => setFormData(prev => ({ ...prev, servingColor: hex }))}
-                renderPreview={({ color }) => (
-                  <div className="h-14 rounded-lg flex items-center justify-center gap-3 border border-bg-300" style={{ backgroundColor: '#1a1a2e' }}>
-                    <span className={`${formData.servingFont} text-xs uppercase tracking-widest`} style={{ color }}>Now Serving</span>
-                    <span className={`${formData.servingFont} text-2xl font-bold`} style={{ color }}>A42</span>
-                  </div>
-                )}
-              />
-            </div>
-          </div>
+          <TypographyControl
+            label="Now Serving & Token"
+            description={'Applied to both the "Now Serving" label and the big token number.'}
+            font={formData.servingFont}
+            fontSample={SERVING_FONT_SAMPLE}
+            onFontChange={(id) => setFormData(prev => ({ ...prev, servingFont: id }))}
+            color={formData.servingColor}
+            colorDefault={DEFAULTS.servingColor}
+            onColorChange={(hex) => setFormData(prev => ({ ...prev, servingColor: hex }))}
+            renderPreview={({ font, color }) => (
+              <div className="flex items-center gap-3">
+                <span className={`${font} text-xs uppercase tracking-widest`} style={{ color }}>Now Serving</span>
+                <span className={`${font} text-3xl font-bold`} style={{ color }}>A42</span>
+              </div>
+            )}
+          />
 
-          {/* Collect Message */}
-          <div>
-            <h4 className="text-sm font-semibold text-text-100 uppercase tracking-wide mb-3">Collect Message</h4>
-            <p className="text-xs text-text-200 mb-3">
-              "Please collect your order" shown under the token number.
-            </p>
-            <div className="space-y-4">
-              <FontPicker
-                label="Collect Font"
-                value={formData.collectFont}
-                sampleMap={makeFontSampleMap('PLEASE COLLECT', 'Please collect')}
-                onChange={(id) => setFormData(prev => ({ ...prev, collectFont: id }))}
-              />
-              <ColorPicker
-                label="Collect Color"
-                value={formData.collectColor}
-                defaultValue={DEFAULTS.collectColor}
-                onChange={(hex) => setFormData(prev => ({ ...prev, collectColor: hex }))}
-                renderPreview={({ color }) => (
-                  <div className="h-12 rounded-lg flex items-center justify-center border border-bg-300" style={{ backgroundColor: '#1a1a2e' }}>
-                    <span className={`${formData.collectFont} text-base uppercase tracking-widest`} style={{ color }}>
-                      Please collect your order
-                    </span>
-                  </div>
-                )}
-              />
-            </div>
-          </div>
+          <TypographyControl
+            label="Collect Message"
+            description={'"Please collect your order" shown under the token number.'}
+            font={formData.collectFont}
+            fontSample={COLLECT_FONT_SAMPLE}
+            onFontChange={(id) => setFormData(prev => ({ ...prev, collectFont: id }))}
+            color={formData.collectColor}
+            colorDefault={DEFAULTS.collectColor}
+            onColorChange={(hex) => setFormData(prev => ({ ...prev, collectColor: hex }))}
+            renderPreview={({ font, color }) => (
+              <span className={`${font} text-base uppercase tracking-widest`} style={{ color }}>
+                Please collect your order
+              </span>
+            )}
+          />
         </div>
       )}
 

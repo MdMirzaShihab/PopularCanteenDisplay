@@ -170,30 +170,52 @@ const TokenGalleryDisplay = ({ screen }) => {
             boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
           }}
         >
-          <div className="px-6 py-3 flex items-center justify-between gap-6">
+          <div
+            className="flex items-center justify-between"
+            style={{
+              padding: 'clamp(6px, 0.7vw, 14px) clamp(12px, 1.3vw, 28px)',
+              gap: 'clamp(8px, 1.2vw, 26px)',
+            }}
+          >
             {/* Logo & Branding */}
-            <div className="flex items-center gap-4 min-w-0">
-              <div className="shrink-0 bg-white rounded-lg p-1.5 flex items-center justify-center">
+            <div className="flex items-center min-w-0" style={{ gap: 'clamp(6px, 0.9vw, 18px)' }}>
+              <div
+                className="shrink-0 bg-white rounded-lg flex items-center justify-center"
+                style={{ padding: 'clamp(3px, 0.35vw, 7px)' }}
+              >
                 <img
                   src={hospitalLogo}
                   alt="PMCH Logo"
-                  className="h-11 w-auto object-contain"
+                  className="w-auto object-contain"
+                  style={{ height: 'clamp(26px, 2.5vw, 46px)' }}
                 />
               </div>
               <div
-                className="h-12 shrink-0"
-                style={{ width: '2px', background: 'linear-gradient(to bottom, transparent, rgba(255,255,255,0.25), transparent)' }}
+                className="shrink-0"
+                style={{
+                  width: '2px',
+                  height: 'clamp(26px, 2.8vw, 52px)',
+                  background: 'linear-gradient(to bottom, transparent, rgba(255,255,255,0.25), transparent)',
+                }}
               />
               <div className="flex flex-col min-w-0">
                 <span
-                  className="text-xl xl:text-2xl font-bold tracking-wide font-body leading-tight whitespace-nowrap"
-                  style={{ color: screen.brandingColor || '#ffffff' }}
+                  className="font-bold tracking-wide font-body leading-tight whitespace-nowrap"
+                  style={{
+                    color: screen.brandingColor || '#ffffff',
+                    fontSize: 'clamp(11px, 1.15vw, 26px)',
+                  }}
                 >
                   Popular Medical College and Hospital
                 </span>
                 <span
-                  className="text-sm xl:text-base font-body italic tracking-[0.2em] mt-0.5 whitespace-nowrap"
-                  style={{ color: screen.brandingColor || '#ffffff', opacity: 0.5 }}
+                  className="font-body italic tracking-[0.2em] whitespace-nowrap"
+                  style={{
+                    color: screen.brandingColor || '#ffffff',
+                    opacity: 0.5,
+                    fontSize: 'clamp(8px, 0.8vw, 18px)',
+                    marginTop: '2px',
+                  }}
                 >
                   We Care for Life
                 </span>
@@ -202,35 +224,63 @@ const TokenGalleryDisplay = ({ screen }) => {
 
             {/* Screen Title */}
             <h1
-              className={`text-2xl xl:text-3xl 2xl:text-4xl font-bold tracking-[0.08em] whitespace-nowrap shrink-0 ${screen.titleFont || 'font-heading'}`}
-              style={{ color: screen.titleColor || '#ffffff' }}
+              className={`font-bold tracking-[0.08em] whitespace-nowrap shrink-0 ${screen.titleFont || 'font-heading'}`}
+              style={{
+                color: screen.titleColor || '#ffffff',
+                fontSize: 'clamp(16px, 1.8vw, 44px)',
+              }}
             >
               {screen.title}
             </h1>
 
             {/* Date & Time */}
             <div
-              className="flex items-center gap-4 px-5 py-2.5 rounded-xl shrink-0 whitespace-nowrap"
+              className="flex items-center rounded-xl shrink-0 whitespace-nowrap"
               style={{
                 background: 'rgba(255,255,255,0.08)',
                 border: '1px solid rgba(255,255,255,0.12)',
+                gap: 'clamp(6px, 0.8vw, 18px)',
+                padding: 'clamp(5px, 0.55vw, 12px) clamp(10px, 1.1vw, 22px)',
               }}
             >
-              <div className="flex items-center gap-2">
-                <Calendar className="w-5 h-5 shrink-0" style={{ color: screen.dateTimeColor || '#ffffff', opacity: 0.5 }} />
+              <div className="flex items-center" style={{ gap: 'clamp(4px, 0.5vw, 10px)' }}>
+                <Calendar
+                  className="shrink-0"
+                  style={{
+                    color: screen.dateTimeColor || '#ffffff',
+                    opacity: 0.5,
+                    width: 'clamp(13px, 1.2vw, 22px)',
+                    height: 'clamp(13px, 1.2vw, 22px)',
+                  }}
+                />
                 <span
-                  className={`text-base xl:text-lg font-medium tracking-wide ${screen.dateTimeFont || 'font-body'}`}
-                  style={{ color: screen.dateTimeColor || '#ffffff', opacity: 0.9 }}
+                  className={`font-medium tracking-wide ${screen.dateTimeFont || 'font-body'}`}
+                  style={{
+                    color: screen.dateTimeColor || '#ffffff',
+                    opacity: 0.9,
+                    fontSize: 'clamp(11px, 1.0vw, 22px)',
+                  }}
                 >
                   {currentDate}
                 </span>
               </div>
-              <div className="w-px h-7" style={{ background: 'rgba(255,255,255,0.12)' }} />
-              <div className="flex items-center gap-2">
-                <Clock className="w-5 h-5 shrink-0" style={{ color: screen.dateTimeColor || '#ffffff', opacity: 0.5 }} />
+              <div style={{ width: '1px', height: 'clamp(14px, 1.4vw, 30px)', background: 'rgba(255,255,255,0.12)' }} />
+              <div className="flex items-center" style={{ gap: 'clamp(4px, 0.5vw, 10px)' }}>
+                <Clock
+                  className="shrink-0"
+                  style={{
+                    color: screen.dateTimeColor || '#ffffff',
+                    opacity: 0.5,
+                    width: 'clamp(13px, 1.2vw, 22px)',
+                    height: 'clamp(13px, 1.2vw, 22px)',
+                  }}
+                />
                 <span
-                  className={`text-xl xl:text-2xl font-bold tracking-wider ${screen.dateTimeFont || 'font-body'}`}
-                  style={{ color: screen.dateTimeColor || '#ffffff' }}
+                  className={`font-bold tracking-wider ${screen.dateTimeFont || 'font-body'}`}
+                  style={{
+                    color: screen.dateTimeColor || '#ffffff',
+                    fontSize: 'clamp(14px, 1.35vw, 30px)',
+                  }}
                 >
                   {formatTimeDisplay(currentTime)}
                 </span>
@@ -240,38 +290,58 @@ const TokenGalleryDisplay = ({ screen }) => {
         </div>
 
         {/* Main Token Area */}
-        <div className="flex-1 min-h-0 flex flex-col items-center justify-center px-8 py-4">
+        <div
+          className="flex-1 min-h-0 flex flex-col items-center justify-center"
+          style={{ padding: 'clamp(10px, 1.2vw, 32px) clamp(16px, 2vw, 48px)' }}
+        >
           {servingToken ? (
             <>
               {/* NOW SERVING Label */}
-              <div className="mb-4">
-                <div className="flex items-center gap-5">
-                  <div className="h-[2px] w-20" style={{ background: 'linear-gradient(to right, transparent, rgba(250,204,21,0.5))' }} />
+              <div style={{ marginBottom: 'clamp(10px, 1.2vw, 28px)' }}>
+                <div className="flex items-center" style={{ gap: 'clamp(10px, 1.3vw, 26px)' }}>
+                  <div
+                    style={{
+                      height: '2px',
+                      width: 'clamp(40px, 4vw, 96px)',
+                      background: 'linear-gradient(to right, transparent, rgba(250,204,21,0.5))',
+                    }}
+                  />
                   <span
-                    className={`text-5xl xl:text-6xl font-bold uppercase tracking-[0.25em] ${screen.servingFont || 'font-heading'}`}
-                    style={{ color: screen.servingColor || '#facc15', opacity: 0.85 }}
+                    className={`font-bold uppercase tracking-[0.25em] ${screen.servingFont || 'font-heading'}`}
+                    style={{
+                      color: screen.servingColor || '#facc15',
+                      opacity: 0.85,
+                      fontSize: 'clamp(26px, 3vw, 72px)',
+                    }}
                   >
                     Now Serving
                   </span>
-                  <div className="h-[2px] w-20" style={{ background: 'linear-gradient(to left, transparent, rgba(250,204,21,0.5))' }} />
+                  <div
+                    style={{
+                      height: '2px',
+                      width: 'clamp(40px, 4vw, 96px)',
+                      background: 'linear-gradient(to left, transparent, rgba(250,204,21,0.5))',
+                    }}
+                  />
                 </div>
               </div>
 
               {/* Token Number */}
-              <div className="relative mb-3">
+              <div className="relative" style={{ marginBottom: 'clamp(8px, 1vw, 22px)' }}>
                 {/* Ambient glow */}
                 <div
-                  className="absolute -inset-12 animate-pulse"
+                  className="absolute animate-pulse"
                   style={{
+                    inset: '-6vmin',
                     background: 'radial-gradient(ellipse, rgba(250,204,21,0.15) 0%, transparent 70%)',
                   }}
                 />
                 <div
                   className="relative"
                   style={{
-                    padding: '1rem 3rem',
+                    padding: 'clamp(10px, 1.2vw, 28px) clamp(24px, 3vw, 64px)',
                     background: 'linear-gradient(145deg, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.15) 100%)',
-                    borderRadius: '2rem',
+                    borderRadius: 'clamp(18px, 1.8vw, 40px)',
                     border: '2px solid rgba(250,204,21,0.2)',
                     boxShadow: '0 0 100px rgba(250,204,21,0.08), 0 8px 40px rgba(0,0,0,0.15)',
                   }}
@@ -279,7 +349,7 @@ const TokenGalleryDisplay = ({ screen }) => {
                   <div
                     className={`font-black leading-none text-center ${screen.servingFont || 'font-heading'}`}
                     style={{
-                      fontSize: 'clamp(10rem, 26vw, 22rem)',
+                      fontSize: 'clamp(6rem, min(26vw, 38vh), 60rem)',
                       color: screen.servingColor || '#facc15',
                       filter: 'drop-shadow(0 6px 20px rgba(0,0,0,0.3))',
                       WebkitFilter: 'drop-shadow(0 6px 20px rgba(0,0,0,0.3))'
@@ -292,12 +362,13 @@ const TokenGalleryDisplay = ({ screen }) => {
 
               {/* Collect message */}
               <p
-                className={`text-4xl xl:text-5xl font-semibold uppercase ${screen.collectFont || 'font-body'}`}
+                className={`font-semibold uppercase ${screen.collectFont || 'font-body'}`}
                 style={{
                   letterSpacing: '0.15em',
                   textShadow: '0 2px 10px rgba(0,0,0,0.5)',
                   color: screen.collectColor || '#ffffff',
                   opacity: 0.9,
+                  fontSize: 'clamp(18px, 2.2vw, 56px)',
                 }}
               >
                 Please collect your order
@@ -306,18 +377,27 @@ const TokenGalleryDisplay = ({ screen }) => {
           ) : (
             <div className="text-center">
               <div
-                className="w-36 h-36 rounded-3xl mx-auto mb-8 flex items-center justify-center"
+                className="rounded-3xl mx-auto flex items-center justify-center"
                 style={{
                   background: 'rgba(255,255,255,0.05)',
                   border: '1px solid rgba(255,255,255,0.08)',
+                  width: 'clamp(90px, 10vw, 220px)',
+                  height: 'clamp(90px, 10vw, 220px)',
+                  marginBottom: 'clamp(16px, 2vw, 48px)',
                 }}
               >
-                <Hash className="w-20 h-20 text-white/15" />
+                <Hash className="text-white/15" style={{ width: 'clamp(50px, 5.5vw, 120px)', height: 'clamp(50px, 5.5vw, 120px)' }} />
               </div>
-              <p className="text-6xl font-semibold text-white/30 font-heading tracking-wider">
+              <p
+                className="font-semibold text-white/30 font-heading tracking-wider"
+                style={{ fontSize: 'clamp(28px, 3.4vw, 80px)' }}
+              >
                 No Active Token
               </p>
-              <p className="text-3xl mt-4 text-white/15 font-body">
+              <p
+                className="text-white/15 font-body"
+                style={{ fontSize: 'clamp(14px, 1.7vw, 40px)', marginTop: 'clamp(6px, 0.8vw, 18px)' }}
+              >
                 Waiting for next customer
               </p>
             </div>
@@ -333,26 +413,43 @@ const TokenGalleryDisplay = ({ screen }) => {
           }}
         >
           {/* Label */}
-          <div className="flex items-center gap-4 px-10 pt-5 pb-3">
-            <div className="flex items-center gap-3">
+          <div
+            className="flex items-center"
+            style={{
+              gap: 'clamp(10px, 1.2vw, 24px)',
+              padding: 'clamp(8px, 1vw, 22px) clamp(16px, 2.2vw, 48px) clamp(4px, 0.6vw, 14px)',
+            }}
+          >
+            <div className="flex items-center" style={{ gap: 'clamp(6px, 0.8vw, 16px)' }}>
               <div
-                className="w-3 h-3 rounded-full animate-pulse"
-                style={{ backgroundColor: '#facc15', boxShadow: '0 0 10px rgba(250,204,21,0.5)' }}
+                className="rounded-full animate-pulse"
+                style={{
+                  width: 'clamp(7px, 0.7vw, 14px)',
+                  height: 'clamp(7px, 0.7vw, 14px)',
+                  backgroundColor: '#facc15',
+                  boxShadow: '0 0 10px rgba(250,204,21,0.5)',
+                }}
               />
-              <span className="text-xl font-bold uppercase tracking-[0.2em] font-heading" style={{ color: 'rgba(250,204,21,0.7)' }}>
+              <span
+                className="font-bold uppercase tracking-[0.2em] font-heading"
+                style={{ color: 'rgba(250,204,21,0.7)', fontSize: 'clamp(11px, 1.15vw, 24px)' }}
+              >
                 Previous Tokens
               </span>
             </div>
             <div className="flex-1 h-px" style={{ background: 'linear-gradient(to right, rgba(250,204,21,0.15), transparent)' }} />
-            <span className="text-lg font-body" style={{ color: 'rgba(255,255,255,0.5)' }}>
+            <span
+              className="font-body"
+              style={{ color: 'rgba(255,255,255,0.5)', fontSize: 'clamp(11px, 1.0vw, 22px)' }}
+            >
               {previousTokens.length > 0 ? `${previousTokens.length} called` : 'Waiting'}
             </span>
           </div>
 
           {/* Token Chips */}
-          <div className="px-8 pb-5 pt-1">
+          <div style={{ padding: 'clamp(2px, 0.2vw, 6px) clamp(12px, 1.8vw, 40px) clamp(8px, 1vw, 22px)' }}>
             {previousTokens.length > 0 ? (
-              <div className="flex items-center gap-3 overflow-x-auto scrollbar-hide">
+              <div className="flex items-center overflow-x-auto scrollbar-hide" style={{ gap: 'clamp(6px, 0.8vw, 16px)' }}>
                 {previousTokens.map((token, index) => {
                   const isFirst = index === 0;
                   // Yellow for most recent, then fade to white over 3-4 cards
@@ -373,12 +470,21 @@ const TokenGalleryDisplay = ({ screen }) => {
                       : index === 2
                         ? '#e5e7eb'   // warm white
                         : '#ffffff';  // full white
+                  const chipFontSize = isFirst
+                    ? 'clamp(18px, 1.9vw, 40px)'
+                    : index <= 2
+                      ? 'clamp(16px, 1.65vw, 34px)'
+                      : 'clamp(14px, 1.4vw, 30px)';
+                  const chipPadding = isFirst
+                    ? 'clamp(8px, 0.9vw, 18px) clamp(14px, 1.8vw, 36px)'
+                    : 'clamp(6px, 0.7vw, 14px) clamp(10px, 1.4vw, 28px)';
                   return (
                     <div
                       key={token.updatedAt}
-                      className="flex-shrink-0 flex items-center gap-3 rounded-xl tv-glass-fallback"
+                      className="flex-shrink-0 flex items-center rounded-xl tv-glass-fallback"
                       style={{
-                        padding: isFirst ? '14px 28px' : '10px 22px',
+                        gap: 'clamp(6px, 0.7vw, 14px)',
+                        padding: chipPadding,
                         background: chipBg,
                         backdropFilter: 'blur(14px) saturate(1.3)',
                         WebkitBackdropFilter: 'blur(14px) saturate(1.3)',
@@ -389,15 +495,16 @@ const TokenGalleryDisplay = ({ screen }) => {
                       }}
                     >
                       <Hash
-                        className="w-5 h-5"
                         style={{
-                          color: isFirst ? 'rgba(250,204,21,0.6)' : 'rgba(255,255,255,0.4)'
+                          width: 'clamp(13px, 1.15vw, 22px)',
+                          height: 'clamp(13px, 1.15vw, 22px)',
+                          color: isFirst ? 'rgba(250,204,21,0.6)' : 'rgba(255,255,255,0.4)',
                         }}
                       />
                       <span
                         className="font-bold font-heading tracking-wide"
                         style={{
-                          fontSize: isFirst ? '2rem' : index <= 2 ? '1.75rem' : '1.5rem',
+                          fontSize: chipFontSize,
                           color: textColor,
                         }}
                       >
@@ -408,8 +515,11 @@ const TokenGalleryDisplay = ({ screen }) => {
                 })}
               </div>
             ) : (
-              <div className="flex items-center justify-center py-3">
-                <span className="text-lg italic font-body" style={{ color: 'rgba(255,255,255,0.15)' }}>
+              <div className="flex items-center justify-center" style={{ padding: 'clamp(6px, 0.8vw, 14px) 0' }}>
+                <span
+                  className="italic font-body"
+                  style={{ color: 'rgba(255,255,255,0.15)', fontSize: 'clamp(11px, 1.0vw, 22px)' }}
+                >
                   No previous tokens yet
                 </span>
               </div>

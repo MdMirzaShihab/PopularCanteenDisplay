@@ -3,16 +3,18 @@ import { UtensilsCrossed, Film, Megaphone } from 'lucide-react';
 import { VISUAL_STYLES } from '../gallery/themes/visualStyleRegistry';
 import MediaMultiPicker from './MediaMultiPicker';
 import AnnouncementEditor from './AnnouncementEditor';
-import ColorPicker from '../ui/ColorPicker';
-import SizePicker from '../ui/SizePicker';
+import TypographyControl from '../ui/TypographyControl';
 import { TRANSITION_EFFECTS, DEFAULT_SLIDE_DURATION, DEFAULT_TRANSITION } from '../../utils/mediaUtils';
-import { FONT_CHOICES, makeFontSampleMap } from '../../utils/constants';
+import { makeFontSampleMap } from '../../utils/constants';
 
 const CONTENT_TYPES = [
   { type: 'menu', label: 'Menu', icon: UtensilsCrossed },
   { type: 'media', label: 'Media', icon: Film },
   { type: 'announcement', label: 'Announcement', icon: Megaphone }
 ];
+
+const ITEM_FONT_SAMPLE = makeFontSampleMap('CHICKEN BIRYANI', 'Chicken Biryani');
+const PRICE_FONT_SAMPLE = makeFontSampleMap('৳120', '৳120');
 
 const DEFAULT_ANNOUNCEMENT = {
   headline: '',
@@ -144,185 +146,59 @@ const SectionContentEditor = ({ content, onChange, menus, label }) => {
             </div>
           </div>
 
-          {/* Title Font */}
-          <div>
-            <label className="block text-sm font-medium text-text-200 mb-2">
-              Title Font
-            </label>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-72 overflow-y-auto pr-1">
-              {FONT_CHOICES.map((font) => {
-                const isSelected = (content?.titleFont || 'font-heading') === font.id;
-                return (
-                  <button
-                    key={font.id}
-                    type="button"
-                    onClick={() => onChange({ ...content, titleFont: font.id })}
-                    className={`p-2 rounded-lg border-2 transition-colors text-center ${
-                      isSelected
-                        ? 'border-primary-100 bg-primary-50'
-                        : 'border-bg-300 bg-white hover:border-primary-100/50'
-                    }`}
-                  >
-                    <span className={`${font.id} text-lg leading-tight ${isSelected ? 'text-primary-100' : 'text-text-100'}`}>
-                      {TITLE_FONT_SAMPLE[font.id]}
-                    </span>
-                    <span className="block text-[10px] text-text-200 mt-0.5">{font.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Title Size */}
-          <SizePicker
-            label="Title Size"
-            value={content?.titleSize}
-            onChange={(step) => onChange({ ...content, titleSize: step })}
+          <TypographyControl
+            label="Title"
+            font={content?.titleFont || 'font-heading'}
+            fontSample={TITLE_FONT_SAMPLE}
+            onFontChange={(id) => onChange({ ...content, titleFont: id })}
+            size={content?.titleSize}
+            onSizeChange={(step) => onChange({ ...content, titleSize: step })}
+            color={content?.titleColor}
+            colorDefault="#ffffff"
+            colorThemeDefault
+            onColorChange={(hex) => onChange({ ...content, titleColor: hex })}
+            renderPreview={({ font, color }) => (
+              <span className={`${font} text-base`} style={{ color: color || '#ffffff' }}>
+                Menu Title
+              </span>
+            )}
           />
 
-          {/* Title Color */}
-          <div>
-            <ColorPicker
-              label="Title Color"
-              value={content?.titleColor}
-              defaultValue="#ffffff"
-              themeDefault
-              onChange={(hex) => onChange({ ...content, titleColor: hex })}
-              renderPreview={({ color }) => (
-                <div
-                  className="h-10 rounded-lg flex items-center justify-center border border-bg-300"
-                  style={{ backgroundColor: '#1a1a2e' }}
-                >
-                  <span
-                    className={`${content?.titleFont || 'font-heading'} text-sm`}
-                    style={{ color }}
-                  >
-                    Preview Title
-                  </span>
-                </div>
-              )}
-            />
-          </div>
-
-          {/* Item Name Font */}
-          <div>
-            <label className="block text-sm font-medium text-text-200 mb-2">
-              Item Name Font
-            </label>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-72 overflow-y-auto pr-1">
-              {FONT_CHOICES.map((font) => {
-                const isSelected = (content?.itemFont || 'font-body') === font.id;
-                return (
-                  <button
-                    key={font.id}
-                    type="button"
-                    onClick={() => onChange({ ...content, itemFont: font.id })}
-                    className={`p-2 rounded-lg border-2 transition-colors text-center ${
-                      isSelected
-                        ? 'border-primary-100 bg-primary-50'
-                        : 'border-bg-300 bg-white hover:border-primary-100/50'
-                    }`}
-                  >
-                    <span className={`${font.id} text-lg leading-tight ${isSelected ? 'text-primary-100' : 'text-text-100'}`}>
-                      Chicken Biryani
-                    </span>
-                    <span className="block text-[10px] text-text-200 mt-0.5">{font.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Item Name Size */}
-          <SizePicker
-            label="Item Name Size"
-            value={content?.itemSize}
-            onChange={(step) => onChange({ ...content, itemSize: step })}
+          <TypographyControl
+            label="Item Name"
+            font={content?.itemFont || 'font-body'}
+            fontSample={ITEM_FONT_SAMPLE}
+            onFontChange={(id) => onChange({ ...content, itemFont: id })}
+            size={content?.itemSize}
+            onSizeChange={(step) => onChange({ ...content, itemSize: step })}
+            color={content?.itemColor}
+            colorDefault="#ffffff"
+            colorThemeDefault
+            onColorChange={(hex) => onChange({ ...content, itemColor: hex })}
+            renderPreview={({ font, color }) => (
+              <span className={`${font} text-base`} style={{ color: color || '#ffffff' }}>
+                Chicken Biryani
+              </span>
+            )}
           />
 
-          {/* Item Name Color */}
-          <div>
-            <ColorPicker
-              label="Item Name Color"
-              value={content?.itemColor}
-              defaultValue="#ffffff"
-              themeDefault
-              onChange={(hex) => onChange({ ...content, itemColor: hex })}
-              renderPreview={({ color }) => (
-                <div
-                  className="h-10 rounded-lg flex items-center justify-center border border-bg-300"
-                  style={{ backgroundColor: '#1a1a2e' }}
-                >
-                  <span
-                    className={`${content?.itemFont || 'font-body'} text-sm`}
-                    style={{ color }}
-                  >
-                    Chicken Biryani
-                  </span>
-                </div>
-              )}
-            />
-          </div>
-
-          {/* Price Font */}
-          <div>
-            <label className="block text-sm font-medium text-text-200 mb-2">
-              Price Font
-            </label>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-72 overflow-y-auto pr-1">
-              {FONT_CHOICES.map((font) => {
-                const isSelected = (content?.priceFont || 'font-heading') === font.id;
-                return (
-                  <button
-                    key={font.id}
-                    type="button"
-                    onClick={() => onChange({ ...content, priceFont: font.id })}
-                    className={`p-2 rounded-lg border-2 transition-colors text-center ${
-                      isSelected
-                        ? 'border-primary-100 bg-primary-50'
-                        : 'border-bg-300 bg-white hover:border-primary-100/50'
-                    }`}
-                  >
-                    <span className={`${font.id} text-lg leading-tight ${isSelected ? 'text-primary-100' : 'text-text-100'}`}>
-                      ৳120
-                    </span>
-                    <span className="block text-[10px] text-text-200 mt-0.5">{font.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Price Size */}
-          <SizePicker
-            label="Price Size"
-            value={content?.priceSize}
-            onChange={(step) => onChange({ ...content, priceSize: step })}
+          <TypographyControl
+            label="Price"
+            font={content?.priceFont || 'font-heading'}
+            fontSample={PRICE_FONT_SAMPLE}
+            onFontChange={(id) => onChange({ ...content, priceFont: id })}
+            size={content?.priceSize}
+            onSizeChange={(step) => onChange({ ...content, priceSize: step })}
+            color={content?.priceColor}
+            colorDefault="#6ee7b7"
+            colorThemeDefault
+            onColorChange={(hex) => onChange({ ...content, priceColor: hex })}
+            renderPreview={({ font, color }) => (
+              <span className={`${font} text-base font-bold`} style={{ color: color || '#6ee7b7' }}>
+                ৳120
+              </span>
+            )}
           />
-
-          {/* Price Color */}
-          <div>
-            <ColorPicker
-              label="Price Color"
-              value={content?.priceColor}
-              defaultValue="#6ee7b7"
-              themeDefault
-              onChange={(hex) => onChange({ ...content, priceColor: hex })}
-              renderPreview={({ color }) => (
-                <div
-                  className="h-10 rounded-lg flex items-center justify-center border border-bg-300"
-                  style={{ backgroundColor: '#1a1a2e' }}
-                >
-                  <span
-                    className={`${content?.priceFont || 'font-heading'} text-sm font-bold`}
-                    style={{ color }}
-                  >
-                    ৳120
-                  </span>
-                </div>
-              )}
-            />
-          </div>
         </div>
       )}
 
