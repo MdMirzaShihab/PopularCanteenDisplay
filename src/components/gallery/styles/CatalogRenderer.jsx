@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { isVideoUrl } from '../../../utils/fileUtils';
+import { usePageCrossfade } from '../../../hooks/usePageCrossfade';
 import {
   getItemSizeClass,
   getPriceSizeClass,
@@ -9,6 +10,8 @@ import {
 } from '../themes/typographyRegistry';
 
 const VISUAL_STYLE_ID = 'catalog';
+const STAGGER_MS = 65;
+const EXIT_DURATION = 520;
 
 const CornerBracket = ({ position }) => {
   const map = {
@@ -69,87 +72,132 @@ const CatalogRenderer = React.memo(({ items, showPrices = true, itemFont, itemCo
   }, [items.length, itemsPerPage]);
 
   const totalPages = Math.ceil(items.length / itemsPerPage);
-  const pageItems = items.slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage);
+  const { activePage, prevPage, transitionKey } = usePageCrossfade(currentPage, EXIT_DURATION);
+  const sliceFor = (p) => items.slice(p * itemsPerPage, (p + 1) * itemsPerPage);
+  const activeItems = sliceFor(activePage);
+  const prevItems = prevPage !== null ? sliceFor(prevPage) : [];
   const resolvedPriceColor = priceColor || '#5eead4';
+
+  const gridStyle = {
+    gridTemplateColumns: `repeat(auto-fill, minmax(${minCardWidth}px, 1fr))`,
+  };
+
+  const renderCard = (item) => (
+    <div
+      className="relative overflow-hidden w-full h-full"
+      style={{
+        borderRadius: '18px',
+        boxShadow: '0 14px 40px -10px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.09)',
+      }}
+    >
+      {item.image ? (
+        isVideoUrl(item.image) ? (
+          <video src={item.image} className="absolute inset-0 w-full h-full object-cover" autoPlay muted loop playsInline />
+        ) : (
+          <img src={item.image} alt={item.name} className="absolute inset-0 w-full h-full object-cover" />
+        )
+      ) : (
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-700 to-slate-900" />
+      )}
+
+      <div className="absolute inset-0" style={{
+        background: 'linear-gradient(180deg, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0) 38%, rgba(0,0,0,0.55) 65%, rgba(0,0,0,0.96) 100%)'
+      }} />
+
+      <div className="absolute inset-0 pointer-events-none" style={{
+        background: 'radial-gradient(ellipse at 50% 30%, transparent 45%, rgba(0,0,0,0.35) 100%)'
+      }} />
+
+      <CornerBracket position="top-left" />
+      <CornerBracket position="top-right" />
+      <CornerBracket position="bottom-left" />
+      <CornerBracket position="bottom-right" />
+
+      {showPrices && (
+        <div className="absolute top-3 right-3 px-3 py-1 rounded-full" style={{
+          background: 'rgba(0,0,0,0.6)',
+          backdropFilter: 'blur(10px) saturate(1.3)',
+          WebkitBackdropFilter: 'blur(10px) saturate(1.3)',
+          border: `1px solid ${resolvedPriceColor}66`,
+          boxShadow: `0 0 22px -6px ${resolvedPriceColor}88, inset 0 1px 0 rgba(255,255,255,0.1)`,
+        }}>
+          <span className={`${priceFont || 'font-heading'} font-black ${priceSizeClass} tabular-nums tracking-wider`} style={{
+            color: resolvedPriceColor,
+            textShadow: `0 0 8px ${resolvedPriceColor}aa`,
+          }}>৳{item.price.toFixed(0)}</span>
+        </div>
+      )}
+
+      <div className="absolute bottom-0 left-0 right-0 px-4 pb-3.5">
+        <div className="h-[2px] w-12 mb-2" style={{
+          background: `linear-gradient(90deg, ${resolvedPriceColor} 0%, transparent 100%)`,
+          boxShadow: `0 0 8px ${resolvedPriceColor}80`,
+        }} />
+        <p className={`${itemFont || 'font-display'} font-black ${itemSizeClass} leading-tight`} style={{
+          color: itemColor || '#ffffff',
+          letterSpacing: '0.025em',
+          textShadow: '0 2px 14px rgba(0,0,0,0.95), 0 1px 2px rgba(0,0,0,0.6)',
+        }}>{item.name}</p>
+      </div>
+    </div>
+  );
 
   return (
     <div ref={containerRef} className="w-full h-full flex flex-col">
-      <div className="flex-1 grid gap-3 content-start p-1" style={{
-        gridTemplateColumns: `repeat(auto-fill, minmax(${minCardWidth}px, 1fr))`
-      }}>
-        {pageItems.map(item => (
+      <div className="relative flex-1 min-h-0">
+        {prevPage !== null && (
           <div
-            key={item._id}
-            className="relative overflow-hidden"
-            style={{
-              height: `${cardHeight}px`,
-              borderRadius: '18px',
-              boxShadow: '0 14px 40px -10px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.09)',
-            }}
+            key={`prev-${prevPage}`}
+            className="absolute inset-0 grid gap-3 content-start p-1 menu-page-exit"
+            style={gridStyle}
           >
-            {item.image ? (
-              isVideoUrl(item.image) ? (
-                <video src={item.image} className="absolute inset-0 w-full h-full object-cover" autoPlay muted loop playsInline />
-              ) : (
-                <img src={item.image} alt={item.name} className="absolute inset-0 w-full h-full object-cover" />
-              )
-            ) : (
-              <div className="absolute inset-0 bg-gradient-to-br from-slate-700 to-slate-900" />
-            )}
-
-            {/* Cinematic bottom-weighted gradient */}
-            <div className="absolute inset-0" style={{
-              background: 'linear-gradient(180deg, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0) 38%, rgba(0,0,0,0.55) 65%, rgba(0,0,0,0.96) 100%)'
-            }} />
-
-            {/* Vignette */}
-            <div className="absolute inset-0 pointer-events-none" style={{
-              background: 'radial-gradient(ellipse at 50% 30%, transparent 45%, rgba(0,0,0,0.35) 100%)'
-            }} />
-
-            {/* Viewfinder corner brackets */}
-            <CornerBracket position="top-left" />
-            <CornerBracket position="top-right" />
-            <CornerBracket position="bottom-left" />
-            <CornerBracket position="bottom-right" />
-
-            {/* Floating neon price pill — top right */}
-            {showPrices && (
-              <div className="absolute top-3 right-3 px-3 py-1 rounded-full" style={{
-                background: 'rgba(0,0,0,0.6)',
-                backdropFilter: 'blur(10px) saturate(1.3)',
-                WebkitBackdropFilter: 'blur(10px) saturate(1.3)',
-                border: `1px solid ${resolvedPriceColor}66`,
-                boxShadow: `0 0 22px -6px ${resolvedPriceColor}88, inset 0 1px 0 rgba(255,255,255,0.1)`,
-              }}>
-                <span className={`${priceFont || 'font-heading'} font-black ${priceSizeClass} tabular-nums tracking-wider`} style={{
-                  color: resolvedPriceColor,
-                  textShadow: `0 0 8px ${resolvedPriceColor}aa`,
-                }}>৳{item.price.toFixed(0)}</span>
+            {prevItems.map((item) => (
+              <div key={item._id} style={{ height: `${cardHeight}px` }}>
+                {renderCard(item)}
               </div>
-            )}
-
-            {/* Item name — bottom-left with accent bar */}
-            <div className="absolute bottom-0 left-0 right-0 px-4 pb-3.5">
-              <div className="h-[2px] w-12 mb-2" style={{
-                background: `linear-gradient(90deg, ${resolvedPriceColor} 0%, transparent 100%)`,
-                boxShadow: `0 0 8px ${resolvedPriceColor}80`,
-              }} />
-              <p className={`${itemFont || 'font-display'} font-black ${itemSizeClass} leading-tight`} style={{
-                color: itemColor || '#ffffff',
-                letterSpacing: '0.025em',
-                textShadow: '0 2px 14px rgba(0,0,0,0.95), 0 1px 2px rgba(0,0,0,0.6)',
-              }}>{item.name}</p>
-            </div>
+            ))}
           </div>
-        ))}
+        )}
+        <div
+          key={`active-${transitionKey}`}
+          className="absolute inset-0 grid gap-3 content-start p-1"
+          style={gridStyle}
+        >
+          {activeItems.map((item, idx) => (
+            <div
+              key={item._id}
+              className="menu-item-cinema"
+              style={{ height: `${cardHeight}px`, animationDelay: `${idx * STAGGER_MS}ms` }}
+            >
+              {renderCard(item)}
+            </div>
+          ))}
+        </div>
+        {totalPages > 1 && transitionKey > 0 && (
+          <div
+            key={`sweep-${transitionKey}`}
+            className="absolute inset-0 overflow-hidden pointer-events-none"
+            aria-hidden="true"
+          >
+            <div
+              className="absolute top-[-6%] bottom-[-6%] w-[60%] menu-sweep-animate"
+              style={{
+                left: 0,
+                background: `radial-gradient(ellipse at 50% 50%, ${resolvedPriceColor}28 0%, ${resolvedPriceColor}12 30%, transparent 70%)`,
+                filter: 'blur(24px)',
+                transform: 'translate3d(-110%,0,0)',
+                mixBlendMode: 'screen',
+              }}
+            />
+          </div>
+        )}
       </div>
       {totalPages > 1 && (
         <div className="flex justify-center items-center gap-1.5 py-2.5">
           {Array.from({ length: totalPages }).map((_, i) => (
             <div
               key={i}
-              className="rounded-full transition-all duration-300"
+              className={`rounded-full transition-all duration-500 ${i === currentPage ? 'menu-dot-pulse' : ''}`}
               style={{
                 width: i === currentPage ? '22px' : '6px',
                 height: '4px',
