@@ -5,54 +5,6 @@ import { Hash, Clock, Calendar } from 'lucide-react';
 import { hospitalLogo } from '../../assets';
 import { resolveMediaUrl } from '../../utils/mediaUtils';
 
-const API_BASE = import.meta.env.VITE_API_URL || '';
-
-/**
- * Play a server-generated TTS audio file via HTML5 Audio.
- * Samsung TV compatible: preloads before playing, retries once on failure,
- * and uses a persistent audio element to avoid Samsung Tizen autoplay issues.
- */
-let sharedAudio = null;
-const getSharedAudio = () => {
-  if (!sharedAudio) {
-    sharedAudio = new Audio();
-    sharedAudio.preload = 'auto';
-  }
-  return sharedAudio;
-};
-
-const playAudioUrl = (urlPath) => {
-  if (!urlPath) return Promise.resolve();
-  const url = `${API_BASE}${urlPath}`;
-
-  return new Promise((resolve) => {
-    const audio = getSharedAudio();
-
-    const cleanup = () => {
-      audio.onended = null;
-      audio.onerror = null;
-      audio.oncanplaythrough = null;
-    };
-
-    audio.onended = () => { cleanup(); resolve(); };
-    audio.onerror = () => { cleanup(); resolve(); };
-
-    audio.src = url;
-    audio.load();
-
-    audio.oncanplaythrough = () => {
-      audio.oncanplaythrough = null;
-      audio.play().catch(() => {
-        // Retry once after a short delay (Samsung TV autoplay quirk)
-        setTimeout(() => audio.play().catch(() => { cleanup(); resolve(); }), 200);
-      });
-    };
-
-    // Safety timeout — never block longer than 15s
-    setTimeout(() => { cleanup(); resolve(); }, 15000);
-  });
-};
-
 /**
  * Background layer — image / video / color. Isolated in its own memoed
  * component so that the video element is NOT re-rendered when unrelated
@@ -153,35 +105,7 @@ GalleryBackground.displayName = 'GalleryBackground';
  * above untouched. This fixes the Samsung TV video flash on token calls.
  */
 const TokenLiveArea = memo(({ screen }) => {
-  const {
-    currentToken: servingToken, tokenHistory,
-    shouldAnnounce, audioUrl,
-    reannounceNumber, reannounceAudioUrl, clearReannounce,
-  } = useSocketTokens();
-  const prevTokenRef = useRef(null);
-
-  // Voice announcement when token changes (only if not silent)
-  useEffect(() => {
-    if (servingToken && servingToken.number !== prevTokenRef.current) {
-      if (shouldAnnounce && audioUrl) {
-        playAudioUrl(audioUrl).catch(() => {});
-      }
-      prevTokenRef.current = servingToken.number;
-    } else if (!servingToken) {
-      prevTokenRef.current = null;
-    }
-  }, [servingToken, shouldAnnounce, audioUrl]);
-
-  // Re-announce: replay cached audio without changing token
-  useEffect(() => {
-    if (reannounceNumber && reannounceAudioUrl) {
-      playAudioUrl(reannounceAudioUrl).catch(() => {});
-      clearReannounce();
-    } else if (reannounceNumber) {
-      clearReannounce();
-    }
-  }, [reannounceNumber, reannounceAudioUrl, clearReannounce]);
-
+  const { currentToken: servingToken, tokenHistory } = useSocketTokens();
   const previousTokens = tokenHistory;
 
   return (
