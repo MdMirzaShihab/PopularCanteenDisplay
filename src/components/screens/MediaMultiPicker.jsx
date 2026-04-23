@@ -251,6 +251,7 @@ const MediaMultiPicker = ({ value = [], onChange, maxItems = MAX_MEDIA_ITEMS }) 
               accept="image/*,video/*"
               label="Upload Image or Video"
               folder="sections"
+              maxSizeMB={5}
             />
           )}
         </div>

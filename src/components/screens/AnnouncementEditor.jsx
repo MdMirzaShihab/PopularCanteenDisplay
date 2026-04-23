@@ -330,6 +330,7 @@ const AnnouncementEditor = ({ content, onChange }) => {
                 accept="image/*"
                 label="Background Image"
                 folder="backgrounds"
+                maxSizeMB={5}
               />
             )}
 

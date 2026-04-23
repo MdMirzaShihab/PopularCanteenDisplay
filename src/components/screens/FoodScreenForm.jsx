@@ -320,7 +320,8 @@ const FoodScreenForm = forwardRef(({ screen, activeTab, onTabChange, onSubmit, o
                   onError={showError}
                   accept={formData.backgroundType === 'image' ? 'image/*' : 'video/*'}
                   label={`Background ${formData.backgroundType === 'image' ? 'Image' : 'Video'}`}
-                  folder="backgrounds" />
+                  folder="backgrounds"
+                  maxSizeMB={5} />
               )}
 
               {formData.backgroundMedia && (

@@ -512,6 +512,7 @@ const TokenScreenForm = ({ screen, onSubmit, onCancel }) => {
                     accept="image/*"
                     label="Upload Background Image"
                     folder="backgrounds"
+                    maxSizeMB={5}
                   />
                 </>
               )}
@@ -585,7 +586,7 @@ const TokenScreenForm = ({ screen, onSubmit, onCancel }) => {
                 <>
                   <div className="p-3 bg-primary-100/10 border border-primary-100/30 rounded-lg">
                     <p className="text-xs text-text-100">
-                      <strong>Tip:</strong> Compress videos before uploading (recommended &lt;2MB).
+                      <strong>Tip:</strong> Compress videos before uploading (recommended &lt;5MB).
                     </p>
                   </div>
                   <ImageUpload
@@ -595,6 +596,7 @@ const TokenScreenForm = ({ screen, onSubmit, onCancel }) => {
                     accept="video/*"
                     label="Upload Background Video"
                     folder="backgrounds"
+                    maxSizeMB={5}
                   />
                 </>
               )}

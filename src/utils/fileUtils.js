@@ -90,9 +90,10 @@ export const createPreviewUrl = async (file) => {
 /**
  * Validate image/video upload
  * @param {File} file - The file to validate
+ * @param {number} maxSizeMB - Maximum file size in MB (default 2)
  * @returns {Object} - Validation result with success flag and error message
  */
-export const validateMediaFile = (file) => {
+export const validateMediaFile = (file, maxSizeMB = 2) => {
   if (!file) {
     return { success: false, error: 'No file selected' };
   }
@@ -101,8 +102,8 @@ export const validateMediaFile = (file) => {
     return { success: false, error: 'Invalid file type. Please upload an image (JPEG, PNG, GIF, WebP) or video (MP4, WebM)' };
   }
 
-  if (!validateFileSize(file, 2)) {
-    return { success: false, error: 'File size too large. Maximum size is 2MB' };
+  if (!validateFileSize(file, maxSizeMB)) {
+    return { success: false, error: `File size too large. Maximum size is ${maxSizeMB}MB` };
   }
 
   return { success: true };

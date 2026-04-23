@@ -4,7 +4,7 @@ import { validateMediaFile, isVideoUrl } from '../../utils/fileUtils';
 import { uploadFile, uploadFileAndCreateMedia } from '../../api/upload.api';
 import { deleteMedia } from '../../api/media.api';
 
-const ImageUpload = ({ value, onChange, onError, accept = 'image/*,video/*', label = 'Upload Image/Video', folder = 'items' }) => {
+const ImageUpload = ({ value, onChange, onError, accept = 'image/*,video/*', label = 'Upload Image/Video', folder = 'items', maxSizeMB = 2 }) => {
   const [dragActive, setDragActive] = useState(false);
   const [preview, setPreview] = useState(value || null);
   const [isVideo, setIsVideo] = useState(false);
@@ -53,7 +53,7 @@ const ImageUpload = ({ value, onChange, onError, accept = 'image/*,video/*', lab
   const handleFile = async (file) => {
     if (!file) return;
 
-    const validation = validateMediaFile(file);
+    const validation = validateMediaFile(file, maxSizeMB);
     if (!validation.success) {
       if (onError) onError(validation.error);
       return;
@@ -222,7 +222,7 @@ const ImageUpload = ({ value, onChange, onError, accept = 'image/*,video/*', lab
                 <span className="text-primary-100 font-semibold">Click to upload</span> or drag and drop
               </p>
               <p className="text-xs text-text-200 mt-1">
-                PNG, JPG, GIF, WebP, MP4, WebM (max 2MB)
+                PNG, JPG, GIF, WebP, MP4, WebM (max {maxSizeMB}MB)
               </p>
             </div>
             <Upload className="w-6 h-6 text-text-300 mt-2" />
