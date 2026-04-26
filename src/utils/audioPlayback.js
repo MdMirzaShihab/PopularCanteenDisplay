@@ -18,28 +18,50 @@ export const playAudioUrl = (urlPath) => {
 
   return new Promise((resolve) => {
     const audio = getSharedAudio();
+    let settled = false;
+    let safetyTimer = null;
 
-    const cleanup = () => {
+    const settle = () => {
+      if (settled) return;
+      settled = true;
       audio.onended = null;
       audio.onerror = null;
-      audio.oncanplaythrough = null;
+      if (safetyTimer) clearTimeout(safetyTimer);
+      resolve();
     };
 
-    audio.onended = () => { cleanup(); resolve(); };
-    audio.onerror = () => { cleanup(); resolve(); };
+    audio.onended = settle;
+    audio.onerror = settle;
 
-    audio.src = url;
+    // Reset the element so the same URL (e.g. token-reannounce) re-triggers a
+    // fresh load. Without this, browsers may treat the assignment as a no-op
+    // and skip media events, leaving playback silently stuck.
+    try { audio.pause(); } catch { /* ignore */ }
+    audio.removeAttribute('src');
     audio.load();
+    audio.src = url;
 
-    audio.oncanplaythrough = () => {
-      audio.oncanplaythrough = null;
-      audio.play().catch(() => {
-        // Retry once after a short delay (Samsung TV autoplay quirk)
-        setTimeout(() => audio.play().catch(() => { cleanup(); resolve(); }), 200);
-      });
+    const tryPlay = (attempt = 1) => {
+      const p = audio.play();
+      if (p && typeof p.catch === 'function') {
+        p.catch((err) => {
+          if (attempt < 2) {
+            // Retry once after a short delay (Samsung TV autoplay quirk)
+            setTimeout(() => tryPlay(attempt + 1), 200);
+          } else {
+            console.warn('[audioPlayback] play() failed after retry:', url, err);
+            settle();
+          }
+        });
+      }
     };
 
-    // Safety timeout — never block longer than 15s
-    setTimeout(() => { cleanup(); resolve(); }, 15000);
+    tryPlay();
+
+    // Safety timeout — never block the queue longer than 15s.
+    safetyTimer = setTimeout(() => {
+      console.warn('[audioPlayback] safety timeout (15s), forcing resolve:', url);
+      settle();
+    }, 15000);
   });
 };
