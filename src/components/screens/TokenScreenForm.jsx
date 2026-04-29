@@ -8,7 +8,7 @@ import BackgroundCropTool from '../common/BackgroundCropTool';
 import ConfirmDialog from '../common/ConfirmDialog';
 import ColorPicker from '../ui/ColorPicker';
 import TypographyControl from '../ui/TypographyControl';
-import { makeFontSampleMap, slugify } from '../../utils/constants';
+import { makeFontSampleMap, slugify, DEFAULT_SIZE } from '../../utils/constants';
 
 const TITLE_FONT_SAMPLE = makeFontSampleMap('TOKEN DISPLAY', 'Token Display');
 const DATETIME_FONT_SAMPLE = makeFontSampleMap('12:45 PM', 'Wed, Apr 17');
@@ -18,13 +18,17 @@ const COLLECT_FONT_SAMPLE = makeFontSampleMap('PLEASE COLLECT', 'Please collect'
 const DEFAULTS = {
   titleFont: 'font-heading',
   titleColor: '#ffffff',
+  titleSize: DEFAULT_SIZE,
   brandingColor: '#ffffff',
   dateTimeFont: 'font-body',
   dateTimeColor: '#ffffff',
+  dateTimeSize: DEFAULT_SIZE,
   servingFont: 'font-heading',
   servingColor: '#facc15',
+  servingSize: DEFAULT_SIZE,
   collectFont: 'font-body',
   collectColor: '#ffffff',
+  collectSize: DEFAULT_SIZE,
 };
 
 const MediaGalleryPicker = ({ items, loading, type, value, onSelect, onDelete }) => {
@@ -83,13 +87,17 @@ const TokenScreenForm = ({ screen, onSubmit, onCancel }) => {
     screenId: '',
     titleFont: DEFAULTS.titleFont,
     titleColor: DEFAULTS.titleColor,
+    titleSize: DEFAULTS.titleSize,
     brandingColor: DEFAULTS.brandingColor,
     dateTimeFont: DEFAULTS.dateTimeFont,
     dateTimeColor: DEFAULTS.dateTimeColor,
+    dateTimeSize: DEFAULTS.dateTimeSize,
     servingFont: DEFAULTS.servingFont,
     servingColor: DEFAULTS.servingColor,
+    servingSize: DEFAULTS.servingSize,
     collectFont: DEFAULTS.collectFont,
     collectColor: DEFAULTS.collectColor,
+    collectSize: DEFAULTS.collectSize,
     backgroundType: 'color',
     backgroundMedia: null,
     backgroundColor: '#1f2937',
@@ -127,13 +135,17 @@ const TokenScreenForm = ({ screen, onSubmit, onCancel }) => {
         screenId: screen.screenId || '',
         titleFont: screen.titleFont || DEFAULTS.titleFont,
         titleColor: screen.titleColor || DEFAULTS.titleColor,
+        titleSize: screen.titleSize || DEFAULTS.titleSize,
         brandingColor: screen.brandingColor || DEFAULTS.brandingColor,
         dateTimeFont: screen.dateTimeFont || DEFAULTS.dateTimeFont,
         dateTimeColor: screen.dateTimeColor || DEFAULTS.dateTimeColor,
+        dateTimeSize: screen.dateTimeSize || DEFAULTS.dateTimeSize,
         servingFont: screen.servingFont || DEFAULTS.servingFont,
         servingColor: screen.servingColor || DEFAULTS.servingColor,
+        servingSize: screen.servingSize || DEFAULTS.servingSize,
         collectFont: screen.collectFont || DEFAULTS.collectFont,
         collectColor: screen.collectColor || DEFAULTS.collectColor,
+        collectSize: screen.collectSize || DEFAULTS.collectSize,
         backgroundType: screen.backgroundType || 'color',
         backgroundMedia: screen.backgroundMedia || null,
         backgroundColor: screen.backgroundColor || '#1f2937',
@@ -145,11 +157,11 @@ const TokenScreenForm = ({ screen, onSubmit, onCancel }) => {
     } else {
       setFormData({
         title: '', screenId: '',
-        titleFont: DEFAULTS.titleFont, titleColor: DEFAULTS.titleColor,
+        titleFont: DEFAULTS.titleFont, titleColor: DEFAULTS.titleColor, titleSize: DEFAULTS.titleSize,
         brandingColor: DEFAULTS.brandingColor,
-        dateTimeFont: DEFAULTS.dateTimeFont, dateTimeColor: DEFAULTS.dateTimeColor,
-        servingFont: DEFAULTS.servingFont, servingColor: DEFAULTS.servingColor,
-        collectFont: DEFAULTS.collectFont, collectColor: DEFAULTS.collectColor,
+        dateTimeFont: DEFAULTS.dateTimeFont, dateTimeColor: DEFAULTS.dateTimeColor, dateTimeSize: DEFAULTS.dateTimeSize,
+        servingFont: DEFAULTS.servingFont, servingColor: DEFAULTS.servingColor, servingSize: DEFAULTS.servingSize,
+        collectFont: DEFAULTS.collectFont, collectColor: DEFAULTS.collectColor, collectSize: DEFAULTS.collectSize,
         backgroundType: 'color', backgroundMedia: null, backgroundColor: '#1f2937',
         backgroundPositionX: 50, backgroundPositionY: 50, backgroundScale: 1,
       });
@@ -365,6 +377,8 @@ const TokenScreenForm = ({ screen, onSubmit, onCancel }) => {
             font={formData.titleFont}
             fontSample={TITLE_FONT_SAMPLE}
             onFontChange={(id) => setFormData(prev => ({ ...prev, titleFont: id }))}
+            size={formData.titleSize}
+            onSizeChange={(step) => setFormData(prev => ({ ...prev, titleSize: step }))}
             color={formData.titleColor}
             colorDefault={DEFAULTS.titleColor}
             onColorChange={(hex) => setFormData(prev => ({ ...prev, titleColor: hex }))}
@@ -380,6 +394,8 @@ const TokenScreenForm = ({ screen, onSubmit, onCancel }) => {
             font={formData.dateTimeFont}
             fontSample={DATETIME_FONT_SAMPLE}
             onFontChange={(id) => setFormData(prev => ({ ...prev, dateTimeFont: id }))}
+            size={formData.dateTimeSize}
+            onSizeChange={(step) => setFormData(prev => ({ ...prev, dateTimeSize: step }))}
             color={formData.dateTimeColor}
             colorDefault={DEFAULTS.dateTimeColor}
             onColorChange={(hex) => setFormData(prev => ({ ...prev, dateTimeColor: hex }))}
@@ -397,6 +413,8 @@ const TokenScreenForm = ({ screen, onSubmit, onCancel }) => {
             font={formData.servingFont}
             fontSample={SERVING_FONT_SAMPLE}
             onFontChange={(id) => setFormData(prev => ({ ...prev, servingFont: id }))}
+            size={formData.servingSize}
+            onSizeChange={(step) => setFormData(prev => ({ ...prev, servingSize: step }))}
             color={formData.servingColor}
             colorDefault={DEFAULTS.servingColor}
             onColorChange={(hex) => setFormData(prev => ({ ...prev, servingColor: hex }))}
@@ -414,6 +432,8 @@ const TokenScreenForm = ({ screen, onSubmit, onCancel }) => {
             font={formData.collectFont}
             fontSample={COLLECT_FONT_SAMPLE}
             onFontChange={(id) => setFormData(prev => ({ ...prev, collectFont: id }))}
+            size={formData.collectSize}
+            onSizeChange={(step) => setFormData(prev => ({ ...prev, collectSize: step }))}
             color={formData.collectColor}
             colorDefault={DEFAULTS.collectColor}
             onColorChange={(hex) => setFormData(prev => ({ ...prev, collectColor: hex }))}

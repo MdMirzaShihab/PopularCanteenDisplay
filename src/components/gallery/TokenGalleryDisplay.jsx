@@ -6,6 +6,9 @@ import { hospitalLogo } from '../../assets';
 import { resolveMediaUrl } from '../../utils/mediaUtils';
 import CrossfadeVideo from '../common/CrossfadeVideo';
 
+const SIZE_MULTIPLIERS = { S: 0.78, M: 1, L: 1.25, XL: 1.5, '2XL': 1.85 };
+const sizeMult = (step) => SIZE_MULTIPLIERS[step] ?? 1;
+
 /**
  * Background layer — image / video / color. Isolated in its own memoed
  * component so that the video element is NOT re-rendered when unrelated
@@ -73,6 +76,8 @@ GalleryBackground.displayName = 'GalleryBackground';
 const TokenLiveArea = memo(({ screen }) => {
   const { currentToken: servingToken, tokenHistory } = useSocketTokens();
   const previousTokens = tokenHistory;
+  const servingMult = sizeMult(screen.servingSize);
+  const collectMult = sizeMult(screen.collectSize);
 
   return (
     <>
@@ -98,7 +103,7 @@ const TokenLiveArea = memo(({ screen }) => {
                   style={{
                     color: screen.servingColor || '#facc15',
                     opacity: 0.85,
-                    fontSize: 'clamp(26px, 3vw, 72px)',
+                    fontSize: `clamp(${26 * servingMult}px, ${3 * servingMult}vw, ${72 * servingMult}px)`,
                   }}
                 >
                   Now Serving
@@ -136,7 +141,7 @@ const TokenLiveArea = memo(({ screen }) => {
                 <div
                   className={`font-black leading-none text-center ${screen.servingFont || 'font-heading'}`}
                   style={{
-                    fontSize: 'clamp(6rem, min(26vw, 38vh), 60rem)',
+                    fontSize: `clamp(${6 * servingMult}rem, min(${26 * servingMult}vw, ${38 * servingMult}vh), ${60 * servingMult}rem)`,
                     color: screen.servingColor || '#facc15',
                     filter: 'drop-shadow(0 6px 20px rgba(0,0,0,0.3))',
                     WebkitFilter: 'drop-shadow(0 6px 20px rgba(0,0,0,0.3))'
@@ -155,7 +160,7 @@ const TokenLiveArea = memo(({ screen }) => {
                 textShadow: '0 2px 10px rgba(0,0,0,0.5)',
                 color: screen.collectColor || '#ffffff',
                 opacity: 0.9,
-                fontSize: 'clamp(18px, 2.2vw, 56px)',
+                fontSize: `clamp(${18 * collectMult}px, ${2.2 * collectMult}vw, ${56 * collectMult}px)`,
               }}
             >
               Please collect your order
@@ -322,6 +327,8 @@ TokenLiveArea.displayName = 'TokenLiveArea';
 const TokenGalleryDisplay = ({ screen }) => {
   const [currentTime, setCurrentTime] = useState(getCurrentTime());
   const [currentDate, setCurrentDate] = useState(formatDateDisplay());
+  const titleMult = sizeMult(screen.titleSize);
+  const dateTimeMult = sizeMult(screen.dateTimeSize);
 
   // Update clock and date every 60 seconds
   useEffect(() => {
@@ -415,7 +422,7 @@ const TokenGalleryDisplay = ({ screen }) => {
               className={`font-bold tracking-[0.08em] whitespace-nowrap shrink-0 ${screen.titleFont || 'font-heading'}`}
               style={{
                 color: screen.titleColor || '#ffffff',
-                fontSize: 'clamp(16px, 1.8vw, 44px)',
+                fontSize: `clamp(${16 * titleMult}px, ${1.8 * titleMult}vw, ${44 * titleMult}px)`,
               }}
             >
               {screen.title}
@@ -446,7 +453,7 @@ const TokenGalleryDisplay = ({ screen }) => {
                   style={{
                     color: screen.dateTimeColor || '#ffffff',
                     opacity: 0.9,
-                    fontSize: 'clamp(11px, 1.0vw, 22px)',
+                    fontSize: `clamp(${11 * dateTimeMult}px, ${1.0 * dateTimeMult}vw, ${22 * dateTimeMult}px)`,
                   }}
                 >
                   {currentDate}
@@ -467,7 +474,7 @@ const TokenGalleryDisplay = ({ screen }) => {
                   className={`font-bold tracking-wider ${screen.dateTimeFont || 'font-body'}`}
                   style={{
                     color: screen.dateTimeColor || '#ffffff',
-                    fontSize: 'clamp(14px, 1.35vw, 30px)',
+                    fontSize: `clamp(${14 * dateTimeMult}px, ${1.35 * dateTimeMult}vw, ${30 * dateTimeMult}px)`,
                   }}
                 >
                   {formatTimeDisplay(currentTime)}
