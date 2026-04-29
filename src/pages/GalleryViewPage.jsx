@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { getScreenById } from '../api/screens.api';
 import GalleryDisplay from '../components/gallery/GalleryDisplay';
 import TokenGalleryDisplay from '../components/gallery/TokenGalleryDisplay';
+import { unlockAudio, isAudioUnlocked } from '../utils/audioPlayback';
 
 const POLL_INTERVAL = 5000;
 
@@ -107,11 +108,17 @@ const GalleryViewPage = () => {
     };
   }, [loading, error]);
 
-  // First-gesture fullscreen: any click/tap/key anywhere on the document
+  // First-gesture fullscreen + audio unlock: any click/tap/key anywhere on
+  // the document satisfies both the fullscreen permission AND the autoplay
+  // policy gate for the shared audio element used by token TTS.
   useEffect(() => {
     if (!needsGesture) return;
 
     const handler = async () => {
+      // Unlock audio synchronously inside the gesture context BEFORE awaiting
+      // fullscreen — otherwise the browser may have already consumed the
+      // gesture by the time we get here, leaving audio locked.
+      unlockAudio().catch(() => { /* logged inside */ });
       try {
         await requestFullscreenOn(containerRef.current);
       } catch {
@@ -127,6 +134,68 @@ const GalleryViewPage = () => {
       document.removeEventListener('keydown', handler);
     };
   }, [needsGesture]);
+
+  // Audio unlock on any first interaction — independent of the fullscreen
+  // prompt path. If auto-fullscreen succeeds the prompt never shows and the
+  // gesture-unlock there never runs, but token TTS would still be locked
+  // until the operator interacts with the page. This catches that case.
+  useEffect(() => {
+    if (loading || error) return;
+    if (isAudioUnlocked()) return;
+
+    const handler = () => {
+      unlockAudio().catch(() => { /* logged inside */ });
+    };
+    document.addEventListener('click', handler, { once: true });
+    document.addEventListener('touchstart', handler, { once: true, passive: true });
+    document.addEventListener('keydown', handler, { once: true });
+    return () => {
+      document.removeEventListener('click', handler);
+      document.removeEventListener('touchstart', handler);
+      document.removeEventListener('keydown', handler);
+    };
+  }, [loading, error]);
+
+  // Screen Wake Lock — prevents the device from sleeping / dimming while the
+  // gallery is on. Critical for kiosk-style Tizen TVs where standby would
+  // suspend background videos and break the audio playback path. The lock is
+  // automatically released when the tab becomes hidden, so we re-acquire on
+  // visibilitychange.
+  useEffect(() => {
+    if (loading || error) return;
+    if (typeof navigator === 'undefined' || !('wakeLock' in navigator)) return;
+
+    let lock = null;
+    let cancelled = false;
+
+    const acquire = async () => {
+      if (document.hidden) return;
+      try {
+        lock = await navigator.wakeLock.request('screen');
+        if (cancelled) {
+          try { await lock.release(); } catch { /* ignore */ }
+          lock = null;
+          return;
+        }
+        lock.addEventListener('release', () => { lock = null; });
+      } catch (err) {
+        console.warn('[wakeLock] acquire failed:', err);
+      }
+    };
+
+    const onVisibility = () => {
+      if (!document.hidden && !lock) acquire();
+    };
+
+    acquire();
+    document.addEventListener('visibilitychange', onVisibility);
+
+    return () => {
+      cancelled = true;
+      document.removeEventListener('visibilitychange', onVisibility);
+      if (lock) lock.release().catch(() => {});
+    };
+  }, [loading, error]);
 
   if (loading) {
     return (

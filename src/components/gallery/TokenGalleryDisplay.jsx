@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState, useCallback, useMemo, memo } from 'react';
+import { useEffect, useState, useMemo, memo } from 'react';
 import { useSocketTokens } from '../../hooks/useSocketTokens';
 import { getCurrentTime, formatTimeDisplay, formatDateDisplay } from '../../utils/timeUtils';
 import { Hash, Clock, Calendar } from 'lucide-react';
 import { hospitalLogo } from '../../assets';
 import { resolveMediaUrl } from '../../utils/mediaUtils';
+import CrossfadeVideo from '../common/CrossfadeVideo';
 
 /**
  * Background layer — image / video / color. Isolated in its own memoed
@@ -16,38 +17,11 @@ import { resolveMediaUrl } from '../../utils/mediaUtils';
  */
 const GalleryBackground = memo(
   ({ backgroundType, backgroundMediaUrl, backgroundColor, positionX, positionY, scale }) => {
-    const bgVideoRef = useRef(null);
-
-    // Samsung TV video health monitor — recover from silent drops
-    useEffect(() => {
-      if (backgroundType !== 'video') return;
-      const check = setInterval(() => {
-        const vid = bgVideoRef.current;
-        if (!vid) return;
-        if (vid.paused || vid.ended || vid.readyState < 2) {
-          vid.load();
-          vid.play().catch(() => {});
-        }
-      }, 5000);
-      return () => clearInterval(check);
-    }, [backgroundType]);
-
     const cropStyle = useMemo(() => ({
       objectPosition: `${positionX ?? 50}% ${positionY ?? 50}%`,
       transform: `scale(${scale ?? 1})`,
       transformOrigin: `${positionX ?? 50}% ${positionY ?? 50}%`,
     }), [positionX, positionY, scale]);
-
-    const handleVideoError = useCallback((e) => {
-      // Samsung TV: reload video on error
-      const vid = e.currentTarget;
-      setTimeout(() => { vid.load(); vid.play().catch(() => {}); }, 1000);
-    }, []);
-
-    const handleVideoStalled = useCallback((e) => {
-      const vid = e.currentTarget;
-      setTimeout(() => { vid.play().catch(() => {}); }, 500);
-    }, []);
 
     if (backgroundType === 'image' && backgroundMediaUrl) {
       return (
@@ -62,18 +36,10 @@ const GalleryBackground = memo(
 
     if (backgroundType === 'video' && backgroundMediaUrl) {
       return (
-        <video
-          ref={bgVideoRef}
-          src={backgroundMediaUrl}
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="auto"
-          onError={handleVideoError}
-          onStalled={handleVideoStalled}
+        <CrossfadeVideo
+          url={backgroundMediaUrl}
+          cropStyle={cropStyle}
           className="fixed inset-0 w-full h-full object-cover"
-          style={cropStyle}
         />
       );
     }

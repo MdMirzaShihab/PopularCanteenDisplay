@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
 import { isVideoUrl } from '../../../utils/fileUtils';
 import { usePageCrossfade } from '../../../hooks/usePageCrossfade';
 import {
@@ -12,6 +12,55 @@ import {
 const VISUAL_STYLE_ID = 'catalog';
 const STAGGER_MS = 65;
 const EXIT_DURATION = 520;
+
+// Per-card video tile. Tizen Smart TV browsers render <video> on a hardware
+// overlay plane and have a small pool of decoders (commonly 1–2). On unmount
+// we explicitly release the decoder by pausing, clearing src, and reloading;
+// without this, decoders leak across page cycles and later cards render black.
+// Mirrors the recovery pattern in src/components/common/CrossfadeVideo.jsx.
+const CatalogVideoTile = memo(({ src }) => {
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const v = ref.current;
+    return () => {
+      if (!v) return;
+      try {
+        v.pause();
+        v.removeAttribute('src');
+        v.load();
+      } catch { /* ignore */ }
+    };
+  }, []);
+
+  const handleError = useCallback((e) => {
+    const v = e.currentTarget;
+    setTimeout(() => {
+      try { v.load(); v.play().catch(() => {}); } catch { /* ignore */ }
+    }, 1000);
+  }, []);
+
+  const handleStalled = useCallback((e) => {
+    const v = e.currentTarget;
+    setTimeout(() => { v.play().catch(() => {}); }, 500);
+  }, []);
+
+  return (
+    <video
+      ref={ref}
+      src={src}
+      className="absolute inset-0 w-full h-full object-cover"
+      autoPlay
+      muted
+      loop
+      playsInline
+      preload="auto"
+      onError={handleError}
+      onStalled={handleStalled}
+    />
+  );
+});
+CatalogVideoTile.displayName = 'CatalogVideoTile';
 
 const CornerBracket = ({ position }) => {
   const map = {
@@ -76,6 +125,14 @@ const CatalogRenderer = React.memo(({ items, showPrices = true, itemFont, itemCo
   const sliceFor = (p) => items.slice(p * itemsPerPage, (p + 1) * itemsPerPage);
   const activeItems = sliceFor(activePage);
   const prevItems = prevPage !== null ? sliceFor(prevPage) : [];
+  // Tizen hardware decoders are limited (often 1–2 simultaneous streams).
+  // Rendering both prev and active pages during the 520ms exit doubles the
+  // video count and reliably exceeds the budget. When either page contains a
+  // video, skip the prev-page exit layer; the active page's fade-in alone
+  // handles the transition.
+  const hasVideoInActive = activeItems.some(i => i.image && isVideoUrl(i.image));
+  const hasVideoInPrev = prevItems.some(i => i.image && isVideoUrl(i.image));
+  const skipPrevPageRender = hasVideoInActive || hasVideoInPrev;
   const resolvedPriceColor = priceColor || '#5eead4';
 
   const gridStyle = {
@@ -92,9 +149,13 @@ const CatalogRenderer = React.memo(({ items, showPrices = true, itemFont, itemCo
     >
       {item.image ? (
         isVideoUrl(item.image) ? (
-          <video src={item.image} className="absolute inset-0 w-full h-full object-cover" autoPlay muted loop playsInline />
+          <CatalogVideoTile src={item.image} />
         ) : (
-          <img src={item.image} alt={item.name} className="absolute inset-0 w-full h-full object-cover" />
+          <img
+            src={item.image}
+            alt={item.name}
+            className="absolute inset-0 w-full h-full object-cover menu-item-cinema-image"
+          />
         )
       ) : (
         <div className="absolute inset-0 bg-gradient-to-br from-slate-700 to-slate-900" />
@@ -115,9 +176,7 @@ const CatalogRenderer = React.memo(({ items, showPrices = true, itemFont, itemCo
 
       {showPrices && (
         <div className="absolute top-3 right-3 px-3 py-1 rounded-full" style={{
-          background: 'rgba(0,0,0,0.6)',
-          backdropFilter: 'blur(10px) saturate(1.3)',
-          WebkitBackdropFilter: 'blur(10px) saturate(1.3)',
+          background: 'rgba(0,0,0,0.78)',
           border: `1px solid ${resolvedPriceColor}66`,
           boxShadow: `0 0 22px -6px ${resolvedPriceColor}88, inset 0 1px 0 rgba(255,255,255,0.1)`,
         }}>
@@ -145,7 +204,7 @@ const CatalogRenderer = React.memo(({ items, showPrices = true, itemFont, itemCo
   return (
     <div ref={containerRef} className="w-full h-full flex flex-col">
       <div className="relative flex-1 min-h-0">
-        {prevPage !== null && (
+        {prevPage !== null && !skipPrevPageRender && (
           <div
             key={`prev-${prevPage}`}
             className="absolute inset-0 grid gap-3 content-start p-1 menu-page-exit"
@@ -183,10 +242,9 @@ const CatalogRenderer = React.memo(({ items, showPrices = true, itemFont, itemCo
               className="absolute top-[-6%] bottom-[-6%] w-[60%] menu-sweep-animate"
               style={{
                 left: 0,
-                background: `radial-gradient(ellipse at 50% 50%, ${resolvedPriceColor}28 0%, ${resolvedPriceColor}12 30%, transparent 70%)`,
+                background: `radial-gradient(ellipse at 50% 50%, ${resolvedPriceColor}40 0%, ${resolvedPriceColor}1a 30%, transparent 70%)`,
                 filter: 'blur(24px)',
                 transform: 'translate3d(-110%,0,0)',
-                mixBlendMode: 'screen',
               }}
             />
           </div>
