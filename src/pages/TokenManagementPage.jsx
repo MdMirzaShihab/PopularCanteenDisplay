@@ -33,10 +33,15 @@ const TokenManagementPage = () => {
   const canCallNext = !submitting && !!currentToken && isNumericToken(currentToken.number);
   const nextNumber = canCallNext ? computeNextNumber(currentToken.number) : null;
 
-  // Auto-focus the input on mount so the operator can type immediately.
+  // Auto-focus on mount and re-focus once a submission completes. The input
+  // is `disabled={submitting}` which drops focus during the API call, and
+  // re-focusing inside the submit handler's finally block runs before React
+  // re-renders the input as enabled — useEffect waits for that re-render.
   useEffect(() => {
-    inputRef.current?.focus();
-  }, []);
+    if (!submitting) {
+      inputRef.current?.focus();
+    }
+  }, [submitting]);
 
   const callToken = async (value) => {
     if (submitting) return;
@@ -57,7 +62,6 @@ const TokenManagementPage = () => {
       setInputValue(trimmed);
     } finally {
       setSubmitting(false);
-      inputRef.current?.focus();
     }
   };
 
@@ -82,7 +86,6 @@ const TokenManagementPage = () => {
       // useTokens hook handles error notification internally
     } finally {
       setSubmitting(false);
-      inputRef.current?.focus();
     }
   };
 

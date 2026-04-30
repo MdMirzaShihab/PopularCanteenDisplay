@@ -98,23 +98,62 @@ const CrossfadeVideo = memo(({ url, cropStyle, className }) => {
   }, [layers]);
 
   // Samsung TV / Tizen recovery: if the active video silently pauses or its
-  // readyState drops, force a reload + play. Also re-attempt on
-  // visibilitychange (the page being unhidden after standby is the most
-  // common cause of a stuck background video).
+  // readyState drops, try to resume. Cheap recovery first (just play()) and
+  // only escalate to a destructive vid.load() after several consecutive
+  // failed ticks — load() drops the buffer and forces a re-fetch which on
+  // older Tizen takes longer than the heal interval, so calling it on every
+  // tick produces a reload-thrash loop where the video never finishes
+  // loading and the background goes permanently black.
   useEffect(() => {
+    let stuckCount = 0;
+    let reloadInProgress = false;
+
     const heal = () => {
       const vid = refs[activeRef.current].current;
       if (!vid) return;
-      if (vid.paused || vid.ended || vid.readyState < 2) {
-        try {
-          vid.load();
-          vid.play().catch(() => {});
-        } catch { /* ignore */ }
+
+      // A reload from the previous tick is still buffering — give it time
+      // instead of killing it with another load().
+      if (reloadInProgress) {
+        if (vid.readyState >= 2 && !vid.paused) reloadInProgress = false;
+        return;
       }
+
+      const stuck = vid.paused || vid.ended || vid.readyState < 2;
+      if (!stuck) {
+        stuckCount = 0;
+        return;
+      }
+
+      stuckCount += 1;
+
+      // Cheap recovery: handles autoplay-policy wakeups, transient pauses,
+      // and ended-but-loop-failed cases without touching the buffer.
+      if (stuckCount < 3) {
+        if (vid.ended) {
+          try { vid.currentTime = 0; } catch { /* ignore */ }
+        }
+        vid.play().catch(() => {});
+        return;
+      }
+
+      // Sustained failure — full reload as last resort.
+      reloadInProgress = true;
+      stuckCount = 0;
+      try {
+        vid.load();
+        vid.play().catch(() => {});
+      } catch { /* ignore */ }
     };
 
-    const intervalId = setInterval(heal, 3000);
-    const onVisibility = () => { if (!document.hidden) heal(); };
+    const intervalId = setInterval(heal, 8000);
+    const onVisibility = () => {
+      if (!document.hidden) {
+        stuckCount = 0;
+        reloadInProgress = false;
+        heal();
+      }
+    };
     document.addEventListener('visibilitychange', onVisibility);
 
     return () => {
@@ -136,6 +175,16 @@ const CrossfadeVideo = memo(({ url, cropStyle, className }) => {
     setTimeout(() => { v.play().catch(() => {}); }, 500);
   }, []);
 
+  // Manual loop instead of the native `loop` attribute — older Tizen builds
+  // silently fail to restart looped playback after long idles.
+  const handleEnded = useCallback((e) => {
+    const v = e.currentTarget;
+    try {
+      v.currentTime = 0;
+      v.play().catch(() => {});
+    } catch { /* ignore */ }
+  }, []);
+
   // Wrapper establishes a local stacking context (`isolation: isolate`) so the
   // internal z-index swap between the two video layers does not bubble up and
   // overlay foreground siblings — e.g. the food sections grid in
@@ -152,12 +201,11 @@ const CrossfadeVideo = memo(({ url, cropStyle, className }) => {
             ref={refs[idx]}
             src={layerUrl}
             autoPlay
-            loop
             muted
             playsInline
-            preload="auto"
             onError={handleError}
             onStalled={handleStalled}
+            onEnded={handleEnded}
             className="absolute inset-0 w-full h-full object-cover"
             style={{
               ...cropStyle,
