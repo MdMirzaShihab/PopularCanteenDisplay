@@ -12,6 +12,7 @@ const SILENT_WAV =
 
 let sharedAudio = null;
 let unlocked = false;
+let unlockInFlight = null;
 const unlockListeners = new Set();
 
 const getSharedAudio = () => {
@@ -45,32 +46,33 @@ const markUnlocked = () => {
 
 // Call this from a user-gesture handler (click / tap / keydown) to grant the
 // shared audio element autoplay rights for the rest of the session. Safe to
-// call multiple times — no-ops once unlocked.
+// call multiple times — concurrent calls share a single in-flight unlock
+// (otherwise their interleaved `audio.muted` reads/writes can leave the
+// element permanently muted).
 export const unlockAudio = async () => {
   if (unlocked) return true;
+  if (unlockInFlight) return unlockInFlight;
   const audio = getSharedAudio();
-  const prevSrc = audio.src;
-  const prevMuted = audio.muted;
-  try {
-    audio.muted = true;
-    audio.src = SILENT_WAV;
-    audio.load();
-    await audio.play();
-    audio.pause();
-    audio.muted = prevMuted;
-    if (prevSrc && prevSrc !== SILENT_WAV) {
-      audio.src = prevSrc;
-    } else {
+  unlockInFlight = (async () => {
+    try {
+      audio.muted = true;
+      audio.src = SILENT_WAV;
+      audio.load();
+      await audio.play();
+      audio.pause();
+      audio.muted = false;
       audio.removeAttribute('src');
+      markUnlocked();
+      return true;
+    } catch (err) {
+      audio.muted = false;
+      console.warn('[audioPlayback] unlock failed:', err);
+      return false;
+    } finally {
+      unlockInFlight = null;
     }
-    markUnlocked();
-    return true;
-  } catch (err) {
-    audio.muted = prevMuted;
-    if (prevSrc && prevSrc !== SILENT_WAV) audio.src = prevSrc;
-    console.warn('[audioPlayback] unlock failed:', err);
-    return false;
-  }
+  })();
+  return unlockInFlight;
 };
 
 export const playAudioUrl = (urlPath) => {
@@ -94,13 +96,15 @@ export const playAudioUrl = (urlPath) => {
     audio.onended = settle;
     audio.onerror = settle;
 
-    // Reset the element so the same URL (e.g. token-reannounce) re-triggers a
-    // fresh load. Without this, browsers may treat the assignment as a no-op
-    // and skip media events, leaving playback silently stuck.
+    // Set the new src first so the element is never in an empty-source state
+    // (an empty-src `load()` can fire a spurious `error` event that prematurely
+    // settles this promise via the handler above). Forcing currentTime=0 and
+    // calling load() restarts playback even if the same URL is requested again
+    // (e.g. token-reannounce).
     try { audio.pause(); } catch { /* ignore */ }
-    audio.removeAttribute('src');
-    audio.load();
     audio.src = url;
+    try { audio.currentTime = 0; } catch { /* ignore */ }
+    audio.load();
 
     const tryPlay = (attempt = 1) => {
       const p = audio.play();
